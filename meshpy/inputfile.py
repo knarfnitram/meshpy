@@ -51,6 +51,8 @@ from .geometry_set import GeometrySetNodes
 from .utility import get_git_data
 from .nurbs_patch import NURBSPatch
 
+from cubitpy import cubit_to_dat
+
 
 def get_section_string(section_name):
     """Return the string for a section in the dat file."""
@@ -368,7 +370,7 @@ class InputFile(Mesh):
         if dat_file is not None:
             self.read_dat(dat_file)
         if cubit is not None:
-            self._read_dat_lines(cubit.get_dat_lines())
+            self._read_dat_lines(cubit_to_dat(cubit))
 
     def read_dat(self, file_path):
         """
