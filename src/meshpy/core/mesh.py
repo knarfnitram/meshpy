@@ -979,3 +979,7 @@ class Mesh:
         The functions and materials will not be deep copied.
         """
         return copy.deepcopy(self)
+
+
+
+
