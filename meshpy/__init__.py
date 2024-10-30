@@ -56,6 +56,7 @@ from .material import (
 from .element_beam import Beam3eb, Beam3k, Beam3rHerm2Line3, Beam3rLine2Line2
 from .geometry_set import GeometrySet, GeometrySetNodes
 from .node import Node, NodeCosserat
+from .node_position_tracker import Node_Position_Tracker
 
 # Boundary conditions and couplings for geometry in the mesh.
 from .boundary_condition import BoundaryCondition
@@ -107,4 +108,5 @@ __all__ = [
     "set_header_static",
     "set_runtime_output",
     "set_beam_to_solid_meshtying",
+    "Node_Position_Tracker",
 ]
