@@ -36,8 +36,8 @@ class Node_Position_Tracker:
         if np.linalg.norm(node.coordinates-self.nodes[index].coordinates)>1e-8:
             raise ValueError("You are trying to add values to the wrong node.")
 
-        if time.shape[0] is not position.shape[0]:
-            print(time.shape[0],position.shape)
+        if int(time.shape[0]) - int(position.shape[0]) != 0:
+            print(time.shape[0],position.shape[0])
             raise ValueError("You are trying to add times and positions with different lenghts")
 
         if int(position.shape[1])!=3:

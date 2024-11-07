@@ -60,6 +60,7 @@ from .node_position_tracker import Node_Position_Tracker
 
 # Boundary conditions and couplings for geometry in the mesh.
 from .boundary_condition import BoundaryCondition
+from .boundary_condition_utility import create_dbc_with_functions_from_position_tracker
 from .coupling import Coupling
 
 # The mesh class itself and the input file classes.
@@ -109,4 +110,5 @@ __all__ = [
     "set_runtime_output",
     "set_beam_to_solid_meshtying",
     "Node_Position_Tracker",
+    "create_dbc_with_functions_from_position_tracker",
 ]
