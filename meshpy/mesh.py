@@ -499,6 +499,19 @@ class Mesh:
         for i, node in enumerate(self.nodes):
             node.coordinates = pos[i, :]
 
+    def get_overlapping_nodes(self, *, include_middle_nodes=False):
+        """
+        returns all overlapping nodes within the mesh.
+
+        Args:
+        ----
+        include_middle_nodes: bool
+        flag if the middle nodes should be included within the search
+        """
+
+        node_list = filter_nodes(self.nodes, include_middle_nodes)
+        return find_close_nodes(node_list)
+
     def couple_nodes(
         self,
         *,
