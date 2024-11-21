@@ -274,6 +274,10 @@ def create_beam_mesh_function(
     return_set["start"] = GeometrySet(nodes[0])
     return_set["end"] = GeometrySet(end_node)
     return_set["line"] = GeometrySet(elements)
+    if len(elements) > 2:
+        return_set["ele_wo_endings"] = GeometrySet(elements[1:-1])
+    else:
+        return_set["ele_wo_endings"] = None
     if add_sets:
         mesh.add(return_set)
     return return_set
