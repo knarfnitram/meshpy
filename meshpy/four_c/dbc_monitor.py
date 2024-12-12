@@ -214,7 +214,9 @@ def all_dbc_monitor_values_to_input(
                 f"Please provide a time_span with size 1x2 not {len(time_span)}"
             )
 
-        time, force = linear_time_transformation(time, force, time_span, flip_forces)
+        time, force = linear_time_transformation(
+            time, force, time_span, flip=flip_forces
+        )
         if len(fun_array) != 3:
             print("Please provide a list with three valid Functions.")
 
@@ -237,10 +239,10 @@ def all_dbc_monitor_values_to_input(
 
         # create the two intervals
         time1, force1 = linear_time_transformation(
-            time, force, time_span[0:2], flip_forces
+            time, force, time_span[0:2], flip=flip_forces
         )
         time2, force2 = linear_time_transformation(
-            time, force, time_span[1:3], not flip_forces
+            time, force, time_span[1:3], flip=(not flip_forces)
         )
 
         # remove first element since it is duplicated zero
@@ -286,6 +288,7 @@ def all_dbc_monitor_values_to_input(
     elif len(fun_array) != 3:
         raise ValueError("Please provide fun_array with ")
 
+    # here add new interface create_point_neuman_condition
     # Create the BC condition for this set and add it to the input file.
     mesh_nodes = [input_file.nodes[i_node] for i_node in nodes]
     geo = GeometrySet(mesh_nodes)

@@ -92,7 +92,9 @@ class TestUtilities(unittest.TestCase):
         force_result = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]])
 
         # base case no scaling only
-        time_trans, force_trans = linear_time_transformation(time, force, [0, 1], False)
+        time_trans, force_trans = linear_time_transformation(
+            time, force, [0, 1], flip=False
+        )
 
         # first result is simply the attached
         time_result = np.array([0, 0.5, 0.75, 1.0])
@@ -102,7 +104,9 @@ class TestUtilities(unittest.TestCase):
         self.assertEqual(force_trans.tolist(), force_result.tolist())
 
         # transform to interval [0, 2]
-        time_trans, force_trans = linear_time_transformation(time, force, [0, 2], False)
+        time_trans, force_trans = linear_time_transformation(
+            time, force, [0, 2], flip=False
+        )
 
         # time values should double
         self.assertEqual(time_trans.tolist(), (2 * time_result).tolist())
@@ -115,7 +119,7 @@ class TestUtilities(unittest.TestCase):
 
         # shift to the interval [1 ,2] and add valid start end point
         time_trans, force_trans = linear_time_transformation(
-            time, force, [1, 2, 5], False, valid_start_and_end_point=True
+            time, force, [1, 2, 5], flip=False, valid_start_and_end_point=True
         )
         self.assertEqual(
             time_trans.tolist(), np.array([0, 1.0, 1.5, 1.75, 2.0, 5.0]).tolist()
@@ -139,7 +143,9 @@ class TestUtilities(unittest.TestCase):
         force_result = np.array([[10, 11, 12], [7, 8, 9], [4, 5, 6], [1, 2, 3]])
 
         # base case no scaling only end points should be attached
-        time_trans, force_trans = linear_time_transformation(time, force, [0, 1], True)
+        time_trans, force_trans = linear_time_transformation(
+            time, force, [0, 1], flip=True
+        )
 
         # check solution
         self.assertEqual(time_result.tolist(), time_trans.tolist())
@@ -151,7 +157,9 @@ class TestUtilities(unittest.TestCase):
         time_result = np.array([0, 0.25, 0.5, 1.0]) + 1
 
         # test now an shift to the interval [1 ,2]
-        time_trans, force_trans = linear_time_transformation(time, force, [1, 2], True)
+        time_trans, force_trans = linear_time_transformation(
+            time, force, [1, 2], flip=True
+        )
         self.assertEqual(time_result.tolist(), time_trans.tolist())
         self.assertEqual(force_trans.tolist(), force_result.tolist())
 
@@ -164,7 +172,7 @@ class TestUtilities(unittest.TestCase):
 
         # test offset and scaling and add valid start and end point
         time_trans, force_trans = linear_time_transformation(
-            time, force, [2, 3, 5], True, valid_start_and_end_point=True
+            time, force, [2, 3, 5], flip=True, valid_start_and_end_point=True
         )
         self.assertEqual(time_result.tolist(), time_trans.tolist())
         self.assertEqual(force_trans.tolist(), force_result.tolist())
