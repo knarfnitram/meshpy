@@ -40,8 +40,66 @@ import numpy as np
 from .. import mpy, GeometrySet, BoundaryCondition, Function
 from meshpy.function_utility import (
     create_linear_interpolation_function,
-    linear_time_transformation,
 )
+
+
+def linear_time_transformation(
+    time, values, time_span, flip, valid_start_and_end_point=False
+):
+    """Performs a transformation of the time to a new interval with an appropriate value vector
+
+    Args
+    ----
+    time: np.array
+        array with time values
+    values: np.array
+        corresponding values to time
+    time_span: [list] with 2 or 3 entries:
+        time_span[0:2] defines the time interval to which the initial time interval should be scaled.
+        time_span[3] repeats the final entry
+    flip: Bool
+        Flag if the values should be reversed
+    valid_start_and_end_point: Bool
+        optionally adds a valid starting point at t=0 and timespan[3] if provided
+    """
+
+    # flip values if desired and adjust time
+    if flip is True:
+        values = np.flipud(values)
+        time = np.flip(-time) + time[-1]
+
+    # transform time to interval
+    min_t = np.min(time)
+    max_t = np.max(time)
+
+    # scaling/transforming the time into the user defined time
+    time = time_span[0] + (time - min_t) * (time_span[1] - time_span[0]) / (
+        max_t - min_t
+    )
+
+    # ensure that start time is valid
+    if valid_start_and_end_point and time[0] > 0.0:
+
+        # add starting time 0
+        time = np.append(0.0, time)
+
+        # add first coordinate again at the beginning of the array
+        if len(values.shape) == 1:
+            values = np.append(values[0], values)
+        else:
+            values = np.append(values[0], values).reshape(
+                values.shape[0] + 1, values.shape[1]
+            )
+
+    # repeat last value at provided time point
+    if valid_start_and_end_point and len(time_span) > 2:
+        if time_span[2] > time_span[1]:
+            time = np.append(time, time_span[2])
+            values = np.append(values, values[-1]).reshape(
+                values.shape[0] + 1, values.shape[1]
+            )
+
+    return time, values
 
 
 def read_dbc_monitor_file(file_path):
@@ -126,7 +184,7 @@ def all_dbc_monitor_values_to_input(
         The time array always starts at 0 and ends at t3 to ensure a valid simulation
     type: str or None
         two types are available:
-            1) None: not specified simple extract all values and apply them between time intervall t1 and t2
+            1) None: not specified simple extract all values and apply them between time interval t1 and t2
             2) "hat": puts the values first until last value is reached and then decays them back to first value.
             interpolation starting from t1 going to the last value at (t1+t2)/2 and going back to the value at time t2
     flip_forces: bool

@@ -38,7 +38,7 @@ import numpy as np
 
 # Meshpy imports
 from meshpy.utility import is_node_on_plane
-from meshpy.function_utility import linear_time_transformation
+from meshpy.four_c.dbc_monitor import linear_time_transformation
 
 from meshpy.node import Node
 
@@ -78,8 +78,8 @@ class TestUtilities(unittest.TestCase):
         )
 
     def test_linear_time_transformation_scaling(self):
-        """Test the scaling of the intervall the function
-        it starts with a function in the intervall between [0,1] and transforms them
+        """Test the scaling of the interval the function
+        it starts with a function in the interval between [0,1] and transforms them
         """
 
         # starting time array
@@ -101,7 +101,7 @@ class TestUtilities(unittest.TestCase):
         self.assertEqual(time_trans.tolist(), time_result.tolist())
         self.assertEqual(force_trans.tolist(), force_result.tolist())
 
-        # transform to intervall [0, 2]
+        # transform to interval [0, 2]
         time_trans, force_trans = linear_time_transformation(time, force, [0, 2], False)
 
         # time values should double
@@ -113,7 +113,7 @@ class TestUtilities(unittest.TestCase):
             [[1, 2, 3], [1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12], [10, 11, 12]]
         )
 
-        # shift to the intervall [1 ,2] and add valid start end point
+        # shift to the interval [1 ,2] and add valid start end point
         time_trans, force_trans = linear_time_transformation(
             time, force, [1, 2, 5], False, valid_start_and_end_point=True
         )
@@ -150,7 +150,7 @@ class TestUtilities(unittest.TestCase):
 
         time_result = np.array([0, 0.25, 0.5, 1.0]) + 1
 
-        # test now an shift to the intervall [1 ,2]
+        # test now an shift to the interval [1 ,2]
         time_trans, force_trans = linear_time_transformation(time, force, [1, 2], True)
         self.assertEqual(time_result.tolist(), time_trans.tolist())
         self.assertEqual(force_trans.tolist(), force_result.tolist())
