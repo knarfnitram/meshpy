@@ -44,7 +44,7 @@ from meshpy.function_utility import (
 
 
 def linear_time_transformation(
-    time, values, time_span, flip, valid_start_and_end_point=False
+    time, values, time_span, *, flip=False, valid_start_and_end_point=False
 ):
     """Performs a transformation of the time to a new interval with an appropriate value vector
 
@@ -56,7 +56,7 @@ def linear_time_transformation(
         corresponding values to time
     time_span: [list] with 2 or 3 entries:
         time_span[0:2] defines the time interval to which the initial time interval should be scaled.
-        time_span[3] repeats the final entry
+        time_span[3] optional timepoint to repeat last value
     flip: Bool
         Flag if the values should be reversed
     valid_start_and_end_point: Bool
