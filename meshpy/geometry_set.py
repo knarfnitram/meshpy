@@ -245,6 +245,11 @@ class GeometrySet(GeometrySetBase):
                 "Currently GeometrySet are only implemented for points and lines"
             )
 
+    # TODO get elements out
+    # DOcu
+    def get_geometry(self):
+        return self.geometry_objects[self.geometry_type]
+
 
 class GeometrySetNodes(GeometrySetBase):
     """Geometry set which is defined by nodes and not explicit geometry."""

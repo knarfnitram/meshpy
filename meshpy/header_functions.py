@@ -359,12 +359,14 @@ def set_header_static(
     tol_residuum=1e-8,
     tol_increment=1e-10,
     load_lin=False,
+    dyna_type="Statics",
     write_bin=False,
     write_stress="no",
     write_strain="no",
     prestress="none",
     prestress_time=0,
     option_overwrite=False,
+    newton_fail="stop",
 ):
     """
     Set the default parameters for a static structure analysis.
@@ -403,6 +405,11 @@ def set_header_static(
     option_overwrite: bool
         If existing options should be overwritten. If this is false and an
         option is already defined, and error will be thrown.
+    divcont_newton: string
+        Handling of non-converged nonlinear solver.
+        Possible options: "stop", "continue", "repeat_step", "halve_step", "adapt_step",
+              "rand_adapt_step", "rand_adapt_step_ele_err", "repeat_simulation",
+              "adapt_penaltycontact"
     """
 
     # Set the parameters for a static analysis.
@@ -453,7 +460,7 @@ def set_header_static(
             f"""
         LINEAR_SOLVER     1
         INT_STRATEGY      Standard
-        DYNAMICTYPE       Statics
+        DYNAMICTYPE       {dyna_type}
         RESULTSEVRY       1
         NLNSOL            fullnewton
         PREDICT           TangDis
@@ -463,6 +470,7 @@ def set_header_static(
         NUMSTEP           {n_steps}
         MAXTIME           {total_time}
         LOADLIN           {get_yes_no(load_lin)}
+        DIVERCONT         {newton_fail}
         """,
             option_overwrite=option_overwrite,
         )
