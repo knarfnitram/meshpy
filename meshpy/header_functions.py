@@ -270,16 +270,7 @@ def set_beam_to_solid_meshtying(
     # Set the binning strategy.
     if (binning_bounding_box is not None) and binning_cutoff_radius is not None:
         bounding_box_string = " ".join([str(val) for val in binning_bounding_box])
-        input_file.add(
-            InputSection(
-                "BINNING STRATEGY",
-                f"""
-            BIN_SIZE_LOWER_BOUND {binning_cutoff_radius}
-            DOMAINBOUNDINGBOX {bounding_box_string}
-            """,
-                option_overwrite=True,
-            )
-        )
+        set_binning_strategy(input_file, binning_cutoff_radius, bounding_box_string)
     elif (binning_bounding_box is not None) or binning_cutoff_radius is not None:
         raise ValueError(
             (
@@ -470,11 +461,12 @@ def set_header_static(
         NUMSTEP           {n_steps}
         MAXTIME           {total_time}
         LOADLIN           {get_yes_no(load_lin)}
-        DIVERCONT         {newton_fail}
         """,
             option_overwrite=option_overwrite,
         )
     )
+    # TODO
+    # DIVERCONT         {newton_fail}
     input_file.add(
         InputSection(
             "SOLVER 1",
@@ -555,3 +547,89 @@ def set_header_static(
 
     # Set the xml content in the input file.
     input_file.nox_xml = nox_xml
+
+
+def set_binning_strategy(input_file, binning_size, bounding_box_string):
+    input_file.add(
+        InputSection(
+            "BINNING STRATEGY",
+            f"""
+        BIN_SIZE_LOWER_BOUND {binning_size}
+        DOMAINBOUNDINGBOX {bounding_box_string}
+        """,
+            option_overwrite=True,
+        )
+    )
+
+
+def set_beam_interaction(
+    inputfile,
+    repartition_strategy="Everydt",
+    search_strategy="bounding_volume_hierarchy",
+):
+    inputfile.add(
+        InputSection(
+            "BEAM INTERACTION",
+            f"""
+        REPARTITIONSTRATEGY                   {repartition_strategy}
+        SEARCH_STRATEGY                       {search_strategy}
+        """,
+        ),
+        option_overwrite=True,
+    )
+
+
+def set_beam_contact(
+    input_file,
+    *,
+    interaction_strategy="penalty",
+    btb_penalty: float = 0,
+    btb_line_penalty: float = 0,
+    per_shift_angle: list[float] = [70, 80],
+    par_shift_angle: list[float] = [70, 80],
+    b_seg_angle: float = 12,
+    num_integration: int = 5,
+    penalty_law: float = 0,
+    penalty_regularization_g0: float = 0,
+    penalty_regularization_f0: float = 0,
+    penalty_regularization_c0: float = 0,
+):
+
+    if len(per_shift_angle) != 2:
+        raise ValueError("Please provide BEAMS_PERPSHIFTANGLE 1 and 2")
+
+    if len(par_shift_angle) != 2:
+        raise ValueError("Please provide BEAMS_PARSHIFTANGLE1 1 and 2")
+
+    input_file.add(
+        InputSection(
+            "BEAM INTERACTION/BEAM TO BEAM CONTACT",
+            f"""STRATEGY   {interaction_strategy}""",
+        ),
+        option_overwrite=True,
+    )
+    input_file.add(
+        InputSection(
+            "BEAM CONTACT",
+            f"""MODELEVALUATOR                  Standard
+        BEAMS_STRATEGY                  Penalty
+        BEAMS_BTBPENALTYPARAM           {btb_penalty}
+        BEAMS_BTBLINEPENALTYPARAM       {btb_line_penalty}
+        BEAMS_SEGCON                    Yes
+        BEAMS_PERPSHIFTANGLE1           {per_shift_angle[0]}
+        BEAMS_PERPSHIFTANGLE2           {per_shift_angle[1]}
+        BEAMS_PARSHIFTANGLE1            {par_shift_angle[0]}
+        BEAMS_PARSHIFTANGLE2            {par_shift_angle[1]}
+        BEAMS_SEGANGLE                  {b_seg_angle}
+        BEAMS_NUMINTEGRATIONINTERVAL    {num_integration}
+        BEAMS_PENALTYLAW                {penalty_law}
+        BEAMS_PENREGPARAM_G0            {penalty_regularization_g0}
+        BEAMS_PENREGPARAM_F0            {penalty_regularization_f0}
+        BEAMS_PENREGPARAM_C0            {penalty_regularization_c0}
+        """,
+        ),
+        option_overwrite=True,
+    )
+
+    set_binning_strategy(input_file)
+    set_beam_interaction(input_file)

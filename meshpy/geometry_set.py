@@ -245,9 +245,8 @@ class GeometrySet(GeometrySetBase):
                 "Currently GeometrySet are only implemented for points and lines"
             )
 
-    # TODO get elements out
-    # DOcu
     def get_geometry(self):
+        """Return the objects of the geometry type"""
         return self.geometry_objects[self.geometry_type]
 
 
