@@ -36,11 +36,14 @@ This function converts the DBC monitor log files to Neumann input sections.
 # Python modules.
 import numpy as np
 
+import meshpy
+
 # Meshpy stuff.
 from .. import mpy, GeometrySet, BoundaryCondition, Function
 from meshpy.function_utility import (
     create_linear_interpolation_function,
 )
+from meshpy import InputFile
 
 
 def linear_time_transformation(
@@ -148,6 +151,64 @@ def read_dbc_monitor_file(file_path):
     data = np.array(data)
 
     return nodes, data[:, 1], data[:, 4:7], data[:, 7:]
+
+
+def add_point_neuman_condition_to_input_file(
+    input_file: InputFile,
+    nodes: list[int],
+    function_array: list[Function],
+    force: np.ndarray,
+    *,
+    n_dof: int = 3,
+):
+    """
+    Adds a Neumann boundary condition to the input file for the given node_ids
+    with the function_array and force values by creating a new geometry set.
+
+    Args
+    ----
+    input_file: InputFile
+        InputFile where the boundary conditions are added to
+    nodes: [node_id]
+        list containing the ids of the nodes for the condition
+    function_array: [function]
+        list with functions
+    force: [np.ndarray]
+        values to scale the function array with
+    n_dof: int
+        Number of DOFs per node.
+    """
+
+    # Add the function to the input file, if they are not previously added.
+    for function in function_array:
+        if function not in input_file.functions:
+            input_file.add(function)
+
+    # check if the dimensions of force and functions match
+    if force.size != 3:
+        raise ValueError(
+            f"The forces vector must have dimensions [3x1] not [{force.size}x1]"
+        )
+
+    if len(function_array) != 3:
+        raise ValueError(f"The function array must have length 3 not {force.size}.")
+
+    # Create GeometrySet with nodes.
+    mesh_nodes = [input_file.nodes[i_node] for i_node in nodes]
+    geo = GeometrySet(mesh_nodes)
+
+    # Create the Boundary Condition.
+    extra_dof_zero = " 0" * (n_dof - 3)
+    bc = BoundaryCondition(
+        geo,
+        (
+            "NUMDOF {n_dof} ONOFF 1 1 1{edz} VAL {data[0]} {data[1]} {data[2]}"
+            "{edz} FUNCT {{}} {{}} {{}}{edz}"
+        ).format(n_dof=n_dof, data=force, edz=extra_dof_zero),
+        bc_type=mpy.bc.neumann,
+        format_replacement=function_array,
+    )
+    input_file.add(bc)
 
 
 def all_dbc_monitor_values_to_input(
@@ -288,18 +349,7 @@ def all_dbc_monitor_values_to_input(
     elif len(fun_array) != 3:
         raise ValueError("Please provide fun_array with ")
 
-    # here add new interface create_point_neuman_condition
-    # Create the BC condition for this set and add it to the input file.
-    mesh_nodes = [input_file.nodes[i_node] for i_node in nodes]
-    geo = GeometrySet(mesh_nodes)
-    extra_dof_zero = " 0" * (n_dof - 3)
-    bc = BoundaryCondition(
-        geo,
-        (
-            "NUMDOF {n_dof} ONOFF 1 1 1{edz} VAL {data[0]} {data[1]} {data[2]}"
-            "{edz} FUNCT {{}} {{}} {{}}{edz}"
-        ).format(n_dof=n_dof, data=force[steps[1]], edz=extra_dof_zero),
-        bc_type=mpy.bc.neumann,
-        format_replacement=fun_array,
+    # Create condition in input file.
+    add_point_neuman_condition_to_input_file(
+        input_file, nodes, fun_array, force[steps[1]], n_dof=n_dof
     )
-    input_file.add(bc)
