@@ -37,6 +37,7 @@ from utils import compare_test_result
 from meshpy import InputFile, mpy
 from meshpy.header_functions import (
     get_comment,
+    set_beam_contact_section,
     set_beam_to_solid_meshtying,
     set_header_static,
     set_runtime_output,
@@ -174,6 +175,20 @@ class TestHeaderFunctions(unittest.TestCase):
         set_runtime_output(input_file, output_stress_strain=True)
 
         # Check the output.
+        compare_test_result(self, input_file.get_string(header=False, check_nox=False))
+
+    def test_header_functions_beam_interaction(self):
+        """Test the beam contact header function with default parameter."""
+        # Set default values for global parameters.
+        mpy.set_default_values()
+
+        # Create input file.
+        input_file = InputFile()
+
+        # Add Beam contact section to file.
+        set_beam_contact_section(input_file)
+
+        # Compare the output.
         compare_test_result(self, input_file.get_string(header=False, check_nox=False))
 
 

@@ -28,20 +28,17 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 # -----------------------------------------------------------------------------
-"""
-This file contains the wrapper for the LocSys condition for 4c.
-"""
-
+"""This file contains the wrapper for the LocSys condition for 4c."""
 
 # MeshPy modules
-from ..conf import mpy
 from ..boundary_condition import BoundaryCondition
+from ..conf import mpy
 from ..geometry_set import GeometrySet
 
 
 class BeamtoBeamContactCondition(BoundaryCondition):
-    """
-    This object represents the beam to beam contact condition in 4C.
+    """This object represents the beam to beam contact condition in 4C.
+
     It sets the conditions to enable contact between beams.
     """
 
@@ -51,14 +48,12 @@ class BeamtoBeamContactCondition(BoundaryCondition):
         ID,
         **kwargs,
     ):
-        """
-        Initialize the object.
+        """Initialize the object.
 
         Args
         ----
         geometry_set: GeometrySet
             Geometry that this boundary condition acts on.
-
         """
 
         # if geometry set is based on line elements, simply forward them

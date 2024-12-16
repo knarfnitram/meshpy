@@ -247,7 +247,7 @@ class GeometrySet(GeometrySetBase):
             )
 
     def get_geometry(self):
-        """Return the objects of the specified geometry type"""
+        """Return the objects of the specified geometry type."""
         return self.geometry_objects[self.geometry_type]
 
 
