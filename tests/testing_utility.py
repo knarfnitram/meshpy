@@ -78,8 +78,8 @@ class TestUtilities(unittest.TestCase):
         )
 
     def test_linear_time_transformation_scaling(self):
-        """Test the scaling of the interval the function
-        it starts with a function in the interval between [0,1] and transforms them
+        """Test the scaling of the interval for the function.
+        Starts with a function within the interval [0,1] and transforms them.
         """
 
         # starting time array

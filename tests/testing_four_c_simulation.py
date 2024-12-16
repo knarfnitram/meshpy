@@ -805,14 +805,14 @@ class TestFullFourC(unittest.TestCase):
         For the application of the boundary conditions, all values of the force are used.
         """
 
-        # number of simulation steps
-        n_steps = 5
+        # Define Parameters.
+        n_steps = 5  # number of simulation steps
         dt = 0.1  # time step size from create_cantilver_model
 
         # Create and run the initial simulation.
         initial_simulation, beam_set = create_cantilver_model(n_steps, dt)
 
-        # add function with
+        # Add simple lienar interpolation function.
         initial_simulation.add(
             Function(
                 "SYMBOLIC_FUNCTION_OF_SPACE_TIME a \nVARIABLE 0 NAME a TYPE linearinterpolation NUMPOINTS 4 TIMES 0 {} {} 9999999999.0 VALUES 0.0 1.0 0.0 0.0".format(
@@ -821,13 +821,13 @@ class TestFullFourC(unittest.TestCase):
             )
         )
 
-        # apply displacment to all nodes
+        # Apply displacments to all nodes.
         for i, node in enumerate(beam_set["line"].get_all_nodes()):
 
             # do not constraint middle nodes
             if not node.is_middle_node:
 
-                # fix beam at initial point
+                # Set Dirichlet conditions at one end.
                 if check_node_by_coordinate(node, 0, 0):
                     initial_simulation.add(
                         BoundaryCondition(
@@ -837,7 +837,7 @@ class TestFullFourC(unittest.TestCase):
                         )
                     )
                 else:
-                    # add small deformation at tip
+                    # Add small displacment at other end.
                     initial_simulation.add(
                         BoundaryCondition(
                             GeometrySet(node),
@@ -849,6 +849,7 @@ class TestFullFourC(unittest.TestCase):
                         )
                     )
 
+        # Add DB-monitor header.
         initial_simulation.add(
             """
             --IO/MONITOR STRUCTURE DBC
@@ -860,14 +861,14 @@ class TestFullFourC(unittest.TestCase):
             """
         )
 
-        # Check the input file
+        # Check the input file.
         compare_test_result(
             self,
             initial_simulation.get_string(check_nox=False, header=False),
             additional_identifier="dirichlet",
         )
 
-        # Run the simulation in 4C
+        # Run the simulation in 4C.
         initial_run_name = "all_dbc_to_nbc_initial"
         self.run_four_c_test(initial_run_name, initial_simulation)
 
@@ -881,12 +882,12 @@ class TestFullFourC(unittest.TestCase):
             )
         )
 
-        # set up path to monitor
+        # Set up path to monitor.
         monitor_db_path = os.path.join(
             testing_temp, initial_run_name + "/", initial_run_name + "_monitor_dbc"
         )
 
-        # convert the dirichlet conditions into neuman conditions
+        # Convert the Dirichlet conditions into Neuman conditions.
         for root, dirs, file_names in os.walk(monitor_db_path):
             for file_name in sorted(file_names):
                 if "_monitor_dbc" in file_name:
@@ -907,7 +908,7 @@ class TestFullFourC(unittest.TestCase):
             """
         )
 
-        # Check the input file of the restart simulation
+        # Compare the input file of the restart simulation.
         compare_test_result(
             self,
             force_simulation.get_string(check_nox=False, header=False),
@@ -915,7 +916,9 @@ class TestFullFourC(unittest.TestCase):
             atol=1e-6,
         )
 
+        # Add runtime output.
         set_runtime_output(force_simulation)
+
         initial_run_name = "all_dbc_to_nbc_initial_3"
         self.run_four_c_test(initial_run_name, force_simulation)
 
