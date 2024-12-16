@@ -44,6 +44,9 @@ from .geometry_set import GeometrySet, GeometrySetNodes
 
 # Functions to set default header options.
 from .header_functions import (
+    set_beam_contact_runtime_output,
+    set_beam_contact_section,
+    set_beam_interaction,
     set_beam_to_solid_meshtying,
     set_header_static,
     set_runtime_output,
@@ -97,6 +100,9 @@ __all__ = [
     "Beam3eb",
     # Header functions.
     "set_header_static",
+    "set_beam_interaction",
+    "set_beam_contact_section",
+    "set_beam_contact_runtime_output",
     "set_runtime_output",
     "set_beam_to_solid_meshtying",
 ]
