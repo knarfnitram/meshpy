@@ -153,16 +153,17 @@ def read_dbc_monitor_file(file_path):
 def all_dbc_monitor_values_to_input(
     input_file,
     file_path,
+    *,
     steps=None,
     n_dof=3,
     time_span=[0, 1, 2],
     type=None,
-    flip_forces=False,
+    flip_time_values=False,
     fun_array=[],
 ):
-    """Extracts all the force values of the monitored Dirichlet Boundary Condition and converts
-    them into a Function with a Neumann Boundary Condition for the input_file.
-    The Monitor log force values must be obtained from a previous simulation with constant step size.
+    """Extracts all the force values of the monitored Dirichlet boundary condition and converts
+    them into a Function with a Neumann boundary condition for the input_file.
+    The monitor log force values must be obtained from a previous simulation with constant step size.
     The discretization of the previous simulation must be identical to the one within the input_file.
     The extracted force values are passed to a linear interpolation 4C-function.
     It is advisable to only call this function once all nodes have been added to the input file.
@@ -171,7 +172,7 @@ def all_dbc_monitor_values_to_input(
     ----
     input_file: InputFile
         The input file where the created Neumann boundary condition is added
-        to. The nodes(eg. discretization) referred to in the log file must match with the ones
+        to. The nodes(e.g., discretization) referred to in the log file must match with the ones
         in input_file.
     file_path: str
         Path to the Dirichlet boundary condition log file.
@@ -180,18 +181,18 @@ def all_dbc_monitor_values_to_input(
     n_dof: int
         Number of DOFs per node.
     time_span: [t1, t2, t3] in float
-        transforms the given time array into this specific format.
-        The time array always starts at 0 and ends at t3 to ensure a valid simulation
+        Transforms the given time array into this specific format.
+        The time array always starts at 0 and ends at t3 to ensure a valid simulation.
     type: str or None
         two types are available:
-            1) None: not specified simple extract all values and apply them between time interval t1 and t2
+            1) None: not specified simple extract all values and apply them between time interval t1 and t2.
             2) "hat": puts the values first until last value is reached and then decays them back to first value.
-            interpolation starting from t1 going to the last value at (t1+t2)/2 and going back to the value at time t2
-    flip_forces: bool
-        indicates, if the extracted forces should be flipped or rearanged wrt. to the time
-        For flip_forces=true, the forces at the final time are applied at t_start.
+            Interpolation starting from t1 going to the last value at (t1+t2)/2 and going back to the value at time t2.
+    flip_time_values: bool
+        indicates, if the extracted forces should be flipped or rearranged wrt. to the time
+        For flip_time_values=true, the forces at the final time are applied at t_start.
     fun_array: [Function, Function, Function]
-        array consisting of 3 custom functions(x,y,z). The value for boundary condition is selected from the last steps.
+        Array consisting of 3 custom functions(x,y,z). The value for boundary condition is selected from the last steps.
     """
 
     nodes, time, force, _ = read_dbc_monitor_file(file_path)
@@ -215,7 +216,7 @@ def all_dbc_monitor_values_to_input(
             )
 
         time, force = linear_time_transformation(
-            time, force, time_span, flip=flip_forces
+            time, force, time_span, flip=flip_time_values
         )
         if len(fun_array) != 3:
             print("Please provide a list with three valid Functions.")
@@ -239,10 +240,10 @@ def all_dbc_monitor_values_to_input(
 
         # create the two intervals
         time1, force1 = linear_time_transformation(
-            time, force, time_span[0:2], flip=flip_forces
+            time, force, time_span[0:2], flip=flip_time_values
         )
         time2, force2 = linear_time_transformation(
-            time, force, time_span[1:3], flip=(not flip_forces)
+            time, force, time_span[1:3], flip=(not flip_time_values)
         )
 
         # remove first element since it is duplicated zero
@@ -278,8 +279,7 @@ def all_dbc_monitor_values_to_input(
             # add the function to the input array
             input_file.add(fun)
 
-            # store the id of the function
-            # fun_array.append(str(len(input_file.functions)))
+            # store function
             fun_array.append(fun)
 
         # now set forces to 1 since the force values are already extracted in the function's values
