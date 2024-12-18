@@ -38,6 +38,7 @@ from meshpy import InputFile, mpy
 from meshpy.header_functions import (
     get_comment,
     set_beam_contact_section,
+    set_beam_contact_runtime_output,
     set_beam_to_solid_meshtying,
     set_header_static,
     set_runtime_output,
@@ -186,7 +187,12 @@ class TestHeaderFunctions(unittest.TestCase):
         input_file = InputFile()
 
         # Add Beam contact section to file.
-        set_beam_contact_section(input_file)
+        set_beam_contact_section(
+            input_file, binning_size=1, bounding_box="-1 -2 -1 1 2 1"
+        )
+
+        # add per default the runtime output
+        set_beam_contact_runtime_output(input_file)
 
         # Compare the output.
         compare_test_result(self, input_file.get_string(header=False, check_nox=False))

@@ -49,6 +49,7 @@ from .header_functions import (
     set_beam_to_solid_meshtying,
     set_header_static,
     set_runtime_output,
+    set_beam_contact_runtime_output,
 )
 from .inputfile import InputFile, InputSection
 from .material import (
@@ -101,6 +102,7 @@ __all__ = [
     "set_header_static",
     "set_beam_interaction",
     "set_beam_contact_section",
+    "set_beam_contact_runtime_output",
     "set_runtime_output",
     "set_beam_to_solid_meshtying",
 ]
