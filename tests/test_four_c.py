@@ -237,8 +237,9 @@ def test_meshpy_locsys_condition(
 ):
     """Test case for point locsys condition for beams.
 
-    The testcase is similar to beam3r_herm2line3_static_locsys.dat, but
-    with simpler material.
+    The testcase is adapted from to beam3r_herm2line3_static_locsys.dat.
+    However it has a simpler material, one more rotation(line) with
+    functions.
     """
 
     # Create the input file with function and material.
@@ -274,6 +275,25 @@ def test_meshpy_locsys_condition(
 
     # Add locsys condition with rotation
     input_file.add(LocSysCondition(beam_set["end"], Rotation([0, 0, 1], 0.1)))
+
+    # Add line Function with function array
+
+    fun_2 = Function("SYMBOLIC_FUNCTION_OF_SPACE_TIME t")
+    input_file.add(fun_2)
+
+    # Check if the LocSys condition is added correctly for a line with additional options.
+    input_file.add(
+        LocSysCondition(
+            GeometrySet(beam_set["line"]),
+            Rotation(
+                [0, 0, 1],
+                0.1,
+            ),
+            function_array=[fun_2],
+            update_node_position=True,
+            use_consistent_node_normal=True,
+        )
+    )
 
     # Compare with the reference solution.
     assert_results_equal(get_corresponding_reference_file_path(), input_file)
