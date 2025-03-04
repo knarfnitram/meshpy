@@ -48,11 +48,14 @@ class LocSysCondition(BoundaryCondition):
             Object that represents the rotation of the coordinate system.
         """
 
+        string = "ROTANGLE {} {} {} FUNCT 0 0 0 USEUPDATEDNODEPOS 0 "
+
+        if geometry_set.geometry_type is mpy.geo.line:
+            string = string + "USECONSISTENTNODENORMAL 0"
+
         super().__init__(
             geometry_set,
-            "ROTANGLE {} {} {} FUNCT 0 0 0 USEUPDATEDNODEPOS 0 USECONSISTENTNODENORMAL 0".format(
-                *rotation.get_rotation_vector()
-            ),
+            bc_string=string.format(*rotation.get_rotation_vector()),
             bc_type=mpy.bc.locsys,
             **kwargs,
         )

@@ -275,6 +275,11 @@ def test_meshpy_locsys_condition(
     # Add locsys condition with rotation
     input_file.add(LocSysCondition(beam_set["end"], Rotation([0, 0, 1], 0.1)))
 
+    # Check if the LocSys condition is added correctly for a line.
+    input_file.add(
+        LocSysCondition(GeometrySet(beam_set["line"]), Rotation([0, 0, 1], 0.1))
+    )
+
     # Compare with the reference solution.
     assert_results_equal(get_corresponding_reference_file_path(), input_file)
 
