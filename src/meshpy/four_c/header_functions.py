@@ -330,6 +330,7 @@ def set_header_static(
     write_strain="no",
     prestress="none",
     prestress_time=0,
+    time_adaptivity=False,
     option_overwrite=False,
 ):
     """Set the default parameters for a static structure analysis.
@@ -428,6 +429,7 @@ def set_header_static(
         NUMSTEP           {n_steps}
         MAXTIME           {total_time}
         LOADLIN           {get_yes_no(load_lin)}
+        TIME_ADAPTIVITY   {get_yes_no(time_adaptivity)}
         """,
             option_overwrite=option_overwrite,
         )
