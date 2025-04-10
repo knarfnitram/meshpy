@@ -62,6 +62,38 @@ def get_arc_length_and_cross_section_coordinates(
     return centerline_position, cross_section_coordinates
 
 
+def sort_arc_lengths_and_get_unique_point(arc_lengths):
+    """Sorts the arc_lengths and ensures that every arc length has a
+    partner."""
+
+    # Get unique arc length points
+    has_partner, n_partner = find_close_points.find_close_points(arc_lengths)
+    arc_lengths_unique = [None] * n_partner
+    has_partner_total = [-2] * len(arc_lengths)
+    for i in range(len(arc_lengths)):
+        partner_id = has_partner[i]
+        if partner_id == -1:
+            has_partner_total[i] = len(arc_lengths_unique)
+            arc_lengths_unique.append(arc_lengths[i][0])
+        else:
+            if arc_lengths_unique[partner_id] is None:
+                arc_lengths_unique[partner_id] = arc_lengths[i][0]
+            has_partner_total[i] = partner_id
+
+    n_total = len(arc_lengths_unique)
+    arc_lengths_unique = np.array(arc_lengths_unique)
+    arc_lengths_sorted_index = np.argsort(arc_lengths_unique)
+    arc_lengths_sorted = arc_lengths_unique[arc_lengths_sorted_index]
+    arc_lengths_sorted_index_inv = [-2 for i in range(n_total)]
+    for i in range(n_total):
+        arc_lengths_sorted_index_inv[arc_lengths_sorted_index[i]] = i
+    point_to_unique = []
+    for partner in has_partner_total:
+        point_to_unique.append(arc_lengths_sorted_index_inv[partner])
+
+    return arc_lengths_sorted, point_to_unique
+
+
 def get_mesh_transformation(
     curve: CosseratCurve,
     nodes: list[Node],
@@ -131,30 +163,9 @@ def get_mesh_transformation(
             node.coordinates, origin, reference_rotation
         )
 
-    # Get unique arc length points
-    has_partner, n_partner = find_close_points.find_close_points(arc_lengths)
-    arc_lengths_unique = [None] * n_partner
-    has_partner_total = [-2] * len(arc_lengths)
-    for i in range(len(arc_lengths)):
-        partner_id = has_partner[i]
-        if partner_id == -1:
-            has_partner_total[i] = len(arc_lengths_unique)
-            arc_lengths_unique.append(arc_lengths[i][0])
-        else:
-            if arc_lengths_unique[partner_id] is None:
-                arc_lengths_unique[partner_id] = arc_lengths[i][0]
-            has_partner_total[i] = partner_id
-
-    n_total = len(arc_lengths_unique)
-    arc_lengths_unique = np.array(arc_lengths_unique)
-    arc_lengths_sorted_index = np.argsort(arc_lengths_unique)
-    arc_lengths_sorted = arc_lengths_unique[arc_lengths_sorted_index]
-    arc_lengths_sorted_index_inv = [-2 for i in range(n_total)]
-    for i in range(n_total):
-        arc_lengths_sorted_index_inv[arc_lengths_sorted_index[i]] = i
-    point_to_unique = []
-    for partner in has_partner_total:
-        point_to_unique.append(arc_lengths_sorted_index_inv[partner])
+    arc_lengths_sorted, point_to_unique = sort_arc_lengths_and_get_unique_point(
+        arc_lengths
+    )
 
     # Get all configurations for the unique points
     positions_for_all_steps = []
