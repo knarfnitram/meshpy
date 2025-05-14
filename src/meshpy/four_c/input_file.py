@@ -43,6 +43,7 @@ from meshpy.core.nurbs_patch import NURBSPatch as _NURBSPatch
 from meshpy.four_c.input_file_mappings import (
     INPUT_FILE_MAPPINGS as _INPUT_FILE_MAPPINGS,
 )
+from meshpy.utils.environment import fourcipp_is_available as _fourcipp_is_available
 from meshpy.utils.environment import cubitpy_is_available as _cubitpy_is_available
 from meshpy.utils.environment import get_git_data as _get_git_data
 

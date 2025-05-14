@@ -39,7 +39,9 @@ dev = [
   "pytest",
   "pytest-cov",
   "testbook",
-  "vistools"
+  "vistools",
+  "pyvista_utils@git+https://github.com/isteinbrecher/pyvista_utils.git@support-3.13",
+  "cubitpy@git+https://github.com/imcs-compsim/cubitpy.git@main"
 ]
 
 [project.urls]
