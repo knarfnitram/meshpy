@@ -22,11 +22,26 @@
 """This module defines functions that can be used to add header information to
 an input file."""
 
-from typing import List as _List
-from typing import Union as _Union
+from typing import List, Optional, Union
 
-from meshpy.core.conf import mpy as _mpy
-from meshpy.four_c.input_file import InputFile as _InputFile
+from meshpy.core.conf import mpy
+from meshpy.four_c.input_file import InputFile, InputSection
+
+
+def get_yes_no(bool_var):
+    """Convert a bool into a string for the 4C input file."""
+    if bool_var:
+        return "yes"
+    else:
+        return "no"
+
+
+def get_comment(bool_var):
+    """Convert a bool into a comment or no comment for the 4C input file."""
+    if bool_var:
+        return ""
+    else:
+        return "//"
 
 
 def _get_segmentation_strategy(segmentation):
@@ -94,90 +109,83 @@ def set_runtime_output(
 
     # Set the basic runtime output options.
     input_file.add(
-        {
-            "IO/RUNTIME VTK OUTPUT": {
-                "OUTPUT_DATA_FORMAT": "binary",
-                "INTERVAL_STEPS": 1,
-                "EVERY_ITERATION": every_iteration,
-            }
-        },
-        option_overwrite=option_overwrite,
+        InputSection(
+            "IO/RUNTIME VTK OUTPUT",
+            f"""
+        OUTPUT_DATA_FORMAT        binary
+        INTERVAL_STEPS            1
+        EVERY_ITERATION           {get_yes_no(every_iteration)}""",
+            option_overwrite=option_overwrite,
+        )
     )
 
-    # Set the structure runtime output options
+    # Set the structure runtime output options.
     input_file.add(
-        {
-            "IO/RUNTIME VTK OUTPUT/STRUCTURE": {
-                "OUTPUT_STRUCTURE": output_solid,
-                "DISPLACEMENT": True,
-                "STRESS_STRAIN": output_stress_strain,
-                "ELEMENT_OWNER": element_owner,
-                "ELEMENT_GID": element_gid,
-                "ELEMENT_MAT_ID": element_mat_id,
-            }
-        },
-        option_overwrite=option_overwrite,
+        InputSection(
+            "IO/RUNTIME VTK OUTPUT/STRUCTURE",
+            f"""
+        OUTPUT_STRUCTURE                {get_yes_no(output_solid)}
+        DISPLACEMENT                    yes
+        STRESS_STRAIN                   {get_yes_no(output_stress_strain)}
+        ELEMENT_OWNER                   {get_yes_no(element_owner)}
+        ELEMENT_GID                     {get_yes_no(element_gid)}
+        ELEMENT_MAT_ID                  {get_yes_no(element_mat_id)}""",
+            option_overwrite=option_overwrite,
+        )
     )
 
-    # Set the beam runtime output options
+    # Set the beam runtime output options.
     input_file.add(
-        {
-            "IO/RUNTIME VTK OUTPUT/BEAMS": {
-                "OUTPUT_BEAMS": True,
-                "DISPLACEMENT": True,
-                "USE_ABSOLUTE_POSITIONS": absolute_beam_positions,
-                "TRIAD_VISUALIZATIONPOINT": output_triad,
-                "STRAINS_GAUSSPOINT": output_strains,
-                "ELEMENT_GID": element_gid,
-            }
-        },
-        option_overwrite=option_overwrite,
+        InputSection(
+            "IO/RUNTIME VTK OUTPUT/BEAMS",
+            f"""
+        OUTPUT_BEAMS                    yes
+        DISPLACEMENT                    yes
+        USE_ABSOLUTE_POSITIONS          {get_yes_no(absolute_beam_positions)}
+        TRIAD_VISUALIZATIONPOINT        {get_yes_no(output_triad)}
+        STRAINS_GAUSSPOINT              {get_yes_no(output_strains)}
+        ELEMENT_GID                     {get_yes_no(element_gid)}""",
+            option_overwrite=option_overwrite,
+        )
     )
 
     if btsvmt_output:
         # Set the beam to solid volume mesh tying runtime output options.
         input_file.add(
-            {
-                "BEAM INTERACTION/BEAM TO SOLID VOLUME MESHTYING/RUNTIME VTK OUTPUT": {
-                    "WRITE_OUTPUT": True,
-                    "NODAL_FORCES": True,
-                    "MORTAR_LAMBDA_DISCRET": True,
-                    "MORTAR_LAMBDA_CONTINUOUS": True,
-                    "MORTAR_LAMBDA_CONTINUOUS_SEGMENTS": 5,
-                    "SEGMENTATION": True,
-                    "INTEGRATION_POINTS": True,
-                }
-            },
-            option_overwrite=option_overwrite,
+            InputSection(
+                ("BEAM INTERACTION/BEAM TO SOLID VOLUME MESHTYING/RUNTIME VTK OUTPUT"),
+                """
+            WRITE_OUTPUT                          yes
+            NODAL_FORCES                          yes
+            MORTAR_LAMBDA_DISCRET                 yes
+            MORTAR_LAMBDA_CONTINUOUS              yes
+            MORTAR_LAMBDA_CONTINUOUS_SEGMENTS     5
+            SEGMENTATION                          yes
+            INTEGRATION_POINTS                    yes""",
+                option_overwrite=option_overwrite,
+            )
         )
 
     if btss_output:
         # Set the beam to solid surface coupling runtime output options.
         input_file.add(
-            {
-                "BEAM INTERACTION/BEAM TO SOLID SURFACE/RUNTIME VTK OUTPUT": {
-                    "WRITE_OUTPUT": True,
-                    "NODAL_FORCES": True,
-                    "MORTAR_LAMBDA_DISCRET": True,
-                    "MORTAR_LAMBDA_CONTINUOUS": True,
-                    "MORTAR_LAMBDA_CONTINUOUS_SEGMENTS": 5,
-                    "SEGMENTATION": True,
-                    "INTEGRATION_POINTS": True,
-                    "AVERAGED_NORMALS": True,
-                }
-            },
-            option_overwrite=option_overwrite,
+            InputSection(
+                "BEAM INTERACTION/BEAM TO SOLID SURFACE/RUNTIME VTK OUTPUT",
+                """
+            WRITE_OUTPUT                          yes
+            NODAL_FORCES                          yes
+            MORTAR_LAMBDA_DISCRET                 yes
+            MORTAR_LAMBDA_CONTINUOUS              yes
+            MORTAR_LAMBDA_CONTINUOUS_SEGMENTS     5
+            SEGMENTATION                          yes
+            INTEGRATION_POINTS                    yes
+            AVERAGED_NORMALS                      yes""",
+                option_overwrite=option_overwrite,
+            )
         )
 
     if output_energy:
-        input_file.add(
-            {
-                "STRUCTURAL DYNAMIC": {
-                    "RESEVERYERGY": 1,
-                }
-            },
-            option_overwrite=option_overwrite,
-        )
+        input_file.add("--STRUCTURAL DYNAMIC\nRESEVERYERGY 1")
 
 
 def set_beam_to_solid_meshtying(
@@ -188,7 +196,7 @@ def set_beam_to_solid_meshtying(
     segmentation=True,
     segmentation_search_points=2,
     couple_restart=False,
-    mortar_shape="none",
+    mortar_shape=None,
     n_gauss_points=6,
     n_integration_points_circ=None,
     penalty_parameter=None,
@@ -232,10 +240,12 @@ def set_beam_to_solid_meshtying(
 
     # Set the beam contact options.
     input_file.add(
-        {"BEAM INTERACTION": {"REPARTITIONSTRATEGY": "everydt"}}, option_overwrite=True
+        InputSection(
+            "BEAM INTERACTION", "REPARTITIONSTRATEGY Everydt", option_overwrite=True
+        )
     )
     input_file.add(
-        {"BEAM CONTACT": {"MODELEVALUATOR": "Standard"}}, option_overwrite=True
+        InputSection("BEAM CONTACT", "MODELEVALUATOR Standard", option_overwrite=True)
     )
 
     set_binning_strategy_section(
@@ -245,49 +255,64 @@ def set_beam_to_solid_meshtying(
     )
 
     # Add the beam to solid volume mesh tying options.
-    bts_parameters = {}
-    if interaction_type == _mpy.beam_to_solid.volume_meshtying:
-        bts_section_name = "BEAM INTERACTION/BEAM TO SOLID VOLUME MESHTYING"
-    elif interaction_type == _mpy.beam_to_solid.surface_meshtying:
-        bts_section_name = "BEAM INTERACTION/BEAM TO SOLID SURFACE MESHTYING"
+    if interaction_type == mpy.beam_to_solid.volume_meshtying:
+        bts = InputSection("BEAM INTERACTION/BEAM TO SOLID VOLUME MESHTYING")
+    elif interaction_type == mpy.beam_to_solid.surface_meshtying:
+        bts = InputSection("BEAM INTERACTION/BEAM TO SOLID SURFACE MESHTYING")
         if coupling_type is not None:
-            bts_parameters["COUPLING_TYPE"] = coupling_type
+            bts.add(f"COUPLING_TYPE {coupling_type}")
     else:
         raise ValueError(
             "Got wrong beam-to-solid mesh tying type. "
             f"Got {interaction_type} of type {type(interaction_type)}."
         )
-    bts_parameters["CONSTRAINT_STRATEGY"] = "penalty"
-    if penalty_parameter is not None:
-        bts_parameters["PENALTY_PARAMETER"] = penalty_parameter
-    bts_parameters["GAUSS_POINTS"] = n_gauss_points
-
+    bts.add(
+        f"""
+        CONSTRAINT_STRATEGY penalty
+        PENALTY_PARAMETER {penalty_parameter}
+        GAUSS_POINTS {n_gauss_points}
+        """,
+        option_overwrite=option_overwrite,
+    )
     if contact_discretization == "mortar":
-        bts_parameters["CONTACT_DISCRETIZATION"] = "mortar"
-        bts_parameters["MORTAR_SHAPE_FUNCTION"] = mortar_shape
+        bts.add(
+            f"""
+            CONTACT_DISCRETIZATION mortar
+            MORTAR_SHAPE_FUNCTION {mortar_shape}
+            """,
+            option_overwrite=option_overwrite,
+        )
         segmentation_strategy = _get_segmentation_strategy(segmentation)
     elif contact_discretization == "gp":
-        bts_parameters["CONTACT_DISCRETIZATION"] = "gauss_point_to_segment"
+        bts.add(
+            "CONTACT_DISCRETIZATION gauss_point_to_segment",
+            option_overwrite=option_overwrite,
+        )
         segmentation_strategy = _get_segmentation_strategy(segmentation)
     elif contact_discretization == "circ":
-        bts_parameters["CONTACT_DISCRETIZATION"] = "gauss_point_cross_section"
-        bts_parameters["INTEGRATION_POINTS_CIRCUMFERENCE"] = n_integration_points_circ
+        bts.add(
+            f"""
+        CONTACT_DISCRETIZATION gauss_point_cross_section
+        INTEGRATION_POINTS_CIRCUMFERENCE {n_integration_points_circ}""",
+            option_overwrite=option_overwrite,
+        )
         segmentation_strategy = "gauss_point_projection_cross_section"
     else:
         raise ValueError(
             f'Wrong contact_discretization "{contact_discretization}" given!'
         )
 
-    bts_parameters["GEOMETRY_PAIR_STRATEGY"] = segmentation_strategy
-    bts_parameters["GEOMETRY_PAIR_SEGMENTATION_SEARCH_POINTS"] = (
-        segmentation_search_points
+    bts.add(
+        f"""
+        GEOMETRY_PAIR_STRATEGY {segmentation_strategy}
+        GEOMETRY_PAIR_SEGMENTATION_SEARCH_POINTS {segmentation_search_points}
+        """,
+        option_overwrite=option_overwrite,
     )
-    if interaction_type == _mpy.beam_to_solid.volume_meshtying:
-        bts_parameters["COUPLE_RESTART_STATE"] = couple_restart
+    if couple_restart:
+        bts.add("COUPLE_RESTART_STATE yes", option_overwrite=option_overwrite)
 
-    input_file.add(
-        {bts_section_name: bts_parameters}, option_overwrite=option_overwrite
-    )
+    input_file.add(bts)
 
 
 def set_header_static(
@@ -303,8 +328,9 @@ def set_header_static(
     write_bin=False,
     write_stress="no",
     write_strain="no",
-    prestress="None",
+    prestress="none",
     prestress_time=0,
+    time_adaptivity=False,
     option_overwrite=False,
 ):
     """Set the default parameters for a static structure analysis.
@@ -347,25 +373,28 @@ def set_header_static(
 
     # Set the parameters for a static analysis.
     input_file.add(
-        {
-            "PROBLEM TYPE": {
-                "PROBLEMTYPE": "Structure",
-            }
-        },
-        option_overwrite=option_overwrite,
+        InputSection(
+            "PROBLEM TYPE",
+            """
+        PROBLEMTYPE Structure
+        RESTART    0
+        """,
+            option_overwrite=option_overwrite,
+        )
     )
-
     input_file.add(
-        {
-            "IO": {
-                "OUTPUT_BIN": write_bin,
-                "STRUCT_DISP": False,
-                "STRUCT_STRESS": write_stress,
-                "STRUCT_STRAIN": write_strain,
-                "VERBOSITY": "Standard",
-            }
-        },
-        option_overwrite=option_overwrite,
+        InputSection(
+            "IO",
+            f"""
+        OUTPUT_BIN     {get_yes_no(write_bin)}
+        STRUCT_DISP    No
+        STRUCT_STRESS  {write_stress}
+        STRUCT_STRAIN  {write_strain}
+        FILESTEPS      1000
+        VERBOSITY      Standard
+        """,
+            option_overwrite=option_overwrite,
+        )
     )
 
     # Set the time step parameters
@@ -385,31 +414,35 @@ def set_header_static(
         total_time = time_step * n_steps
 
     input_file.add(
-        {
-            "STRUCTURAL DYNAMIC": {
-                "LINEAR_SOLVER": 1,
-                "INT_STRATEGY": "Standard",
-                "DYNAMICTYPE": "Statics",
-                "PREDICT": "TangDis",
-                "PRESTRESS": prestress,
-                "PRESTRESSTIME": prestress_time,
-                "TIMESTEP": time_step,
-                "NUMSTEP": n_steps,
-                "MAXTIME": total_time,
-                "LOADLIN": load_lin,
-            }
-        },
-        option_overwrite=option_overwrite,
+        InputSection(
+            "STRUCTURAL DYNAMIC",
+            f"""
+        LINEAR_SOLVER     1
+        INT_STRATEGY      Standard
+        DYNAMICTYPE       Statics
+        RESULTSEVERY      1
+        NLNSOL            fullnewton
+        PREDICT           TangDis
+        PRESTRESS         {prestress}
+        PRESTRESSTIME     {prestress_time}
+        TIMESTEP          {time_step}
+        NUMSTEP           {n_steps}
+        MAXTIME           {total_time}
+        LOADLIN           {get_yes_no(load_lin)}
+        TIME_ADAPTIVITY   {get_yes_no(time_adaptivity)}
+        """,
+            option_overwrite=option_overwrite,
+        )
     )
-
     input_file.add(
-        {
-            "SOLVER 1": {
-                "NAME": "Structure_Solver",
-                "SOLVER": "Superlu",
-            }
-        },
-        option_overwrite=option_overwrite,
+        InputSection(
+            "SOLVER 1",
+            """
+        NAME              Structure_Solver
+        SOLVER            Superlu
+        """,
+            option_overwrite=option_overwrite,
+        )
     )
 
     # Set the contents of the NOX xml file.
@@ -461,16 +494,22 @@ def set_header_static(
         """
 
     input_file.add(
-        {
-            "STRUCT NOX/Printing": {
-                "Error": True,
-                "Inner Iteration": False,
-                "Details": True,
-                "Linear Solver Details": True,
-                "Test Details": True,
-            }
-        },
-        option_overwrite=option_overwrite,
+        InputSection(
+            "STRUCT NOX/Printing",
+            """
+        Error                           = Yes
+        Warning                         = Yes
+        Outer Iteration                 = Yes
+        Inner Iteration                 = No
+        Parameters                      = No
+        Details                         = Yes
+        Outer Iteration StatusTest      = Yes
+        Linear Solver Details           = Yes
+        Test Details                    = Yes
+        Debug                           = No
+        """,
+            option_overwrite=option_overwrite,
+        )
     )
 
     # Set the xml content in the input file.
@@ -478,9 +517,9 @@ def set_header_static(
 
 
 def set_binning_strategy_section(
-    input_file: _InputFile,
-    binning_bounding_box: _Union[_List[int], None] = None,
-    binning_cutoff_radius: _Union[float, None] = None,
+    input_file: InputFile,
+    binning_bounding_box: Union[List[int], None] = None,
+    binning_cutoff_radius: Union[float, None] = None,
     *,
     option_overwrite: bool = False,
 ):
@@ -505,13 +544,14 @@ def set_binning_strategy_section(
         )
 
         input_file.add(
-            {
-                "BINNING STRATEGY": {
-                    "BIN_SIZE_LOWER_BOUND": binning_cutoff_radius,
-                    "DOMAINBOUNDINGBOX": binning_bounding_box_string,
-                }
-            },
-            option_overwrite=option_overwrite,
+            InputSection(
+                "BINNING STRATEGY",
+                f"""
+            BIN_SIZE_LOWER_BOUND    {binning_cutoff_radius}
+            DOMAINBOUNDINGBOX                     {binning_bounding_box_string}
+            """,
+                option_overwrite=option_overwrite,
+            )
         )
     elif [binning_bounding_box, binning_cutoff_radius].count(None) == 2:
         return
@@ -522,7 +562,7 @@ def set_binning_strategy_section(
 
 
 def set_beam_interaction_section(
-    input_file: _InputFile,
+    inputfile: InputFile,
     *,
     repartition_strategy: str = "everydt",
     search_strategy: str = "bounding_volume_hierarchy",
@@ -545,19 +585,20 @@ def set_beam_interaction_section(
         option is already defined, and error will be thrown.
     """
 
-    input_file.add(
-        {
-            "BEAM INTERACTION": {
-                "REPARTITIONSTRATEGY": repartition_strategy,
-                "SEARCH_STRATEGY": search_strategy,
-            }
-        },
-        option_overwrite=option_overwrite,
+    inputfile.add(
+        InputSection(
+            "BEAM INTERACTION",
+            f"""
+        REPARTITIONSTRATEGY                   {repartition_strategy}
+        SEARCH_STRATEGY                       {search_strategy}
+        """,
+            option_overwrite=option_overwrite,
+        )
     )
 
 
 def set_beam_contact_runtime_output(
-    input_file: _InputFile,
+    inputfile: InputFile,
     *,
     every_iteration: bool = False,
     option_overwrite: bool = False,
@@ -573,22 +614,23 @@ def set_beam_contact_runtime_output(
         option is already defined, and error will be thrown.
     """
 
-    input_file.add(
-        {
-            "BEAM CONTACT/RUNTIME VTK OUTPUT": {
-                "VTK_OUTPUT_BEAM_CONTACT": True,
-                "EVERY_ITERATION": every_iteration,
-                "INTERVAL_STEPS": 1,
-                "CONTACT_FORCES": True,
-                "GAPS": True,
-            }
-        },
-        option_overwrite=option_overwrite,
+    inputfile.add(
+        InputSection(
+            "BEAM CONTACT/RUNTIME VTK OUTPUT",
+            f"""
+            VTK_OUTPUT_BEAM_CONTACT               yes
+            EVERY_ITERATION                       {get_yes_no(every_iteration)}
+            INTERVAL_STEPS                        1
+            CONTACT_FORCES                        yes
+            GAPS                                  yes
+        """,
+            option_overwrite=option_overwrite,
+        )
     )
 
 
 def set_beam_contact_section(
-    input_file: _InputFile,
+    input_file: InputFile,
     *,
     interaction_strategy: str = "penalty",
     btb_penalty: float = 0,
@@ -654,36 +696,35 @@ def set_beam_contact_section(
         raise ValueError("Please provide lower and upper value of BEAMS_PARSHIFTANGLE.")
 
     input_file.add(
-        {
-            "BEAM INTERACTION/BEAM TO BEAM CONTACT": {
-                "STRATEGY": interaction_strategy,
-            }
-        },
-        option_overwrite=option_overwrite,
+        InputSection(
+            "BEAM INTERACTION/BEAM TO BEAM CONTACT",
+            f"""STRATEGY   {interaction_strategy}""",
+            option_overwrite=option_overwrite,
+        )
     )
-
     input_file.add(
-        {
-            "BEAM CONTACT": {
-                "MODELEVALUATOR": "standard",
-                "BEAMS_STRATEGY": "penalty",
-                "BEAMS_BTBPENALTYPARAM": btb_penalty,
-                "BEAMS_BTBLINEPENALTYPARAM": btb_line_penalty,
-                "BEAMS_SEGCON": True,
-                "BEAMS_PERPSHIFTANGLE1": per_shift_angle[0],
-                "BEAMS_PERPSHIFTANGLE2": per_shift_angle[1],
-                "BEAMS_PARSHIFTANGLE1": par_shift_angle[0],
-                "BEAMS_PARSHIFTANGLE2": par_shift_angle[1],
-                "BEAMS_SEGANGLE": b_seg_angle,
-                "BEAMS_NUMINTEGRATIONINTERVAL": num_integration,
-                "BEAMS_PENALTYLAW": penalty_law,
-                "BEAMS_PENREGPARAM_G0": penalty_regularization_g0,
-                "BEAMS_PENREGPARAM_F0": penalty_regularization_f0,
-                "BEAMS_PENREGPARAM_C0": penalty_regularization_c0,
-                "BEAMS_MAXDELTADISSCALEFAC": -1.0,
-            }
-        },
-        option_overwrite=option_overwrite,
+        InputSection(
+            "BEAM CONTACT",
+            f"""MODELEVALUATOR                  Standard
+        BEAMS_STRATEGY                  Penalty
+        BEAMS_BTBPENALTYPARAM           {btb_penalty}
+        BEAMS_BTBLINEPENALTYPARAM       {btb_line_penalty}
+        BEAMS_SEGCON                    Yes
+        BEAMS_PERPSHIFTANGLE1           {per_shift_angle[0]}
+        BEAMS_PERPSHIFTANGLE2           {per_shift_angle[1]}
+        BEAMS_PARSHIFTANGLE1            {par_shift_angle[0]}
+        BEAMS_PARSHIFTANGLE2            {par_shift_angle[1]}
+        BEAMS_SEGANGLE                  {b_seg_angle}
+        BEAMS_NUMINTEGRATIONINTERVAL    {num_integration}
+        BEAMS_PENALTYLAW                {penalty_law}
+        BEAMS_PENREGPARAM_G0            {penalty_regularization_g0}
+        BEAMS_PENREGPARAM_F0            {penalty_regularization_f0}
+        BEAMS_PENREGPARAM_C0            {penalty_regularization_c0}
+        BEAMS_MAXDISISCALEFAC           -1.0
+        BEAMS_MAXDELTADISSCALEFAC       -1.0
+        """,
+            option_overwrite=option_overwrite,
+        )
     )
 
     # beam contact needs a binning strategy
@@ -695,37 +736,3 @@ def set_beam_contact_section(
     set_beam_interaction_section(
         input_file, option_overwrite=option_overwrite, **beam_interaction_parameters
     )
-
-
-def add_result_description(
-    input_file: _InputFile,
-    displacements: _List,
-    node_ids: _List[int],
-    *,
-    tol: float = 1e-10,
-):
-    """Add result descriptions for structure problems to the input file.
-
-    Args:
-        input_file: Input file to add the result description to
-        displacements: Array with the displacements (n_nodes x 3)
-        node_ids: List with the IDs of the nodes to check
-        tol: Tolerance
-    """
-    for i_node, node in enumerate(node_ids):
-        for i_dir, direction in enumerate(["x", "y", "z"]):
-            input_file.add(
-                {
-                    "RESULT DESCRIPTION": [
-                        {
-                            "STRUCTURE": {
-                                "DIS": "structure",
-                                "NODE": node,
-                                "QUANTITY": f"disp{direction}",
-                                "VALUE": displacements[i_node][i_dir],
-                                "TOLERANCE": tol,
-                            },
-                        }
-                    ]
-                }
-            )
