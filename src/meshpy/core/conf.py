@@ -22,110 +22,94 @@
 """This module defines a global object that manages all kind of stuff regarding
 meshpy."""
 
-from enum import Enum as _Enum
-from enum import auto as _auto
+from enum import Enum, auto
 
 
-class Geometry(_Enum):
+class Geometry(Enum):
     """Enum for geometry types."""
 
-    point = _auto()
-    line = _auto()
-    surface = _auto()
-    volume = _auto()
+    point = auto()
+    line = auto()
+    surface = auto()
+    volume = auto()
 
 
-class BoundaryCondition(_Enum):
+class BoundaryCondition(Enum):
     """Enum for boundary condition types."""
 
-    dirichlet = _auto()
-    neumann = _auto()
-    locsys = _auto()
-    moment_euler_bernoulli = _auto()
-    beam_to_beam_contact = _auto()
-    beam_to_solid_volume_meshtying = _auto()
-    beam_to_solid_surface_meshtying = _auto()
-    beam_to_solid_surface_contact = _auto()
-    point_coupling = _auto()
-    point_coupling_penalty = _auto()
-
-    def is_point_coupling_pairwise(self) -> bool:
-        """Check whether the point coupling condition should be applied
-        pairwise.
-
-        Returns:
-            bool: True if the coupling should be applied individually between pairs of nodes,
-                rather than to the entire geometry set as a whole.
-        """
-        if self == self.point_coupling:
-            return False
-        elif self == self.point_coupling_penalty:
-            return True
-        else:
-            raise TypeError(f"Got unexpected coupling type: {self}")
+    dirichlet = auto()
+    neumann = auto()
+    locsys = auto()
+    moment_euler_bernoulli = auto()
+    beam_to_beam_contact = auto()
+    beam_to_solid_volume_meshtying = auto()
+    beam_to_solid_surface_meshtying = auto()
+    beam_to_solid_surface_contact = auto()
+    point_coupling = auto()
+    point_coupling_penalty = auto()
 
 
-class BeamType(_Enum):
+class BeamType(Enum):
     """Enum for beam types."""
 
-    reissner = _auto()
-    kirchhoff = _auto()
-    euler_bernoulli = _auto()
+    reissner = auto()
+    kirchhoff = auto()
+    euler_bernoulli = auto()
 
 
-class CouplingDofType(_Enum):
+class CouplingDofType(Enum):
     """Enum for coupling types."""
 
-    fix = _auto()
-    joint = _auto()
+    fix = auto()
+    joint = auto()
 
 
-class BeamToSolidInteractionType(_Enum):
+class BeamToSolidInteractionType(Enum):
     """Enum for beam-to-solid interaction types."""
 
-    volume_meshtying = _auto()
-    surface_meshtying = _auto()
+    volume_meshtying = auto()
+    surface_meshtying = auto()
 
 
-class DoubleNodes(_Enum):
+class DoubleNodes(Enum):
     """Enum for handing double nodes in Neumann conditions."""
 
-    remove = _auto()
-    keep = _auto()
+    remove = auto()
+    keep = auto()
 
 
-class GeometricSearchAlgorithm(_Enum):
+class GeometricSearchAlgorithm(Enum):
     """Enum for VTK value types."""
 
-    automatic = _auto()
-    brute_force_cython = _auto()
-    binning_cython = _auto()
-    boundary_volume_hierarchy_arborx = _auto()
+    automatic = auto()
+    brute_force_cython = auto()
+    binning_cython = auto()
+    boundary_volume_hierarchy_arborx = auto()
 
 
-class VTKGeometry(_Enum):
+class VTKGeometry(Enum):
     """Enum for VTK geometry types (for now cells and points)."""
 
-    point = _auto()
-    cell = _auto()
+    point = auto()
+    cell = auto()
 
 
-class VTKTensor(_Enum):
+class VTKTensor(Enum):
     """Enum for VTK tensor types."""
 
-    scalar = _auto()
-    vector = _auto()
+    scalar = auto()
+    vector = auto()
 
 
-class VTKType(_Enum):
+class VTKType(Enum):
     """Enum for VTK value types."""
 
-    int = _auto()
-    float = _auto()
+    int = auto()
+    float = auto()
 
 
 class MeshPy(object):
-    """A global object that stores options for the whole MeshPy application."""
+    """A global object that stores options for the whole meshpy application."""
 
     def __init__(self):
         self.set_default_values()
@@ -161,6 +145,12 @@ class MeshPy(object):
 
     def set_default_values(self):
         """Set the configuration to the default values."""
+        # Version information.
+        self.git_sha = None
+        self.git_date = None
+
+        # Precision for floats in output.
+        self.dat_precision = "{:.12g}"
 
         # Set the epsilons for comparison of different types of values.
         self.eps_quaternion = 1e-10
@@ -171,6 +161,16 @@ class MeshPy(object):
         # match.
         self.allow_beam_rotation = True
 
+        # Geometric search options.
+        self.geometric_search_max_nodes_brute_force = 1000
+        self.geometric_search_binning_n_bin = 10
+
+        # Values for the formatting of the input file.
+        self.dat_len_section = 80
+
+        # Import meshes as pure dat or import the geometry.
+        self.import_mesh_full = False
+
         # Number of digits for node set output (this will be set in the
         # Mesh.get_unique_geometry_sets() method.
         self.vtk_node_set_format = "{:05}"
@@ -178,16 +178,19 @@ class MeshPy(object):
         self.vtk_nan_int = -1
         self.vtk_nan_float = 0.0
 
-        # Check for overlapping elements when creating an input file.
-        self.check_overlapping_elements = True
+        # Check for overlapping elements when creating a dat file.
+        self.check_overlapping_elements = False
 
         # Lines to be added to each created input file
         self.input_file_meshpy_header = [
-            "-" * 40,
+            "-" * 77,
             "This input file was created with MeshPy.",
-            "Copyright (c) 2018-2025 MeshPy Authors",
-            "https://imcs-compsim.github.io/meshpy/",
-            "-" * 40,
+            "Copyright (c) 2018-2025",
+            "    Ivo Steinbrecher",
+            "    Institute for Mathematics and Computer-Based Simulation",
+            "    Universitaet der Bundeswehr Muenchen",
+            "    https://www.unibw.de/imcs-en",
+            "-" * 77,
         ]
 
 

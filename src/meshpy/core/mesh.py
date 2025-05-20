@@ -22,50 +22,41 @@
 """This module defines the Mesh class, which holds the content (nodes,
 elements, sets, ...) for a meshed geometry."""
 
-import copy as _copy
-import os as _os
-import warnings as _warnings
-from typing import Dict as _Dict
-from typing import List as _List
-from typing import Optional as _Optional
+import copy
+import os
+import warnings
+from typing import List
 
-import numpy as _np
-import pyvista as _pv
+import numpy as np
+import pyvista as pv
 
 from meshpy.core.boundary_condition import (
-    BoundaryConditionBase as _BoundaryConditionBase,
+    BoundaryConditionBase,
+    BoundaryConditionContainer,
 )
-from meshpy.core.boundary_condition import (
-    BoundaryConditionContainer as _BoundaryConditionContainer,
-)
-from meshpy.core.conf import mpy as _mpy
-from meshpy.core.coupling import coupling_factory as _coupling_factory
-from meshpy.core.element import Element as _Element
-from meshpy.core.element_beam import Beam as _Beam
-from meshpy.core.function import Function as _Function
-from meshpy.core.geometry_set import GeometryName as _GeometryName
-from meshpy.core.geometry_set import GeometrySetBase as _GeometrySetBase
-from meshpy.core.geometry_set import GeometrySetContainer as _GeometrySetContainer
-from meshpy.core.material import Material as _Material
-from meshpy.core.node import Node as _Node
-from meshpy.core.node import NodeCosserat as _NodeCosserat
-from meshpy.core.rotation import Rotation as _Rotation
-from meshpy.core.rotation import add_rotations as _add_rotations
-from meshpy.core.rotation import rotate_coordinates as _rotate_coordinates
-from meshpy.core.vtk_writer import VTKWriter as _VTKWriter
+from meshpy.core.conf import mpy
+from meshpy.core.coupling import coupling_factory
+from meshpy.core.element import Element
+from meshpy.core.element_beam import Beam
+from meshpy.core.geometry_set import GeometryName, GeometrySetBase, GeometrySetContainer
+from meshpy.core.material import Material
+from meshpy.core.node import Node, NodeCosserat
+from meshpy.core.rotation import Rotation, add_rotations, rotate_coordinates
+from meshpy.core.vtk_writer import VTKWriter
+from meshpy.four_c.function import Function
 from meshpy.geometric_search.find_close_points import (
-    find_close_points as _find_close_points,
+    find_close_points,
+    point_partners_to_partner_indices,
 )
-from meshpy.geometric_search.find_close_points import (
-    point_partners_to_partner_indices as _point_partners_to_partner_indices,
+from meshpy.utils.environment import is_testing
+from meshpy.utils.nodes import (
+    filter_nodes,
+    find_close_nodes,
+    get_min_max_nodes,
+    get_nodal_coordinates,
+    get_nodal_quaternions,
+    get_nodes_by_function,
 )
-from meshpy.utils.environment import is_testing as _is_testing
-from meshpy.utils.nodes import filter_nodes as _filter_nodes
-from meshpy.utils.nodes import find_close_nodes as _find_close_nodes
-from meshpy.utils.nodes import get_min_max_nodes as _get_min_max_nodes
-from meshpy.utils.nodes import get_nodal_coordinates as _get_nodal_coordinates
-from meshpy.utils.nodes import get_nodal_quaternions as _get_nodal_quaternions
-from meshpy.utils.nodes import get_nodes_by_function as _get_nodes_by_function
 
 
 class Mesh:
@@ -79,8 +70,8 @@ class Mesh:
         self.elements = []
         self.materials = []
         self.functions = []
-        self.geometry_sets = _GeometrySetContainer()
-        self.boundary_conditions = _BoundaryConditionContainer()
+        self.geometry_sets = GeometrySetContainer()
+        self.boundary_conditions = BoundaryConditionContainer()
 
     @staticmethod
     def get_base_mesh_item_type(item):
@@ -95,13 +86,13 @@ class Mesh:
 
         for cls in (
             Mesh,
-            _Function,
-            _BoundaryConditionBase,
-            _Material,
-            _Node,
-            _Element,
-            _GeometrySetBase,
-            _GeometryName,
+            Function,
+            BoundaryConditionBase,
+            Material,
+            Node,
+            Element,
+            GeometrySetBase,
+            GeometryName,
         ):
             if isinstance(item, cls):
                 return cls
@@ -125,13 +116,13 @@ class Mesh:
 
                 base_type_to_method_map = {
                     Mesh: self.add_mesh,
-                    _Function: self.add_function,
-                    _BoundaryConditionBase: self.add_bc,
-                    _Material: self.add_material,
-                    _Node: self.add_node,
-                    _Element: self.add_element,
-                    _GeometrySetBase: self.add_geometry_set,
-                    _GeometryName: self.add_geometry_name,
+                    Function: self.add_function,
+                    BoundaryConditionBase: self.add_bc,
+                    Material: self.add_material,
+                    Node: self.add_node,
+                    Element: self.add_element,
+                    GeometrySetBase: self.add_geometry_set,
+                    GeometryName: self.add_geometry_name,
                     list: self.add_list,
                 }
                 if base_type in base_type_to_method_map:
@@ -206,7 +197,7 @@ class Mesh:
         for key in keys:
             self.add(geometry_name[key])
 
-    def add_list(self, add_list: _List, **kwargs) -> None:
+    def add_list(self, add_list: List, **kwargs) -> None:
         """Add a list of items to this mesh.
 
         Args:
@@ -232,7 +223,7 @@ class Mesh:
         elif len(types) == 1:
             list_type = types.pop()
 
-            def extend_internal_list(self_list: _List, new_list: _List) -> None:
+            def extend_internal_list(self_list: List, new_list: List) -> None:
                 """Extend an internal list with the new list.
 
                 It is checked that the final list does not have
@@ -244,9 +235,9 @@ class Mesh:
                         "The added list contains entries already existing in the Mesh"
                     )
 
-            if list_type == _Node:
+            if list_type == Node:
                 extend_internal_list(self.nodes, add_list)
-            elif list_type == _Element:
+            elif list_type == Element:
                 extend_internal_list(self.elements, add_list)
             else:
                 for item in add_list:
@@ -266,34 +257,23 @@ class Mesh:
         else:
             raise ValueError("The node that should be replaced is not in the mesh")
 
-    def get_unique_geometry_sets(
-        self,
-        *,
-        coupling_sets: bool = True,
-        link_to_nodes: str = "no_link",
-        geometry_set_start_indices: _Optional[_Dict] = None,
-    ):
+    def get_unique_geometry_sets(self, *, coupling_sets=True, link_to_nodes="no_link"):
         """Return a geometry set container that contains geometry sets
         explicitly added to the mesh, as well as sets for boundary conditions.
 
-        The i_global values are set in the returned geometry sets.
-
-        Args:
-            coupling_sets:
-                If this is true, also sets for couplings will be added.
-            link_to_nodes:
-                "no_link":
-                    No link between the geometry set and the nodes is set
-                "explicitly_contained_nodes":
-                    A link will be set for all nodes that are explicitly part of the geometry set
-                "all_nodes":
-                    A link will be set for all nodes that are part of the geometry set, i.e., also
-                    nodes connected to elements of an element set. This is mainly used for vtk
-                    output so we can color the nodes which are part of element sets.
-            geometry_set_start_indices:
-                Dictionary where the keys are geometry type and the value is the starting
-                index for those geometry sets. This can be used to define an offset in the
-                i_global numbering of the geometry sets. The offsets default to 0.
+        Args
+        ----
+        coupling_sets: bool
+            If this is true, also sets for couplings will be added.
+        link_to_nodes: str
+            "no_link":
+                No link between the geometry set and the nodes is set
+            "explicitly_contained_nodes":
+                A link will be set for all nodes that are explicitly part of the geometry set
+            "all_nodes":
+                A link will be set for all nodes that are part of the geometry set, i.e., also
+                nodes connected to elements of an element set. This is mainly used for vtk
+                output so we can color the nodes which are part of element sets.
         """
 
         is_link_nodes = not link_to_nodes == "no_link"
@@ -310,8 +290,8 @@ class Mesh:
             for bc in bc_list:
                 # Check if sets from couplings should be added.
                 is_coupling = bc_key in (
-                    _mpy.bc.point_coupling,
-                    bc_key == _mpy.bc.point_coupling_penalty,
+                    mpy.bc.point_coupling,
+                    bc_key == mpy.bc.point_coupling_penalty,
                 )
                 if (is_coupling and coupling_sets) or (not is_coupling):
                     # Only add set if it is not already in the container.
@@ -321,15 +301,9 @@ class Mesh:
                         mesh_sets[geom_key].append(bc.geometry_set)
 
         for key in mesh_sets.keys():
-            i_global_offset = 0
-            if geometry_set_start_indices is not None:
-                if key in geometry_set_start_indices:
-                    i_global_offset = geometry_set_start_indices[key]
-                else:
-                    raise KeyError("Could not find {key} in geometry_set_start_indices")
             for i, geometry_set in enumerate(mesh_sets[key]):
                 # Add global indices to the geometry set.
-                geometry_set.i_global = i + 1 + i_global_offset
+                geometry_set.i_global = i + 1
                 if is_link_nodes:
                     geometry_set.link_to_nodes(link_to_nodes=link_to_nodes)
 
@@ -351,7 +325,7 @@ class Mesh:
 
         Args
         ----
-        vector: _np.array, list
+        vector: np.array, list
             3D vector that will be added to all nodes.
         """
         for node in self.nodes:
@@ -373,18 +347,18 @@ class Mesh:
         """
 
         # Get array with all quaternions for the nodes.
-        rot1 = _get_nodal_quaternions(self.nodes)
+        rot1 = get_nodal_quaternions(self.nodes)
 
         # Apply the rotation to the rotation of all nodes.
-        rot_new = _add_rotations(rotation, rot1)
+        rot_new = add_rotations(rotation, rot1)
 
         if not only_rotate_triads:
             # Get array with all positions for the nodes.
-            pos = _get_nodal_coordinates(self.nodes)
-            pos_new = _rotate_coordinates(pos, rotation, origin=origin)
+            pos = get_nodal_coordinates(self.nodes)
+            pos_new = rotate_coordinates(pos, rotation, origin=origin)
 
         for i, node in enumerate(self.nodes):
-            if isinstance(node, _NodeCosserat):
+            if isinstance(node, NodeCosserat):
                 node.rotation.q = rot_new[i, :]
             if not only_rotate_triads:
                 node.coordinates = pos_new[i, :]
@@ -419,50 +393,50 @@ class Mesh:
         """
 
         # Normalize the normal vector.
-        normal_vector = _np.asarray(normal_vector) / _np.linalg.norm(normal_vector)
+        normal_vector = np.asarray(normal_vector) / np.linalg.norm(normal_vector)
 
         # Get array with all quaternions and positions for the nodes.
-        pos = _get_nodal_coordinates(self.nodes)
-        rot1 = _get_nodal_quaternions(self.nodes)
+        pos = get_nodal_coordinates(self.nodes)
+        rot1 = get_nodal_quaternions(self.nodes)
 
         # Check if origin has to be added.
         if origin is not None:
             pos -= origin
 
         # Get the reflection matrix A.
-        A = _np.eye(3) - 2.0 * _np.outer(normal_vector, normal_vector)
+        A = np.eye(3) - 2.0 * np.outer(normal_vector, normal_vector)
 
         # Calculate the new positions.
-        pos_new = _np.dot(pos, A)
+        pos_new = np.dot(pos, A)
 
         # Move back from the origin.
         if origin is not None:
             pos_new += origin
 
         # First get all e3 vectors of the nodes.
-        e3 = _np.zeros_like(pos)
+        e3 = np.zeros_like(pos)
         e3[:, 0] = 2 * (rot1[:, 0] * rot1[:, 2] + rot1[:, 1] * rot1[:, 3])
         e3[:, 1] = 2 * (-1 * rot1[:, 0] * rot1[:, 1] + rot1[:, 2] * rot1[:, 3])
         e3[:, 2] = rot1[:, 0] ** 2 - rot1[:, 1] ** 2 - rot1[:, 2] ** 2 + rot1[:, 3] ** 2
 
         # Get the dot and cross product of e3 and the normal vector.
-        rot2 = _np.zeros_like(rot1)
-        rot2[:, 0] = _np.dot(e3, normal_vector)
-        rot2[:, 1:] = _np.cross(e3, normal_vector)
+        rot2 = np.zeros_like(rot1)
+        rot2[:, 0] = np.dot(e3, normal_vector)
+        rot2[:, 1:] = np.cross(e3, normal_vector)
 
         # Add to the existing rotations.
-        rot_new = _add_rotations(rot2, rot1)
+        rot_new = add_rotations(rot2, rot1)
 
         if flip_beams:
             # To achieve the flip, the triads are rotated with the angle pi
             # around the e2 axis.
-            rot_flip = _Rotation([0, 1, 0], _np.pi)
-            rot_new = _add_rotations(rot_new, rot_flip)
+            rot_flip = Rotation([0, 1, 0], np.pi)
+            rot_new = add_rotations(rot_new, rot_flip)
 
         # For solid elements we need to adapt the connectivity to avoid negative Jacobians.
         # For beam elements this is optional.
         for element in self.elements:
-            if isinstance(element, _Beam):
+            if isinstance(element, Beam):
                 if flip_beams:
                     element.flip()
             else:
@@ -471,7 +445,7 @@ class Mesh:
         # Set the new positions and rotations.
         for i, node in enumerate(self.nodes):
             node.coordinates = pos_new[i, :]
-            if isinstance(node, _NodeCosserat):
+            if isinstance(node, NodeCosserat):
                 node.rotation.q = rot_new[i, :]
 
     def wrap_around_cylinder(self, radius=None, advanced_warning=True):
@@ -493,14 +467,14 @@ class Mesh:
             cases (up to 100,000 elements) this check can be left activated.
         """
 
-        pos = _get_nodal_coordinates(self.nodes)
-        quaternions = _np.zeros([len(self.nodes), 4])
+        pos = get_nodal_coordinates(self.nodes)
+        quaternions = np.zeros([len(self.nodes), 4])
 
         # The x coordinate is the radius, the y coordinate the arc length.
         points_x = pos[:, 0].copy()
 
         # Check if all points are on the same y-z plane.
-        if _np.abs(_np.min(points_x) - _np.max(points_x)) > _mpy.eps_pos:
+        if np.abs(np.min(points_x) - np.max(points_x)) > mpy.eps_pos:
             # The points are not all on the y-z plane, get the reference
             # radius.
             if radius is not None:
@@ -512,37 +486,37 @@ class Mesh:
                     # i.e. if they are also in plane.
                     element_warning = []
                     for i_element, element in enumerate(self.elements):
-                        element_coordinates = _np.zeros([len(element.nodes), 3])
+                        element_coordinates = np.zeros([len(element.nodes), 3])
                         for i_node, node in enumerate(element.nodes):
                             element_coordinates[i_node, :] = node.coordinates
                         is_yz = (
-                            _np.max(
-                                _np.abs(
+                            np.max(
+                                np.abs(
                                     element_coordinates[:, 0]
                                     - element_coordinates[0, 0]
                                 )
                             )
-                            < _mpy.eps_pos
+                            < mpy.eps_pos
                         )
                         is_xz = (
-                            _np.max(
-                                _np.abs(
+                            np.max(
+                                np.abs(
                                     element_coordinates[:, 1]
                                     - element_coordinates[0, 1]
                                 )
                             )
-                            < _mpy.eps_pos
+                            < mpy.eps_pos
                         )
                         if not (is_yz or is_xz):
                             element_warning.append(i_element)
                     if len(element_warning) != 0:
-                        _warnings.warn(
+                        warnings.warn(
                             "There are elements which are not "
                             "parallel to the y-z or x-y plane. This will lead "
                             "to distorted elements!"
                         )
                 else:
-                    _warnings.warn(
+                    warnings.warn(
                         "The nodes are not on the same y-z plane. "
                         "This may lead to distorted elements!"
                     )
@@ -554,7 +528,7 @@ class Mesh:
                 )
             radius_phi = radius
             radius_points = points_x
-        elif radius is None or _np.abs(points_x[0] - radius) < _mpy.eps_pos:
+        elif radius is None or np.abs(points_x[0] - radius) < mpy.eps_pos:
             radius_points = radius_phi = points_x[0]
         else:
             raise ValueError(
@@ -569,12 +543,12 @@ class Mesh:
         phi = pos[:, 1] / radius_phi
 
         # The rotation is about the z-axis.
-        quaternions[:, 0] = _np.cos(0.5 * phi)
-        quaternions[:, 3] = _np.sin(0.5 * phi)
+        quaternions[:, 0] = np.cos(0.5 * phi)
+        quaternions[:, 3] = np.sin(0.5 * phi)
 
         # Set the new positions in the global array.
-        pos[:, 0] = radius_points * _np.cos(phi)
-        pos[:, 1] = radius_points * _np.sin(phi)
+        pos[:, 0] = radius_points * np.cos(phi)
+        pos[:, 1] = radius_points * np.sin(phi)
 
         # Rotate the mesh
         self.rotate(quaternions, only_rotate_triads=True)
@@ -588,8 +562,8 @@ class Mesh:
         *,
         nodes=None,
         reuse_matching_nodes=False,
-        coupling_type=_mpy.bc.point_coupling,
-        coupling_dof_type=_mpy.coupling_dof.fix,
+        coupling_type=mpy.bc.point_coupling,
+        coupling_dof_type=mpy.coupling_dof.fix,
     ):
         """Search through nodes and connect all nodes with the same
         coordinates.
@@ -614,10 +588,7 @@ class Mesh:
         """
 
         # Check that a coupling BC is given.
-        if coupling_type not in (
-            _mpy.bc.point_coupling,
-            _mpy.bc.point_coupling_penalty,
-        ):
+        if coupling_type not in (mpy.bc.point_coupling, mpy.bc.point_coupling_penalty):
             raise ValueError(
                 "Only coupling conditions can be applied in 'couple_nodes'!"
             )
@@ -628,8 +599,8 @@ class Mesh:
             node_list = self.nodes
         else:
             node_list = nodes
-        node_list = _filter_nodes(node_list, middle_nodes=False)
-        partner_nodes = _find_close_nodes(node_list)
+        node_list = filter_nodes(node_list, middle_nodes=False)
+        partner_nodes = find_close_nodes(node_list)
         if len(partner_nodes) == 0:
             # If no partner nodes were found, end this function.
             return
@@ -648,25 +619,25 @@ class Mesh:
             # Go through partner nodes.
             for node_list in partner_nodes:
                 # Get array with rotation vectors.
-                rotation_vectors = _np.zeros([len(node_list), 3])
+                rotation_vectors = np.zeros([len(node_list), 3])
                 for i, node in enumerate(node_list):
-                    if isinstance(node, _NodeCosserat):
+                    if isinstance(node, NodeCosserat):
                         rotation_vectors[i, :] = node.rotation.get_rotation_vector()
                     else:
                         # For the case of nodes that belong to solid elements,
                         # we define the following default value:
-                        rotation_vectors[i, :] = [4 * _np.pi, 0, 0]
+                        rotation_vectors[i, :] = [4 * np.pi, 0, 0]
 
                 # Use find close points function to find nodes with the
                 # same rotation.
-                partners, n_partners = _find_close_points(
-                    rotation_vectors, tol=_mpy.eps_quaternion
+                partners, n_partners = find_close_points(
+                    rotation_vectors, tol=mpy.eps_quaternion
                 )
 
                 # Check if nodes with the same rotations were found.
                 if n_partners == 0:
                     self.add(
-                        _coupling_factory(node_list, coupling_type, coupling_dof_type)
+                        coupling_factory(node_list, coupling_type, coupling_dof_type)
                     )
                 else:
                     # There are nodes that need to be combined.
@@ -701,7 +672,7 @@ class Mesh:
                     # Add the coupling nodes.
                     if len(coupling_nodes) > 1:
                         self.add(
-                            _coupling_factory(
+                            coupling_factory(
                                 coupling_nodes, coupling_type, coupling_dof_type
                             )
                         )
@@ -715,7 +686,7 @@ class Mesh:
         else:
             # Connect close nodes with a coupling.
             for node_list in partner_nodes:
-                self.add(_coupling_factory(node_list, coupling_type, coupling_dof_type))
+                self.add(coupling_factory(node_list, coupling_type, coupling_dof_type))
 
     def unlink_nodes(self):
         """Delete the linked arrays and global indices in all nodes."""
@@ -724,12 +695,12 @@ class Mesh:
 
     def get_nodes_by_function(self, *args, **kwargs):
         """Return all nodes for which the function evaluates to true."""
-        return _get_nodes_by_function(self.nodes, *args, **kwargs)
+        return get_nodes_by_function(self.nodes, *args, **kwargs)
 
     def get_min_max_nodes(self, *args, **kwargs):
         """Return a geometry set with the max and min nodes in all
         directions."""
-        return _get_min_max_nodes(self.nodes, *args, **kwargs)
+        return get_min_max_nodes(self.nodes, *args, **kwargs)
 
     def check_overlapping_elements(self, raise_error=True):
         """Check if there are overlapping elements in the mesh.
@@ -746,13 +717,13 @@ class Mesh:
             return
 
         # Get array with middle nodes.
-        coordinates = _np.zeros([len(middle_nodes), 3])
+        coordinates = np.zeros([len(middle_nodes), 3])
         for i, node in enumerate(middle_nodes):
             coordinates[i, :] = node.coordinates
 
         # Check if there are double entries in the coordinates.
-        has_partner, partner = _find_close_points(coordinates)
-        partner_indices = _point_partners_to_partner_indices(has_partner, partner)
+        has_partner, partner = find_close_points(coordinates)
+        partner_indices = point_partners_to_partner_indices(has_partner, partner)
         if partner > 0:
             if raise_error:
                 raise ValueError(
@@ -762,7 +733,7 @@ class Mesh:
                     "mpy.check_overlapping_elements=False"
                 )
             else:
-                _warnings.warn(
+                warnings.warn(
                     "There are multiple middle nodes with the same coordinates!"
                 )
 
@@ -786,8 +757,8 @@ class Mesh:
         """
 
         # Object to store VKT data (and write it to file)
-        vtk_writer_beam = _VTKWriter()
-        vtk_writer_solid = _VTKWriter()
+        vtk_writer_beam = VTKWriter()
+        vtk_writer_solid = VTKWriter()
 
         # Get the set numbers of the mesh
         mesh_sets = self.get_unique_geometry_sets(
@@ -800,7 +771,7 @@ class Mesh:
 
         # Set the mpy value.
         digits = len(str(max_sets))
-        _mpy.vtk_node_set_format = "{:0" + str(digits) + "}"
+        mpy.vtk_node_set_format = "{:0" + str(digits) + "}"
 
         if overlapping_elements:
             # Check for overlapping elements.
@@ -847,10 +818,10 @@ class Mesh:
 
         # Write to file, only if there is at least one point in the writer.
         if vtk_writer_beam.points.GetNumberOfPoints() > 0:
-            filepath = _os.path.join(output_directory, output_name + "_beam.vtu")
+            filepath = os.path.join(output_directory, output_name + "_beam.vtu")
             vtk_writer_beam.write_vtk(filepath, binary=binary)
         if vtk_writer_solid.points.GetNumberOfPoints() > 0:
-            filepath = _os.path.join(output_directory, output_name + "_solid.vtu")
+            filepath = os.path.join(output_directory, output_name + "_solid.vtu")
             vtk_writer_solid.write_vtk(filepath, binary=binary)
 
     def display_pyvista(
@@ -867,7 +838,7 @@ class Mesh:
         """Display the mesh in pyvista.
 
         If this is called in a GitHub testing run, nothing will be shown, instead
-        the _pv.plotter object will be returned.
+        the pv.plotter object will be returned.
 
         Args
         ----
@@ -902,7 +873,7 @@ class Mesh:
             visualization purposes.
         """
 
-        plotter = _pv.Plotter()
+        plotter = pv.Plotter()
         plotter.renderer.add_axes()
 
         if parallel_projection:
@@ -911,7 +882,7 @@ class Mesh:
         vtk_writer_beam, vtk_writer_solid = self.get_vtk_representation(**kwargs)
 
         if vtk_writer_beam.points.GetNumberOfPoints() > 0:
-            beam_grid = _pv.UnstructuredGrid(vtk_writer_beam.grid)
+            beam_grid = pv.UnstructuredGrid(vtk_writer_beam.grid)
 
             # Check if all beams have a given cross-section radius, if not set the given input
             # value
@@ -937,7 +908,7 @@ class Mesh:
             # Plot the nodes
             node_radius_scaling_factor = 1.5
             if beam_nodes:
-                sphere = _pv.Sphere(
+                sphere = pv.Sphere(
                     radius=1.0,
                     theta_resolution=resolution,
                     phi_resolution=resolution,
@@ -979,9 +950,7 @@ class Mesh:
             # Plot the directors of the beam cross-section
             director_radius_scaling_factor = 3.5
             if beam_cross_section_directors:
-                arrow = _pv.Arrow(
-                    tip_resolution=resolution, shaft_resolution=resolution
-                )
+                arrow = pv.Arrow(tip_resolution=resolution, shaft_resolution=resolution)
                 directors = [
                     finite_element_nodes.glyph(
                         geom=arrow,
@@ -996,10 +965,10 @@ class Mesh:
                     plotter.add_mesh(arrow, color=colors[i])
 
         if vtk_writer_solid.points.GetNumberOfPoints() > 0:
-            solid_grid = _pv.UnstructuredGrid(vtk_writer_solid.grid).clean()
+            solid_grid = pv.UnstructuredGrid(vtk_writer_solid.grid).clean()
             plotter.add_mesh(solid_grid, color="white", show_edges=True, opacity=0.5)
 
-        if not _is_testing():
+        if not is_testing():
             plotter.show()
         else:
             return plotter
@@ -1009,4 +978,8 @@ class Mesh:
 
         The functions and materials will not be deep copied.
         """
-        return _copy.deepcopy(self)
+        return copy.deepcopy(self)
+
+
+
+
