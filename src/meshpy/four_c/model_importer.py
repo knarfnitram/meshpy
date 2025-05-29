@@ -25,6 +25,7 @@ from pathlib import Path as _Path
 from typing import Dict as _Dict
 from typing import List as _List
 from typing import Tuple as _Tuple
+from typing import Type as _Type
 from typing import Union as _Union
 
 import fourcipp as _fourcipp
@@ -38,12 +39,12 @@ from meshpy.core.boundary_condition import (
 )
 from meshpy.core.conf import mpy as _mpy
 from meshpy.core.coupling import Coupling as _Coupling
-from meshpy.core.element_volume import VolumeHEX8 as _VolumeHEX8
-from meshpy.core.element_volume import VolumeHEX20 as _VolumeHEX20
-from meshpy.core.element_volume import VolumeHEX27 as _VolumeHEX27
-from meshpy.core.element_volume import VolumeTET4 as _VolumeTET4
-from meshpy.core.element_volume import VolumeTET10 as _VolumeTET10
-from meshpy.core.element_volume import VolumeWEDGE6 as _VolumeWEDGE6
+from meshpy.core.element_volume import (
+    VolumeElement as _VolumeElement,
+)
+from meshpy.core.element_volume import (
+    element_type_to_four_c_string as _element_type_to_four_c_string,
+)
 from meshpy.core.geometry_set import GeometrySetNodes as _GeometrySetNodes
 from meshpy.core.mesh import Mesh as _Mesh
 from meshpy.core.node import Node as _Node
@@ -55,12 +56,28 @@ from meshpy.four_c.input_file import (
 from meshpy.four_c.input_file_mappings import (
     INPUT_FILE_MAPPINGS as _INPUT_FILE_MAPPINGS,
 )
+from meshpy.utils.environment import cubitpy_is_available as _cubitpy_is_available
 from meshpy.utils.environment import fourcipp_is_available as _fourcipp_is_available
 
 
 def import_cubitpy_model(cubit, convert_input_to_mesh: bool = False):
-    """TODO."""
+    """Imports an existing mesh with boundary conditions from cubit and
+    optionally converts it into a MeshPy mesh and fourcipp input file object.
 
+    Args:
+        cubit: wrapper object of cubit containing the mesh and boundary conditions.
+        convert_input_to_mesh: If True, the input file will be converted to a
+            MeshPy mesh.
+    Returns:
+        A tuple with the input file and the mesh. If convert_input_to_mesh is
+        False, the mesh will be empty. Note that the input sections which are
+        converted to a MeshPy mesh are removed from the input file object.
+    """
+
+    if not _cubitpy_is_available():
+        raise ImportError(
+            "Import failed since cubitpy is not available. Please install cubitpy first."
+        )
     from cubitpy.cubit_to_fourc_input import (
         get_input_file_with_mesh as _get_input_file_with_mesh,
     )
@@ -109,15 +126,14 @@ def _element_from_dict(nodes: _List[_Node], element: dict):
     """
 
     # Depending on the number of nodes chose which solid element to return.
-    # TODO reuse element_type_to_four_c_string from meshpy.core.element_volume
-    element_type = {
-        "HEX8": _VolumeHEX8,
-        "HEX20": _VolumeHEX20,
-        "HEX27": _VolumeHEX27,
-        "TET4": _VolumeTET4,
-        "TET10": _VolumeTET10,
-        "WEDGE6": _VolumeWEDGE6,
-        "POINT1": _SolidRigidSphere,
+    # Add additional rigid sphere to strings.
+    element_type_to_four_c_string_extended: _Dict[_Type[_VolumeElement], str] = {
+        **_element_type_to_four_c_string,
+        _SolidRigidSphere: "POINT1",
+    }
+    # invert key value pair
+    element_type: _Dict[str, _Type[_VolumeElement]] = {
+        v: k for k, v in element_type_to_four_c_string_extended.items()
     }
 
     if element["cell"]["type"] not in element_type:
