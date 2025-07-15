@@ -54,7 +54,7 @@ class Beam3rHerm2Line3(_Beam):
         self._check_material()
 
         return {
-            "id": self.i_global,
+            "id": self.i_global + 1,
             "cell": {
                 "type": "LINE3",
                 "connectivity": [self.nodes[i] for i in [0, 2, 1]],
@@ -90,7 +90,7 @@ class Beam3rLine2Line2(_Beam):
         self._check_material()
 
         return {
-            "id": self.i_global,
+            "id": self.i_global + 1,
             "cell": {
                 "type": "LINE2",
                 "connectivity": self.nodes,
@@ -139,7 +139,7 @@ class Beam3kClass(_Beam):
         self._check_material()
 
         return {
-            "id": self.i_global,
+            "id": self.i_global + 1,
             "cell": {
                 "type": "LINE3",
                 "connectivity": [self.nodes[i] for i in [0, 2, 1]],
@@ -205,7 +205,7 @@ class Beam3eb(_Beam):
             )
 
         return {
-            "id": self.i_global,
+            "id": self.i_global + 1,
             "cell": {
                 "type": "LINE2",
                 "connectivity": self.nodes,

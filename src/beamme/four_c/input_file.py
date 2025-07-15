@@ -106,7 +106,7 @@ def _dump_coupling(coupling):
 
         data = element_type.get_coupling_dict(coupling.data)
 
-    return {"E": coupling.geometry_set.i_global, **data}
+    return {"E": coupling.geometry_set.i_global + 1, **data}
 
 
 class InputFile(_FourCInput):
@@ -124,7 +124,7 @@ class InputFile(_FourCInput):
         # to native Python types via the FourCIPP type converter.
         self.type_converter.register_numpy_types()
         self.type_converter.register_type(
-            (_Function, _Material, _Node), lambda converter, obj: obj.i_global
+            (_Function, _Material, _Node), lambda converter, obj: obj.i_global + 1
         )
 
     def add(self, object_to_add, **kwargs):
@@ -298,8 +298,7 @@ class InputFile(_FourCInput):
 
             # Set the values for i_global.
             for i, item in enumerate(data_list):
-                # TODO make i_global index-0 based
-                item.i_global = i + 1 + start_index
+                item.i_global = i + start_index
 
         def _set_i_global_elements(element_list, *, start_index=0):
             """Set i_global in every item of element_list."""
@@ -314,8 +313,7 @@ class InputFile(_FourCInput):
             for item in element_list:
                 # As a NURBS patch can be defined with more elements, an offset is applied to the
                 # rest of the items
-                # TODO make i_global index-0 based
-                item.i_global = i + 1
+                item.i_global = i
                 if isinstance(item, _NURBSPatch):
                     item.n_nurbs_patch = i_nurbs_patch + 1
                     offset = item.get_number_elements()
@@ -346,7 +344,7 @@ class InputFile(_FourCInput):
                 elif isinstance(item, _BoundaryCondition):
                     list.append(
                         {
-                            "E": item.geometry_set.i_global,
+                            "E": item.geometry_set.i_global + 1,
                             **item.data,
                         }
                     )
@@ -391,7 +389,7 @@ class InputFile(_FourCInput):
 
         # Add the functions.
         for function in mesh.functions:
-            self.add({f"FUNCT{function.i_global}": function.data})
+            self.add({f"FUNCT{function.i_global + 1}": function.data})
 
         # If there are couplings in the mesh, set the link between the nodes
         # and elements, so the couplings can decide which DOFs they couple,

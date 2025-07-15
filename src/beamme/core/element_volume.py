@@ -44,7 +44,7 @@ class VolumeElement(_Element):
         """Return a dict with the items representing this object."""
 
         return {
-            "id": self.i_global,
+            "id": self.i_global + 1,
             "cell": {
                 "type": element_type_to_four_c_string[type(self)],
                 "connectivity": self.nodes,

@@ -226,7 +226,7 @@ class NURBSSurface(NURBSPatch):
 
                 patch_elements.append(
                     {
-                        "id": self.i_global + j,
+                        "id": self.i_global + j + 1,
                         "cell": {
                             "type": f"NURBS{num_cp_in_element}",
                             "connectivity": connectivity,
@@ -319,7 +319,7 @@ class NURBSVolume(NURBSPatch):
 
                     patch_elements.append(
                         {
-                            "id": self.i_global + increment_ele,
+                            "id": self.i_global + increment_ele + 1,
                             "cell": {
                                 "type": f"NURBS{num_cp_in_element}",
                                 "connectivity": connectivity,
