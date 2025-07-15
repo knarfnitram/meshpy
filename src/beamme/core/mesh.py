@@ -31,6 +31,8 @@ from typing import Optional as _Optional
 
 import numpy as _np
 import pyvista as _pv
+import quaternion as _quaternion
+from numpy.typing import NDArray as _NDArray
 
 from beamme.core.boundary_condition import (
     BoundaryConditionBase as _BoundaryConditionBase,
@@ -357,19 +359,21 @@ class Mesh:
         for node in self.nodes:
             node.coordinates += vector
 
-    def rotate(self, rotation, origin=None, only_rotate_triads=False):
+    def rotate(
+        self,
+        rotation: _Rotation | _NDArray[_quaternion.quaternion],
+        origin=None,
+        only_rotate_triads: bool = False,
+    ) -> None:
         """Rotate all beam nodes of the mesh with rotation.
 
-        Args
-        ----
-        rotation: Rotation, list(quaternions) (nx4)
-            The rotation that will be applied to the nodes. Can also be an
-            array with a quaternion for each node.
-        origin: 3D vector
-            If this is given, the mesh is rotated about this point. Default is
-            (0,0,0)
-        only_rotate_triads: bool
-            If true the nodal positions are not changed.
+        Args:
+            rotation: The rotation(s) that will be applied to the nodes. If
+            this is an array, it has to hold a quaternion for each node.
+            origin (3D vector): If this is given, the mesh is rotated about
+                this point. Defaults to (0, 0, 0).
+            only_rotate_triads: If this is true, the nodal positions are not
+                changed.
         """
 
         # Get array with all quaternions for the nodes.
@@ -389,7 +393,7 @@ class Mesh:
             if not only_rotate_triads:
                 node.coordinates = pos_new[i, :]
 
-    def reflect(self, normal_vector, origin=None, flip_beams=False):
+    def reflect(self, normal_vector, origin=None, flip_beams: bool = False) -> None:
         """Reflect all nodes of the mesh with respect to a plane defined by its
         normal_vector. Per default the plane goes through the origin, if not a
         point on the plane can be given with the parameter origin.
@@ -406,16 +410,12 @@ class Mesh:
         normal to the vector e3. The rotation angle is twice the angle of e3
         to n.
 
-        Args
-        ----
-        normal_3D vector
-            The normal vector of the reflection plane.
-        origin: 3D vector
-            Per default the reflection plane goes through the origin. If this
-            parameter is given, the point is on the plane.
-        flip_beams: bool
-            When True, the beams are flipped, so that the direction along the
-            beam is reversed.
+        Args:
+            normal_vector (3D vector): The normal vector of the reflection plane.
+            origin (3D vector): The reflection plane goes through this point.
+                Defaults to (0, 0, 0).
+            flip_beams: When True, the beams are flipped, so that the direction
+                along the beam is reversed.
         """
 
         # Normalize the normal vector.
@@ -474,22 +474,21 @@ class Mesh:
             if isinstance(node, _NodeCosserat):
                 node.rotation.q = rot_new[i, :]
 
-    def wrap_around_cylinder(self, radius=None, advanced_warning=True):
+    def wrap_around_cylinder(
+        self, radius: float | None = None, advanced_warning: bool = True
+    ) -> None:
         """Wrap the geometry around a cylinder. The y-z plane gets morphed into
         the z-axis of symmetry. If all nodes are on the same y-z plane, the
         radius of the created cylinder is the x coordinate of that plane. If
         the nodes are not on the same y-z plane, the radius has to be given
         explicitly.
 
-        Args
-        ----
-        radius: double
-            If this value is given AND not all nodes are on the same y-z plane,
-            then use this radius for the calculation of phi for all nodes.
-            This might still lead to distorted elements!.
-        advanced_warning: bool
-            If each element should be checked if it is either parallel to the
-            y-z or x-z plane. This is computationally expensive, but in most
+        Args:
+            radius: If this value is given AND not all nodes are on the same y-z
+                plane, then use this radius for the calculation of phi for all
+                nodes. This might still lead to distorted elements!
+        advanced_warning: If each element should be checked if it is either parallel
+            to the y-z or x-z plane. This is computationally expensive, but in most
             cases (up to 100,000 elements) this check can be left activated.
         """
 

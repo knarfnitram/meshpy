@@ -24,6 +24,7 @@
 from typing import Union as _Union
 
 import numpy as _np
+from numpy.typing import NDArray as _NDArray
 
 from beamme.core.conf import bme as _bme
 from beamme.core.geometry_set import GeometryName as _GeometryName
@@ -170,18 +171,15 @@ def get_nodal_coordinates(nodes):
     return coordinates
 
 
-def get_nodal_quaternions(nodes):
+def get_nodal_quaternions(nodes: list[_Node]) -> _NDArray:
     """Return an array with the quaternions of the given nodes.
 
-    Args
-    ----
-    kwargs:
-        Will be passed to self.get_global_nodes.
-
-    Return
-    ----
-    pos: _np.array
-        Numpy array with all the positions of the nodes.
+    Args:
+        nodes: List of nodes where we want the quaternion array.
+    Returns:
+        A numpy array containing the quaternions (the length is the number of
+        nodes and the dtype is a numpy quaternion). For nodes which don't
+        contain a rotation, we set the dummy quaternion (2, 0, 0, 0).
     """
     quaternions = _np.zeros([len(nodes), 4])
     for i, node in enumerate(nodes):

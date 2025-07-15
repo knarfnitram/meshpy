@@ -24,6 +24,7 @@
 import numpy as _np
 
 from beamme.core.base_mesh_item import BaseMeshItem as _BaseMeshItem
+from beamme.core.rotation import Rotation as _Rotation
 
 
 class Node(_BaseMeshItem):
@@ -107,7 +108,14 @@ class NodeCosserat(Node):
     """This object represents a Cosserat node in the mesh, i.e., it contains
     three positions and three rotations."""
 
-    def __init__(self, coordinates, rotation, *, arc_length=None, **kwargs):
+    def __init__(
+        self,
+        coordinates,
+        rotation: _Rotation,
+        *,
+        arc_length: float | None = None,
+        **kwargs,
+    ):
         super().__init__(coordinates, **kwargs)
 
         # Rotation of this node.
