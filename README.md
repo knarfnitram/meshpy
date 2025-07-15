@@ -1,6 +1,5 @@
 <div align="center">
-
-# BeamMe <!-- omit from toc -->
+<img src="https://raw.githubusercontent.com/beamme-py/beamme/refs/heads/main/doc/assets/beamme_logo_wide.png" width="700">
 </div>
 
 <div align="center">
