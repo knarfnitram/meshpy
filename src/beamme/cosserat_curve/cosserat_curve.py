@@ -77,6 +77,8 @@ def get_spline_interpolation(
     """
 
     # Interpolate coordinates along arc length
+    # Note: The numeric evaluation of the spline interpolation can depend on the
+    #     operating system, thus introducing slight numerical differences (~1e-12).
     centerline_interpolation = _interpolate.make_interp_spline(
         point_arc_length, coordinates
     )

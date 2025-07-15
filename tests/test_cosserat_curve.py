@@ -137,9 +137,10 @@ def test_cosserat_curve_translate_and_rotate(
         )
         return rotations
 
+    # Note: The tolerances are increased due to issues with the spline
+    #     interpolation, see `beamme.cosserat_curve.get_spline_interpolation`.
     assert_results_close(sol_half_pos, load_compare("pos_half_ref"), atol=1e-12)
     assert_results_close(sol_half_q, get_compare_rot_with_twist("q_half_ref"))
-
     assert_results_close(sol_full_pos, load_compare("pos_full_ref"), atol=1e-12)
     assert_results_close(sol_full_q, get_compare_rot_with_twist("q_full_ref"))
 
@@ -269,6 +270,8 @@ def test_cosserat_curve_mesh_warp_transform_boundary_conditions(
         ),
     )
 
+    # Note: The tolerances are increased due to issues with the spline
+    #     interpolation, see `beamme.cosserat_curve.get_spline_interpolation`.
     assert_results_close(
         get_corresponding_reference_file_path(), mesh, rtol=1e-12, atol=1e-12
     )
