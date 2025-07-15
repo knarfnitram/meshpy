@@ -281,6 +281,11 @@ def create_beam_mesh_generic(
         elif start_node is not None and start_node.arc_length is not None:
             nodal_arc_length_offset = start_node.arc_length
         elif end_node is not None and end_node.arc_length is not None:
+            if interval_length is None:
+                raise ValueError(
+                    "The end node has an arc length but the interval_length is not "
+                    "given. This is not supported."
+                )
             nodal_arc_length_offset = end_node.arc_length - interval_length
         else:
             # Default value

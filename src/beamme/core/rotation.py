@@ -23,6 +23,7 @@
 
 import numpy as _np
 import quaternion as _quaternion
+from numpy.typing import NDArray as _NDArray
 
 from beamme.core.conf import bme as _bme
 
@@ -340,23 +341,18 @@ class Rotation:
         return f"Rotation:\n    q0: {self.q[0]}\n    q: {self.q[1:]}"
 
 
-def add_rotations(rotation_21, rotation_10):
-    """Multiply a rotation onto another.
+def add_rotations(
+    rotation_21: Rotation | _NDArray[_quaternion.quaternion],
+    rotation_10: Rotation | _NDArray[_quaternion.quaternion],
+) -> _NDArray[_quaternion.quaternion]:
+    """Multiply rotations onto another.
 
-    Args
-    ----
-    rotation_10: _np.ndarray
-        Array with the dimensions n x 4 or 4 x 1.
-        The first rotation that is applied.
-    rotation_21: _np.ndarray
-        Array with the dimensions n x 4 or 4 x 1.
-        The second rotation that is applied.
+    Args:
+        rotation_10: The first rotation(s) that are applied.
+        rotation_21: The second rotation(s) that are applied.
 
-    Return
-    ----
-    rot_new: _np.ndarray
-        Array with the dimensions n x 4.
-        This array contains the new quaternions.
+    Returns:
+        An array with the compound quaternions.
     """
 
     # Transpose the arrays, to work with the following code.
@@ -391,19 +387,20 @@ def add_rotations(rotation_21, rotation_10):
     return rotnew.transpose()
 
 
-def rotate_coordinates(coordinates, rotation, *, origin=None):
+def rotate_coordinates(
+    coordinates: _NDArray,
+    rotation: Rotation | _NDArray[_quaternion.quaternion],
+    *,
+    origin=None,
+):
     """Rotate all given coordinates.
 
-    Args
-    ----
-    coordinates: _np.array
-        Array of 3D coordinates to be rotated
-    rotation: Rotation, list(quaternions) (nx4)
-        The rotation that will be applied to the coordinates. Can also be an
-        array with a quaternion for each coordinate.
-    origin: 3D vector
-        If this is given, the mesh is rotated about this point. Default is
-        (0,0,0)
+    Args:
+        coordinates: Array of 3D coordinates to be rotated
+        rotation: The rotation(s) that will be applied to the coordinates. If
+            this is an array it has to hold a quaternion for each coordinate.
+    origin (3D vector):  If this is given, the mesh is rotated about this
+        point. Defaults to (0, 0, 0).
     """
 
     if isinstance(rotation, Rotation):
