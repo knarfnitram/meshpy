@@ -156,9 +156,9 @@ class GeometrySetBase(_BaseMeshItem):
         return [
             {
                 "type": "NODE",
-                "node_id": node.i_global,
+                "node_id": node.i_global + 1,
                 "d_type": self.geometry_set_names[self.geometry_type],
-                "d_id": self.i_global,
+                "d_id": self.i_global + 1,
             }
             for node in nodes
         ]

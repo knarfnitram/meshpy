@@ -76,7 +76,7 @@ def add_point_data_node_sets(point_data, nodes, *, extra_points=0):
             raise TypeError("The geometry type is wrong!")
 
         # Add the data vector.
-        set_name = f"{geometry_name}_set_{_bme.vtk_node_set_format.format(geometry_set.i_global)}"
+        set_name = f"{geometry_name}_set_{_bme.vtk_node_set_format.format(geometry_set.i_global + 1)}"
         point_data[set_name] = (data_vector, _bme.vtk_type.int)
 
 

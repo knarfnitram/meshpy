@@ -41,7 +41,7 @@ class SolidRigidSphere(_VolumeElement):
         """Return a dict with the items representing this object."""
 
         return {
-            "id": self.i_global,
+            "id": self.i_global + 1,
             "cell": {
                 "type": "POINT1",
                 "connectivity": self.nodes,

@@ -97,7 +97,7 @@ class Node(_BaseMeshItem):
         """Return a list with the legacy string representing this node."""
 
         return {
-            "id": self.i_global,
+            "id": self.i_global + 1,
             "COORD": self.coordinates,
             "data": {"type": "NODE"},
         }
@@ -150,7 +150,7 @@ class ControlPoint(Node):
         point."""
 
         return {
-            "id": self.i_global,
+            "id": self.i_global + 1,
             "COORD": self.coordinates,
             "data": {"type": "CP", "weight": self.weight},
         }

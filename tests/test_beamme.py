@@ -536,14 +536,14 @@ def test_reissner_elasto_plastic(assert_results_close):
     }
 
     mat = MaterialReissnerElastoplastic(**kwargs)
-    mat.i_global = 69
+    mat.i_global = 68
 
     assert_results_close(mat.dump_to_list(), ref_dict)
 
     ref_dict["MAT_BeamReissnerElastPlastic"]["TORSIONPLAST"] = True
     kwargs["torsion_plasticity"] = True
     mat = MaterialReissnerElastoplastic(**kwargs)
-    mat.i_global = 69
+    mat.i_global = 68
     assert_results_close(mat.dump_to_list(), ref_dict)
 
 
@@ -612,11 +612,12 @@ def test_kirchhoff_material(assert_results_close):
         material.polar = 5.0
 
     material = MaterialKirchhoff(youngs_modulus=1000, is_fad=True)
+    material.i_global = 26
     set_stiff(material)
     assert_results_close(
         material.dump_to_list(),
         {
-            "MAT": None,
+            "MAT": 27,
             "MAT_BeamKirchhoffElastHyper": {
                 "YOUNG": 1000,
                 "SHEARMOD": 500.0,
@@ -631,11 +632,12 @@ def test_kirchhoff_material(assert_results_close):
     )
 
     material = MaterialKirchhoff(youngs_modulus=1000, is_fad=False)
+    material.i_global = 26
     set_stiff(material)
     assert_results_close(
         material.dump_to_list(),
         {
-            "MAT": None,
+            "MAT": 27,
             "MAT_BeamKirchhoffElastHyper": {
                 "YOUNG": 1000,
                 "SHEARMOD": 500.0,
@@ -650,11 +652,12 @@ def test_kirchhoff_material(assert_results_close):
     )
 
     material = MaterialKirchhoff(youngs_modulus=1000, interaction_radius=1.1)
+    material.i_global = 26
     set_stiff(material)
     assert_results_close(
         material.dump_to_list(),
         {
-            "MAT": None,
+            "MAT": 27,
             "MAT_BeamKirchhoffElastHyper": {
                 "YOUNG": 1000,
                 "SHEARMOD": 500.0,

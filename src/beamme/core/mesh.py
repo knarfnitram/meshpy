@@ -329,7 +329,7 @@ class Mesh:
                     raise KeyError("Could not find {key} in geometry_set_start_indices")
             for i, geometry_set in enumerate(mesh_sets[key]):
                 # Add global indices to the geometry set.
-                geometry_set.i_global = i + 1 + i_global_offset
+                geometry_set.i_global = i + i_global_offset
                 if is_link_nodes:
                     geometry_set.link_to_nodes(link_to_nodes=link_to_nodes)
 
