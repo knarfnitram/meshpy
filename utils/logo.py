@@ -1282,7 +1282,7 @@ def create_beamme_logo_full(plotter, plot_data):
     apply_camera_settings(plotter, view["2D"])
 
 
-def create_beamme_logo_small(plotter, plot_data):
+def create_beamme_logo_small(plotter, plot_data, square=True):
     """Create the small BeamMe logo."""
 
     # Create the letters
@@ -1290,17 +1290,26 @@ def create_beamme_logo_small(plotter, plot_data):
     add_letter_2d_small(plotter, plot_data, lighting=False)
 
     view = {
-        "2D": {
-            "window_size": [1080, 720],
-            "camera_position": [64.14768118135176, -40.02894899431995, 100.0],
-            "camera_focal_point": [64.14768118135176, -40.02894899431995, 0.0],
+        False: {
+            "window_size": [1280, 640],
+            "camera_position": [64.32596930324353, -39.72129035167604, 100.0],
+            "camera_focal_point": [64.32596930324353, -39.72129035167604, 0.0],
             "camera_view_up": [0.0, 1.0, 0.0],
             "parallel_projection": 1,
-            "parallel_scale": 46.12986024933847,
+            "parallel_scale": 44.88496648212754,
             "view_angle": 30.0,
-        }
+        },
+        True: {
+            "window_size": [1080, 1080],
+            "camera_position": [64.32596930324353, -39.72129035167604, 100.0],
+            "camera_focal_point": [64.32596930324353, -39.72129035167604, 0.0],
+            "camera_view_up": [0.0, 1.0, 0.0],
+            "parallel_projection": 1,
+            "parallel_scale": 70.58560796483074,
+            "view_angle": 30.0,
+        },
     }
-    apply_camera_settings(plotter, view["2D"])
+    apply_camera_settings(plotter, view[square])
 
 
 def create_beamme_logo(base_dir, create_cubit=True):
@@ -1334,12 +1343,15 @@ def create_beamme_logo(base_dir, create_cubit=True):
         plotter.screenshot(base_dir / "beamme_logo_wide.png")
 
     # Small logo
-    plotter = pv.Plotter(off_screen=True)
-    create_beamme_logo_small(plotter, plot_data)
-    if not is_testing():
-        plotter.screenshot(base_dir / "beamme_logo_icon.png")
+    for square in [False, True]:
+        plotter = pv.Plotter(off_screen=True)
+        create_beamme_logo_small(plotter, plot_data, square=square)
+        if not is_testing():
+            plotter.screenshot(
+                base_dir / f"beamme_logo_icon_{'square' if square else 'wide'}.png"
+            )
 
 
 if __name__ == "__main__":
     """Create the logo."""
-    create_beamme_logo(Path(__file__).parent)
+    create_beamme_logo(Path(__file__).parent, create_cubit=True)

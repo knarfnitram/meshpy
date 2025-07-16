@@ -2,6 +2,8 @@
 <img src="https://raw.githubusercontent.com/beamme-py/beamme/refs/heads/main/doc/assets/beamme_logo_wide.png" width="700">
 </div>
 
+</p>
+
 <div align="center">
 
 [![website](https://raw.githubusercontent.com/beamme-py/beamme/refs/heads/main/doc/badges/website.svg)](https://beamme-py.github.io/beamme/)
