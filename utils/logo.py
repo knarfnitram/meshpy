@@ -1340,7 +1340,9 @@ def create_beamme_logo(base_dir, create_cubit=True):
     plotter = pv.Plotter(off_screen=True)
     create_beamme_logo_full(plotter, plot_data)
     if not is_testing():
-        plotter.screenshot(base_dir / "beamme_logo_wide.png")
+        plotter.screenshot(
+            base_dir / "beamme_logo_wide.png", transparent_background=True
+        )
 
     # Small logo
     for square in [False, True]:
@@ -1348,7 +1350,8 @@ def create_beamme_logo(base_dir, create_cubit=True):
         create_beamme_logo_small(plotter, plot_data, square=square)
         if not is_testing():
             plotter.screenshot(
-                base_dir / f"beamme_logo_icon_{'square' if square else 'wide'}.png"
+                base_dir / f"beamme_logo_icon_{'square' if square else 'wide'}.png",
+                transparent_background=True,
             )
 
 
