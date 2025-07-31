@@ -41,6 +41,7 @@ from beamme.core.material import Material as _Material
 from beamme.core.mesh import Mesh as _Mesh
 from beamme.core.node import Node as _Node
 from beamme.core.nurbs_patch import NURBSPatch as _NURBSPatch
+from beamme.four_c.four_c_types import BeamType as _BeamType
 from beamme.four_c.input_file_mappings import (
     INPUT_FILE_MAPPINGS as _INPUT_FILE_MAPPINGS,
 )
@@ -97,7 +98,7 @@ def _dump_coupling(coupling):
                 f"Expected a single connected type of beam elements, got {element_types}"
             )
         element_type = element_types.pop()
-        if element_type.beam_type is _bme.beam.kirchhoff:
+        if element_type.beam_type is _BeamType.kirchhoff:
             rotvec = {element.rotvec for element in connected_elements}
             if len(rotvec) > 1 or not rotvec.pop():
                 raise TypeError(
