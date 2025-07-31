@@ -27,7 +27,12 @@ import numpy as _np
 
 from beamme.core.conf import bme as _bme
 from beamme.core.element_beam import Beam as _Beam
+from beamme.core.element_beam import Beam2 as _Beam2
+from beamme.core.element_beam import Beam3 as _Beam3
 from beamme.four_c.four_c_types import BeamType as _BeamType
+from beamme.four_c.input_file_mappings import (
+    INPUT_FILE_MAPPINGS as _INPUT_FILE_MAPPINGS,
+)
 from beamme.four_c.material import MaterialEulerBernoulli as _MaterialEulerBernoulli
 from beamme.four_c.material import MaterialKirchhoff as _MaterialKirchhoff
 from beamme.four_c.material import MaterialReissner as _MaterialReissner
@@ -36,13 +41,54 @@ from beamme.four_c.material import (
 )
 
 
-class Beam3rHerm2Line3(_Beam):
+def dump_four_c_beam_to_list(self) -> dict:
+    """Return the dictionary representing this beam element in 4C.
+
+    Args:
+        self: The beam element to be dumped.
+    """
+
+    # Check the material.
+    self._check_material()
+
+    # Gather the element data for the input file.
+    element_data = self.data.copy()
+    element_data["type"] = _INPUT_FILE_MAPPINGS["beam_types"][
+        type(self).four_c_beam_type
+    ]
+    element_data["MAT"] = self.material
+    if type(self).four_c_triads:
+        element_data["TRIADS"] = [
+            item
+            for i in _INPUT_FILE_MAPPINGS["n_nodes_to_node_ordering"][len(self.nodes)]
+            for item in self.nodes[i].rotation.get_rotation_vector()
+        ]
+    if type(self).four_c_is_hermite_centerline:
+        element_data["HERMITE_CENTERLINE"] = True
+    return {
+        "id": self.i_global + 1,
+        "cell": {
+            "type": _INPUT_FILE_MAPPINGS["n_nodes_to_cell_type"][len(self.nodes)],
+            "connectivity": [
+                self.nodes[i]
+                for i in _INPUT_FILE_MAPPINGS["n_nodes_to_node_ordering"][
+                    len(self.nodes)
+                ]
+            ],
+        },
+        "data": element_data,
+    }
+
+
+class Beam3rHerm2Line3(_Beam3):
     """Represents a Simo-Reissner beam element with third order Hermitian
     interpolation of the centerline and second order Lagrangian interpolation
     of the rotations."""
 
-    nodes_create = [-1, 0, 1]
-    beam_type = _BeamType.reissner
+    four_c_beam_type: _BeamType = _BeamType.reissner
+    four_c_is_hermite_centerline = True
+    four_c_triads = True
+
     valid_material = [_MaterialReissner, _MaterialReissnerElastoplastic]
 
     coupling_fix_dict = {"NUMDOF": 9, "ONOFF": [1, 1, 1, 1, 1, 1, 0, 0, 0]}
@@ -50,35 +96,17 @@ class Beam3rHerm2Line3(_Beam):
 
     def dump_to_list(self):
         """Return a list with the (single) item representing this element."""
-
-        # Check the material.
-        self._check_material()
-
-        return {
-            "id": self.i_global + 1,
-            "cell": {
-                "type": "LINE3",
-                "connectivity": [self.nodes[i] for i in [0, 2, 1]],
-            },
-            "data": {
-                "type": "BEAM3R",
-                "MAT": self.material,
-                "TRIADS": [
-                    item
-                    for i in [0, 2, 1]
-                    for item in self.nodes[i].rotation.get_rotation_vector()
-                ],
-                "HERMITE_CENTERLINE": True,
-            },
-        }
+        return dump_four_c_beam_to_list(self)
 
 
-class Beam3rLine2Line2(_Beam):
-    """Represents a Reissner beam with linear shapefunctions in the rotations
+class Beam3rLine2Line2(_Beam2):
+    """Represents a Reissner beam with linear shape functions in the rotations
     as well as the displacements."""
 
-    nodes_create = [-1, 1]
-    beam_type = _BeamType.reissner
+    four_c_beam_type = _BeamType.reissner
+    four_c_is_hermite_centerline = False
+    four_c_triads = True
+
     valid_material = [_MaterialReissner]
 
     coupling_fix_dict = {"NUMDOF": 6, "ONOFF": [1, 1, 1, 1, 1, 1]}
@@ -86,33 +114,16 @@ class Beam3rLine2Line2(_Beam):
 
     def dump_to_list(self):
         """Return a list with the (single) item representing this element."""
-
-        # Check the material.
-        self._check_material()
-
-        return {
-            "id": self.i_global + 1,
-            "cell": {
-                "type": "LINE2",
-                "connectivity": self.nodes,
-            },
-            "data": {
-                "type": "BEAM3R",
-                "MAT": self.material,
-                "TRIADS": [
-                    item
-                    for i in [0, 1]
-                    for item in self.nodes[i].rotation.get_rotation_vector()
-                ],
-            },
-        }
+        return dump_four_c_beam_to_list(self)
 
 
-class Beam3kClass(_Beam):
+class Beam3kClass(_Beam3):
     """Represents a Kirchhoff beam element."""
 
-    nodes_create = [-1, 0, 1]
-    beam_type = _BeamType.kirchhoff
+    four_c_beam_type = _BeamType.kirchhoff
+    four_c_is_hermite_centerline = False  # In 4C, the centerline is Hermitian but we don't require this information in the input file.
+    four_c_triads = True
+
     valid_material = [_MaterialKirchhoff]
 
     coupling_fix_dict = {"NUMDOF": 7, "ONOFF": [1, 1, 1, 1, 1, 1, 0]}
@@ -122,9 +133,10 @@ class Beam3kClass(_Beam):
         _Beam.__init__(self, **kwargs)
 
         # Set the parameters for this beam.
-        self.weak = weak
-        self.rotvec = rotvec
-        self.is_fad = is_fad
+        self.data["WK"] = weak
+        self.data["ROTVEC"] = 1 if rotvec else 0
+        if is_fad:
+            self.data["USE_FAD"] = True
 
         # Show warning when not using rotvec.
         if not rotvec:
@@ -135,29 +147,7 @@ class Beam3kClass(_Beam):
 
     def dump_to_list(self):
         """Return a list with the (single) item representing this element."""
-
-        # Check the material.
-        self._check_material()
-
-        return {
-            "id": self.i_global + 1,
-            "cell": {
-                "type": "LINE3",
-                "connectivity": [self.nodes[i] for i in [0, 2, 1]],
-            },
-            "data": {
-                "type": "BEAM3K",
-                "WK": 1 if self.weak else 0,
-                "ROTVEC": 1 if self.rotvec else 0,
-                "MAT": self.material,
-                "TRIADS": [
-                    item
-                    for i in [0, 2, 1]
-                    for item in self.nodes[i].rotation.get_rotation_vector()
-                ],
-                **({"USE_FAD": True} if self.is_fad else {}),
-            },
-        }
+        return dump_four_c_beam_to_list(self)
 
 
 def Beam3k(**kwargs_class):
@@ -178,11 +168,13 @@ def Beam3k(**kwargs_class):
     return create_class
 
 
-class Beam3eb(_Beam):
+class Beam3eb(_Beam2):
     """Represents a Euler Bernoulli beam element."""
 
-    nodes_create = [-1, 1]
-    beam_type = _BeamType.euler_bernoulli
+    four_c_beam_type = _BeamType.euler_bernoulli
+    four_c_is_hermite_centerline = False
+    four_c_triads = False
+
     valid_material = [_MaterialEulerBernoulli]
 
     def dump_to_list(self):
@@ -205,14 +197,4 @@ class Beam3eb(_Beam):
                 "The rotations do not match the direction of the Euler Bernoulli beam!"
             )
 
-        return {
-            "id": self.i_global + 1,
-            "cell": {
-                "type": "LINE2",
-                "connectivity": self.nodes,
-            },
-            "data": {
-                "type": "BEAM3EB",
-                "MAT": self.material,
-            },
-        }
+        return dump_four_c_beam_to_list(self)

@@ -341,3 +341,26 @@ class Beam(_Element):
         vtk_writer_beam.add_cell(
             _vtk.vtkPolyLine, indices[point_connectivity], cell_data=cell_data
         )
+
+
+def generate_beam_class(n_nodes: int):
+    """Return a class representing a general beam with n_nodes in BeamMe.
+
+    Args:
+        n_nodes: Number of equally spaced nodes along the beam centerline.
+
+    Returns:
+        A beam object that has n_nodes along the centerline.
+    """
+
+    # Define the class variable responsible for creating the nodes.
+    nodes_create = _np.linspace(-1, 1, num=n_nodes)
+
+    # Create the beam class which inherits from the base beam class.
+    return type(f"Beam{n_nodes}", (Beam,), {"nodes_create": nodes_create})
+
+
+Beam2 = generate_beam_class(2)
+Beam3 = generate_beam_class(3)
+Beam4 = generate_beam_class(4)
+Beam5 = generate_beam_class(5)

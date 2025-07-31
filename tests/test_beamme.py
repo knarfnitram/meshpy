@@ -81,13 +81,14 @@ from beamme.utils.nodes import (
 from tests.create_cubit_input import create_tube_cubit
 
 
-def create_test_mesh(mesh):
+def create_test_mesh():
     """Fill the mesh with a couple of test nodes and elements."""
 
     # Set the seed for the pseudo random numbers
     random.seed(0)
 
     # Add material to mesh.
+    mesh = Mesh()
     material = MaterialReissner()
     mesh.add(material)
 
@@ -115,16 +116,15 @@ def create_test_mesh(mesh):
         n_el=3,
     )
 
+    return mesh
+
 
 def test_rotations(assert_results_close):
     """Check if the Mesh function rotation gives the same results as rotating
     each node it self."""
 
-    mesh_1 = Mesh()
-    create_test_mesh(mesh_1)
-
-    mesh_2 = Mesh()
-    create_test_mesh(mesh_2)
+    mesh_1 = create_test_mesh()
+    mesh_2 = create_test_mesh()
 
     # Set the seed for the pseudo random numbers
     random.seed(0)
@@ -147,11 +147,8 @@ def test_mesh_rotations_individual(assert_results_close):
     """Check if the Mesh function rotation gives the same results as rotating
     each node it self, when an array is passed with different rotations."""
 
-    mesh_1 = Mesh()
-    create_test_mesh(mesh_1)
-
-    mesh_2 = Mesh()
-    create_test_mesh(mesh_2)
+    mesh_1 = create_test_mesh()
+    mesh_2 = create_test_mesh()
 
     # Set the seed for the pseudo random numbers
     random.seed(0)
