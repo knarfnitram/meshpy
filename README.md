@@ -1,5 +1,5 @@
 <div align="center">
-<img src="https://raw.githubusercontent.com/beamme-py/beamme/refs/heads/main/doc/assets/beamme_logo_wide.png" width="700">
+<img src="https://raw.githubusercontent.com/beamme-py/beamme/refs/heads/main/doc/assets/beamme_logo_wide.png" width="700" class="dark-light">
 </div>
 
 </p>
