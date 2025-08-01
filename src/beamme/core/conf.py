@@ -64,14 +64,6 @@ class BoundaryCondition(_Enum):
             raise TypeError(f"Got unexpected coupling type: {self}")
 
 
-class BeamType(_Enum):
-    """Enum for beam types."""
-
-    reissner = _auto()
-    kirchhoff = _auto()
-    euler_bernoulli = _auto()
-
-
 class CouplingDofType(_Enum):
     """Enum for coupling types."""
 
@@ -127,9 +119,6 @@ class BeamMe(object):
 
         # Boundary conditions types.
         self.bc = BoundaryCondition
-
-        # Beam types.
-        self.beam = BeamType
 
         # Coupling types.
         self.coupling_dof = CouplingDofType

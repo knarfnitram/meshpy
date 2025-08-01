@@ -27,6 +27,7 @@ import numpy as _np
 
 from beamme.core.conf import bme as _bme
 from beamme.core.element_beam import Beam as _Beam
+from beamme.four_c.four_c_types import BeamType as _BeamType
 from beamme.four_c.material import MaterialEulerBernoulli as _MaterialEulerBernoulli
 from beamme.four_c.material import MaterialKirchhoff as _MaterialKirchhoff
 from beamme.four_c.material import MaterialReissner as _MaterialReissner
@@ -41,7 +42,7 @@ class Beam3rHerm2Line3(_Beam):
     of the rotations."""
 
     nodes_create = [-1, 0, 1]
-    beam_type = _bme.beam.reissner
+    beam_type = _BeamType.reissner
     valid_material = [_MaterialReissner, _MaterialReissnerElastoplastic]
 
     coupling_fix_dict = {"NUMDOF": 9, "ONOFF": [1, 1, 1, 1, 1, 1, 0, 0, 0]}
@@ -77,7 +78,7 @@ class Beam3rLine2Line2(_Beam):
     as well as the displacements."""
 
     nodes_create = [-1, 1]
-    beam_type = _bme.beam.reissner
+    beam_type = _BeamType.reissner
     valid_material = [_MaterialReissner]
 
     coupling_fix_dict = {"NUMDOF": 6, "ONOFF": [1, 1, 1, 1, 1, 1]}
@@ -111,7 +112,7 @@ class Beam3kClass(_Beam):
     """Represents a Kirchhoff beam element."""
 
     nodes_create = [-1, 0, 1]
-    beam_type = _bme.beam.kirchhoff
+    beam_type = _BeamType.kirchhoff
     valid_material = [_MaterialKirchhoff]
 
     coupling_fix_dict = {"NUMDOF": 7, "ONOFF": [1, 1, 1, 1, 1, 1, 0]}
@@ -181,7 +182,7 @@ class Beam3eb(_Beam):
     """Represents a Euler Bernoulli beam element."""
 
     nodes_create = [-1, 1]
-    beam_type = _bme.beam.euler_bernoulli
+    beam_type = _BeamType.euler_bernoulli
     valid_material = [_MaterialEulerBernoulli]
 
     def dump_to_list(self):
