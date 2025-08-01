@@ -22,21 +22,24 @@
 """This module implements the class that will be used as the base for all items
 that are in a mesh."""
 
-from typing import Any as _Any
 from typing import Optional as _Optional
 
 
 class BaseMeshItem:
     """Base class for all objects that are related to a mesh."""
 
-    def __init__(self, data: _Optional[_Any] = None):
+    def __init__(self, data: _Optional[dict] = None):
         """Create the base object.
 
         Args:
-            data: General data to be stored for this item.
+            data: General data to be stored for this item. Defaults to
+                and empty dictionary.
         """
 
-        self.data = data
+        if data is not None:
+            self.data = data
+        else:
+            self.data = {}
 
         # Global index of this item in a mesh.
         self.i_global = None
