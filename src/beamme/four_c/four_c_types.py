@@ -25,15 +25,9 @@ from enum import Enum as _Enum
 from enum import auto as _auto
 
 
-class _BeamType(_Enum):
+class BeamType(_Enum):
     """Enum for beam types."""
 
     reissner = _auto()
     kirchhoff = _auto()
     euler_bernoulli = _auto()
-
-
-# Each time we call _BeamType directly there is a small performance overhead.
-# Thus, we do this assignment here to avoid that. From the outside, one should
-# only use `BeamType` to refer to the enum.
-BeamType = _BeamType
