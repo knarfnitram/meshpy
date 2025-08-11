@@ -105,10 +105,6 @@ def get_four_c_reissner_beam(n_nodes: int, is_hermite_centerline: bool) -> type[
     )
 
 
-Beam3rHerm2Line3 = get_four_c_reissner_beam(n_nodes=3, is_hermite_centerline=True)
-Beam3rLine2Line2 = get_four_c_reissner_beam(n_nodes=2, is_hermite_centerline=False)
-
-
 def get_four_c_kirchhoff_beam(weak=True, rotvec=True, is_fad=True) -> type[_Beam]:
     """Return a Kirchhoff-Love beam for 4C."""
 
@@ -147,7 +143,7 @@ def get_four_c_kirchhoff_beam(weak=True, rotvec=True, is_fad=True) -> type[_Beam
     )
 
 
-class Beam3eb(_generate_beam_class(2)):  # type: ignore[misc]
+class BeamFourCEulerBernoulli(_generate_beam_class(2)):  # type: ignore[misc]
     """Represents a Euler Bernoulli beam element."""
 
     four_c_beam_type = _BeamType.euler_bernoulli
@@ -179,3 +175,51 @@ class Beam3eb(_generate_beam_class(2)):  # type: ignore[misc]
             )
 
         return dump_four_c_beam_to_list(self)
+
+
+def get_four_c_beam(
+    beam_type: _BeamType,
+    *,
+    n_nodes: int | None = None,
+    is_hermite_centerline: bool | None = None,
+    **kwargs,
+) -> type[_Beam]:
+    """Return an object that can be used to create beams with 4C."""
+
+    def _check_arguments(name, value, expected):
+        """Check that if an argument is given, it has the expected value."""
+        if value is not None and not value == expected:
+            raise ValueError(
+                f"Parameter {name} with the value {value} does not match the expected value {expected}"
+            )
+
+    match beam_type:
+        case _BeamType.reissner:
+            # Set default values for centerline interpolation
+            if n_nodes is None:
+                n_nodes = 3
+            if is_hermite_centerline is None:
+                is_hermite_centerline = True
+            return get_four_c_reissner_beam(
+                n_nodes=n_nodes, is_hermite_centerline=is_hermite_centerline, **kwargs
+            )
+        case _BeamType.kirchhoff:
+            _check_arguments("n_nodes", n_nodes, 3)
+            _check_arguments("is_hermite_centerline", is_hermite_centerline, True)
+            return get_four_c_kirchhoff_beam(**kwargs)
+        case _BeamType.euler_bernoulli:
+            _check_arguments("n_nodes", n_nodes, 2)
+            _check_arguments("is_hermite_centerline", is_hermite_centerline, True)
+            return BeamFourCEulerBernoulli
+        case _:
+            raise ValueError("Got unexpected beam type.")
+
+
+# Provide shortcuts for backwards compatibility
+Beam3rHerm2Line3 = get_four_c_beam(
+    _BeamType.reissner, n_nodes=3, is_hermite_centerline=True
+)
+Beam3rLine2Line2 = get_four_c_beam(
+    _BeamType.reissner, n_nodes=2, is_hermite_centerline=False
+)
+Beam3eb = get_four_c_beam(_BeamType.euler_bernoulli)
