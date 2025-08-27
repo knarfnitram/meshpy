@@ -2,7 +2,7 @@ name: Code quality
 
 on:
   schedule:
-    - cron: '0 04 * * *'
+    - cron: '0 06 * * *'
   push:
     branches:
       - main
