@@ -2,7 +2,7 @@ name: Check MeshPy to BeamMe redirects
 
 on:
   schedule:
-    - cron: "0 4 * * *"
+    - cron: "0 06 * * *"
 
 jobs:
   check-redirects:
