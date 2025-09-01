@@ -24,6 +24,7 @@
 import os
 import random
 import warnings
+from unittest.mock import patch
 
 import autograd.numpy as npAD
 import numpy as np
@@ -1745,7 +1746,7 @@ def test_vtk_writer_solid_elements(
 
 
 def test_vtk_curve_cell_data(
-    assert_results_close, get_corresponding_reference_file_path, tmp_path, monkeypatch
+    assert_results_close, get_corresponding_reference_file_path, tmp_path
 ):
     """Test that when creating a beam, cell data can be given.
 
@@ -1755,49 +1756,50 @@ def test_vtk_curve_cell_data(
 
     # Change the default NAN values of the vtk writer.
     # By doing it this way, the default values will be restored after this test is run.
-    monkeypatch.setattr(vtk_writer, "VTK_NAN_FLOAT", 69.69)
-    monkeypatch.setattr(vtk_writer, "VTK_NAN_INT", 69)
+    with (
+        patch("beamme.core.vtk_writer.VTK_NAN_FLOAT", 69.69),
+        patch("beamme.core.vtk_writer.VTK_NAN_INT", 69),
+    ):
+        # Create the mesh.
+        mesh = Mesh()
 
-    # Create the mesh.
-    mesh = Mesh()
+        # Add content to the mesh.
+        mat = MaterialBeamBase(radius=0.05)
+        create_beam_mesh_line(mesh, Beam3rHerm2Line3, mat, [0, 0, 0], [2, 0, 0], n_el=2)
+        create_beam_mesh_line(
+            mesh,
+            Beam3rHerm2Line3,
+            mat,
+            [0, 1, 0],
+            [2, 1, 0],
+            n_el=2,
+            vtk_cell_data={"cell_data": (1, vtk_writer.VTKType.int)},
+        )
+        create_beam_mesh_arc_segment_via_rotation(
+            mesh,
+            Beam3rHerm2Line3,
+            mat,
+            [0, 2, 0],
+            Rotation([1, 0, 0], np.pi),
+            1.5,
+            np.pi / 2.0,
+            n_el=2,
+            vtk_cell_data={"cell_data": (2, vtk_writer.VTKType.int), "other_data": 69},
+        )
 
-    # Add content to the mesh.
-    mat = MaterialBeamBase(radius=0.05)
-    create_beam_mesh_line(mesh, Beam3rHerm2Line3, mat, [0, 0, 0], [2, 0, 0], n_el=2)
-    create_beam_mesh_line(
-        mesh,
-        Beam3rHerm2Line3,
-        mat,
-        [0, 1, 0],
-        [2, 1, 0],
-        n_el=2,
-        vtk_cell_data={"cell_data": (1, vtk_writer.VTKType.int)},
-    )
-    create_beam_mesh_arc_segment_via_rotation(
-        mesh,
-        Beam3rHerm2Line3,
-        mat,
-        [0, 2, 0],
-        Rotation([1, 0, 0], np.pi),
-        1.5,
-        np.pi / 2.0,
-        n_el=2,
-        vtk_cell_data={"cell_data": (2, vtk_writer.VTKType.int), "other_data": 69},
-    )
+        # Write VTK output, with coupling sets."""
+        ref_file = get_corresponding_reference_file_path(
+            additional_identifier="beam", extension="vtu"
+        )
+        vtk_file = tmp_path / ref_file.name
+        mesh.write_vtk(
+            output_name="test_vtk_curve_cell_data",
+            output_directory=tmp_path,
+            binary=False,
+        )
 
-    # Write VTK output, with coupling sets."""
-    ref_file = get_corresponding_reference_file_path(
-        additional_identifier="beam", extension="vtu"
-    )
-    vtk_file = tmp_path / ref_file.name
-    mesh.write_vtk(
-        output_name="test_vtk_curve_cell_data",
-        output_directory=tmp_path,
-        binary=False,
-    )
-
-    # Compare the vtk files.
-    assert_results_close(ref_file, vtk_file)
+        # Compare the vtk files.
+        assert_results_close(ref_file, vtk_file)
 
 
 @pytest.mark.parametrize("full_import", [False, True])
