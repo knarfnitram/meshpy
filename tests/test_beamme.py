@@ -1753,8 +1753,6 @@ def test_vtk_curve_cell_data(
     given.
     """
 
-    # Change the default NAN values of the vtk writer.
-    # By doing it this way, the default values will be restored after this test is run.
     with (
         patch("beamme.core.vtk_writer.VTK_NAN_FLOAT", 69.69),
         patch("beamme.core.vtk_writer.VTK_NAN_INT", 69),
