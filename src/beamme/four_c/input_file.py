@@ -26,10 +26,12 @@ import os as _os
 import sys as _sys
 from datetime import datetime as _datetime
 from pathlib import Path as _Path
+from typing import Callable as _Callable
 from typing import Dict as _Dict
 from typing import List as _List
 
 from fourcipp.fourc_input import FourCInput as _FourCInput
+from fourcipp.fourc_input import sort_by_section_names as _sort_by_section_names
 
 from beamme.core.boundary_condition import BoundaryCondition as _BoundaryCondition
 from beamme.core.conf import INPUT_FILE_HEADER as _INPUT_FILE_HEADER
@@ -154,9 +156,10 @@ class InputFile(_FourCInput):
         add_header_default: bool = True,
         add_header_information: bool = True,
         add_footer_application_script: bool = True,
-        sort_sections=False,
         validate=True,
         validate_sections_only: bool = False,
+        sort_function: _Callable[[dict], dict] | None = _sort_by_section_names,
+        fourcipp_yaml_style: bool = True,
     ):
         """Write the input file to disk.
 
@@ -176,13 +179,15 @@ class InputFile(_FourCInput):
             add_footer_application_script:
                 Append the application script which creates the input files as a
                 comment at the end of the input file.
-            sort_sections:
-                Sort sections alphabetically with FourCIPP.
             validate:
                 Validate if the created input file is compatible with 4C with FourCIPP.
             validate_sections_only:
                 Validate each section independently. Required sections are no longer
                 required, but the sections must be valid.
+            sort_function:
+                A function which sorts the sections of the input file.
+            fourcipp_yaml_style:
+                If True, the input file is written in the fourcipp yaml style.
         """
 
         # Make sure the given input file is a Path instance.
@@ -204,10 +209,11 @@ class InputFile(_FourCInput):
 
         super().dump(
             input_file_path=input_file_path,
-            sort_sections=sort_sections,
             validate=validate,
             validate_sections_only=validate_sections_only,
             convert_to_native_types=False,  # conversion already happens during add()
+            sort_function=sort_function,
+            use_fourcipp_yaml_style=fourcipp_yaml_style,
         )
 
         if add_header_default or add_footer_application_script:
