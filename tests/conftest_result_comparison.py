@@ -277,7 +277,6 @@ def handle_failed_assertion(
         add_header_default=False,
         add_header_information=False,
         add_footer_application_script=False,
-        sort_sections=True,
         validate=False,
     )
 
