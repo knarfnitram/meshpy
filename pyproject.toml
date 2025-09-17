@@ -29,7 +29,7 @@ dependencies = [
 dynamic = ["version"]
 
 [project.optional-dependencies]
-cubitpy = ["cubitpy@git+https://github.com/imcs-compsim/cubitpy.git@main"]
+cubitpy = ["cubitpy"]
 fourc = ["fourcipp"]
 dev = [
   "coverage-badge",
