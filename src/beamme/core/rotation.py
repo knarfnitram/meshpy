@@ -139,9 +139,18 @@ class Rotation:
         the cross product.
         """
 
-        t1_normal = t1 / _np.linalg.norm(t1)
+        t1_norm = _np.linalg.norm(t1)
+        if t1_norm < _bme.eps_quaternion:
+            raise ValueError(f"The given vector t1 can not be a zero vector, got {t1}.")
+        t1_normal = t1 / t1_norm
+
         t2_ortho = t2 - t1_normal * _np.dot(t1_normal, t2)
-        t2_normal = t2_ortho / _np.linalg.norm(t2_ortho)
+        t2_ortho_norm = _np.linalg.norm(t2_ortho)
+        if t2_ortho_norm < _bme.eps_quaternion:
+            raise ValueError(
+                f"Got two vectors {t1} and {t2} that are not linear independent."
+            )
+        t2_normal = t2_ortho / t2_ortho_norm
         t3_normal = _np.cross(t1_normal, t2_normal)
 
         R = _np.transpose([t1_normal, t2_normal, t3_normal])
