@@ -46,10 +46,6 @@ class Beam(_Element):
     # A list of valid material types for this element.
     valid_materials: _Any = []
 
-    # Coupling strings.
-    coupling_fix_string: _Optional[str] = None
-    coupling_joint_string: _Optional[str] = None
-
     def __init__(self, material=None, nodes=None):
         super().__init__(nodes=nodes, material=material)
 
@@ -115,7 +111,7 @@ class Beam(_Element):
 
         # Loop over local nodes.
         arc_length = None
-        for i, xi in enumerate(self.nodes_create):
+        for i, xi in enumerate(type(self).nodes_create):
             # Get the position and rotation at xi
             pos, rot, arc_length_from_function = beam_function(xi)
             if relative_twist is not None:
@@ -127,14 +123,14 @@ class Beam(_Element):
             if i == 0 and has_start_node:
                 check_node(start_node, pos, rot, arc_length, "start_node")
                 self.nodes = [start_node]
-            elif (i == len(self.nodes_create) - 1) and has_end_node:
+            elif (i == len(type(self).nodes_create) - 1) and has_end_node:
                 check_node(end_node, pos, rot, arc_length, "end_node")
 
             # Create the node
             if (i > 0 or not has_start_node) and (
-                i < len(self.nodes_create) - 1 or not has_end_node
+                i < len(type(self).nodes_create) - 1 or not has_end_node
             ):
-                is_middle_node = 0 < i < len(self.nodes_create) - 1
+                is_middle_node = 0 < i < len(type(self).nodes_create) - 1
                 self.nodes.append(
                     _NodeCosserat(
                         pos, rot, is_middle_node=is_middle_node, arc_length=arc_length
