@@ -71,10 +71,7 @@ class Coupling(_BoundaryConditionBase):
             )
 
         # Couplings only work for point sets
-        if (
-            isinstance(geometry, _GeometrySetBase)
-            and geometry.geometry_type is not _bme.geo.point
-        ):
+        if geometry.geometry_type is not _bme.geo.point:
             raise TypeError("Couplings are only implemented for point sets.")
 
         super().__init__(geometry, bc_type=coupling_type, data=coupling_dof_type)
@@ -101,20 +98,40 @@ class Coupling(_BoundaryConditionBase):
             )
 
 
-def coupling_factory(geometry, coupling_type, coupling_dof_type, **kwargs):
+def coupling_factory(
+    geometry: _Union[_GeometrySetBase, _List[_Node]],
+    coupling_type: _conf.BoundaryCondition,
+    coupling_dof_type: _Union[_conf.CouplingDofType, dict],
+    **kwargs,
+) -> list[Coupling]:
     """Create coupling conditions for the nodes in geometry.
 
-    Some solvers only allow coupling conditions containing two points at
-    once, in that case we have to create multiple coupling conditions
-    between the individual points to ensure the correct representation
-    of the coupling.
+    Args:
+        geometry: Geometry set or nodes that should be coupled.
+        coupling_type: If this is a string, this will be the section that
+            this coupling will be added to. If it is a bme.bc, the section
+            will be determined automatically.
+        coupling_dof_type: If this is a dictionary it is the dictionary
+            that will be used in the input file, otherwise it has to be
+            of type bme.coupling_dof.
+        kwargs: Will be passed to constructor of `Coupling`.
+
+    Returns:
+        A list of coupling objects representing the created coupling conditions.
+            - By default, a single coupling object is created that couples all nodes in the given geometry.
+            - If the selected coupling type requires pairwise coupling (e.g., due to solver restrictions),
+              multiple coupling objects are returned, each coupling a pair of nodes accordingly.
     """
 
-    if coupling_type.is_point_coupling_pairwise():
-        main_node = geometry[0]
+    if not coupling_type.is_point_coupling_pairwise():
+        return [Coupling(geometry, coupling_type, coupling_dof_type, **kwargs)]
+    else:
+        if isinstance(geometry, _GeometrySetBase):
+            nodes = geometry.get_points()
+        else:
+            nodes = geometry
+        main_node = nodes[0]
         return [
             Coupling([main_node, node], coupling_type, coupling_dof_type, **kwargs)
-            for node in geometry[1:]
+            for node in nodes[1:]
         ]
-    else:
-        return [Coupling(geometry, coupling_type, coupling_dof_type, **kwargs)]
