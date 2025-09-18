@@ -1645,9 +1645,10 @@ def test_vtk_writer_beam(
 
     # Add content to the mesh.
     mat = MaterialBeamBase(radius=0.05)
-    create_beam_mesh_honeycomb(
-        mesh, Beam3rHerm2Line3, mat, 2.0, 2, 3, n_el=2, add_sets=True
+    honeycomb_set = create_beam_mesh_honeycomb(
+        mesh, Beam3rHerm2Line3, mat, 2.0, 2, 3, n_el=2
     )
+    mesh.add(honeycomb_set)
 
     # Write VTK output, with coupling sets."""
     ref_file = get_corresponding_reference_file_path(extension="vtu")

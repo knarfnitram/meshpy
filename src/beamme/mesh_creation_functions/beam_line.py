@@ -58,10 +58,6 @@ def create_beam_mesh_line(mesh, beam_class, material, start_point, end_point, **
         is connected to other lines (angles have to be the same, otherwise
         connections should be used). If a geometry set is given, it can
         contain one, and one node only.
-    add_sets: bool
-        If this is true the sets are added to the mesh and then displayed
-        in eventual VTK output, even if they are not used for a boundary
-        condition or coupling.
 
     Return
     ----

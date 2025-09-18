@@ -45,7 +45,6 @@ def create_beam_mesh_honeycomb_flat(
     closed_width=True,
     closed_height=True,
     create_couplings=True,
-    add_sets=False,
 ):
     """Add a flat honeycomb structure. The structure will be created in the x-y
     plane.
@@ -72,10 +71,6 @@ def create_beam_mesh_honeycomb_flat(
         If the last vertical lines in y-direction will be created.
     create_couplings: bool
         If the nodes will be connected in this function.
-    add_sets: bool
-        If this is true the sets are added to the mesh and then displayed
-        in eventual VTK output, even if they are not used for a boundary
-        condition or coupling.
 
     Return
     ----
@@ -158,8 +153,7 @@ def create_beam_mesh_honeycomb_flat(
     return_set["all"] = _GeometrySet(mesh_honeycomb.elements)
 
     mesh.add(mesh_honeycomb)
-    if add_sets:
-        mesh.add(return_set)
+
     return return_set
 
 
@@ -174,7 +168,6 @@ def create_beam_mesh_honeycomb(
     n_el=1,
     closed_top=True,
     vertical=True,
-    add_sets=False,
 ):
     """Wrap a honeycomb structure around a cylinder. The cylinder axis will be
     the z-axis.
@@ -200,10 +193,6 @@ def create_beam_mesh_honeycomb(
         If the last honeycombs in axial-direction will be closed.
     vertical: bool
         If there are vertical lines in the honeycomb or horizontal.
-    add_sets: bool
-        If this is true the sets are added to the mesh and then displayed
-        in eventual VTK output, even if they are not used for a boundary
-        condition or coupling.
 
     Return
     ----
@@ -271,8 +260,6 @@ def create_beam_mesh_honeycomb(
     else:
         return_set["top"] = honeycomb_sets["east"]
         return_set["bottom"] = honeycomb_sets["west"]
-    if add_sets:
-        mesh_temp.add(return_set)
 
     # Add to this mesh
     mesh.add_mesh(mesh_temp)
