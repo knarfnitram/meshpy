@@ -209,8 +209,8 @@ def test_four_c_simulation_honeycomb_sphere(
         4,
         n_el=1,
         closed_top=False,
-        add_sets=True,
     )
+    mesh_honeycomb.add(honeycomb_set)
     mesh_honeycomb.rotate(Rotation([0, 0, 1], 0.5 * np.pi))
 
     # Functions for the boundary conditions

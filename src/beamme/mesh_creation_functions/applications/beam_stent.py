@@ -285,7 +285,6 @@ def create_beam_mesh_stent(
     diameter,
     n_axis,
     n_circumference,
-    add_sets=False,
     **kwargs,
 ):
     """Create a stent structure around cylinder, The cylinder axis will be the
@@ -308,10 +307,6 @@ def create_beam_mesh_stent(
     n_circumference: int
         Number of cells around the diameter.
     ( these variables are described in a file )
-    add_sets: bool
-    If this is true the sets are added to the mesh and then displayed
-    n eventual VTK output, even if they are not used for a boundary
-    condition or coupling.
 
     Return
     ----
@@ -356,6 +351,4 @@ def create_beam_mesh_stent(
 
     mesh.add_mesh(mesh_stent)
 
-    if add_sets:
-        mesh.add(return_set)
     return return_set
