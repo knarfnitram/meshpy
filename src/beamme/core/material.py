@@ -65,7 +65,6 @@ class MaterialBeamBase(Material):
         self.youngs_modulus = youngs_modulus
         self.nu = nu
         self.density = density
-        self.radius = radius
         self.interaction_radius = interaction_radius
         self.area = None
         self.mom2 = None

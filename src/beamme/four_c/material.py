@@ -21,6 +21,8 @@
 # THE SOFTWARE.
 """This file implements materials for 4C beams and solids."""
 
+import numpy as _np
+
 from beamme.core.material import MaterialBeamBase as _MaterialBeamBase
 from beamme.core.material import MaterialSolidBase as _MaterialSolidBase
 
@@ -28,11 +30,47 @@ from beamme.core.material import MaterialSolidBase as _MaterialSolidBase
 class MaterialReissner(_MaterialBeamBase):
     """Holds material definition for Reissner beams."""
 
-    def __init__(self, shear_correction=1, **kwargs):
-        super().__init__(material_string="MAT_BeamReissnerElastHyper", **kwargs)
+    def __init__(
+        self,
+        shear_correction=1,
+        *,
+        by_modes=False,
+        scale_axial_rigidity=1.0,
+        scale_shear_rigidity=1.0,
+        scale_torsional_rigidity=1.0,
+        scale_bending_rigidity=1.0,
+        **kwargs,
+    ):
+        if by_modes:
+            mat_string = "MAT_BeamReissnerElastHyper_ByModes"
+        else:
+            mat_string = "MAT_BeamReissnerElastHyper"
+
+        super().__init__(material_string=mat_string, **kwargs)
 
         # Shear factor for Reissner beam.
         self.shear_correction = shear_correction
+
+        self.by_modes = by_modes
+
+        # Scaling factors to influence a single stiffness independently
+        self.scale_axial_rigidity = scale_axial_rigidity
+        self.scale_shear_rigidity = scale_shear_rigidity
+        self.scale_torsional_rigidity = scale_torsional_rigidity
+        self.scale_bending_rigidity = scale_bending_rigidity
+
+        if not by_modes and not all(
+            _np.isclose(x, 1.0)
+            for x in (
+                scale_axial_rigidity,
+                scale_shear_rigidity,
+                scale_torsional_rigidity,
+                scale_bending_rigidity,
+            )
+        ):
+            raise ValueError(
+                "Scaling factors are only supported for MAT_BeamReissnerElastHyper_ByModes"
+            )
 
     def dump_to_list(self):
         """Return a list with the (single) item representing this material."""
@@ -60,18 +98,39 @@ class MaterialReissner(_MaterialBeamBase):
                 "A combination is not possible"
             )
 
-        data = {
-            "YOUNG": self.youngs_modulus,
-            "POISSONRATIO": self.nu,
-            "DENS": self.density,
-            "CROSSAREA": area,
-            "SHEARCORR": self.shear_correction,
-            "MOMINPOL": polar,
-            "MOMIN2": mom2,
-            "MOMIN3": mom3,
-        }
+        if self.by_modes:
+            shear_modulus = self.youngs_modulus / (2.0 * (1.0 + self.nu))
+
+            data = {
+                "EA": (self.youngs_modulus * area) * self.scale_axial_rigidity,
+                "GA2": (shear_modulus * area * self.shear_correction)
+                * self.scale_shear_rigidity,
+                "GA3": (shear_modulus * area * self.shear_correction)
+                * self.scale_shear_rigidity,
+                "GI_T": (shear_modulus * polar) * self.scale_torsional_rigidity,
+                "EI2": (self.youngs_modulus * mom2) * self.scale_bending_rigidity,
+                "EI3": (self.youngs_modulus * mom3) * self.scale_bending_rigidity,
+                "RhoA": self.density * area,
+                "MASSMOMINPOL": self.density * (mom2 + mom3),
+                "MASSMOMIN2": self.density * mom2,
+                "MASSMOMIN3": self.density * mom3,
+            }
+
+        else:
+            data = {
+                "YOUNG": self.youngs_modulus,
+                "POISSONRATIO": self.nu,
+                "DENS": self.density,
+                "CROSSAREA": area,
+                "SHEARCORR": self.shear_correction,
+                "MOMINPOL": polar,
+                "MOMIN2": mom2,
+                "MOMIN3": mom3,
+            }
+
         if self.interaction_radius is not None:
             data["INTERACTIONRADIUS"] = self.interaction_radius
+
         return {"MAT": self.i_global + 1, self.material_string: data}
 
 
