@@ -332,18 +332,17 @@ def create_beam_mesh_generic(
         else:
             last_node = None
 
-        element = beam_class(material=material)
-        elements.append(element)
-        nodes.extend(
-            element.create_beam(
-                function,
-                start_node=first_node,
-                end_node=last_node,
-                relative_twist=relative_twist,
-                set_nodal_arc_length=set_nodal_arc_length,
-                nodal_arc_length_offset=nodal_arc_length_offset,
-            )
+        element, created_nodes = beam_class.create_beam(
+            material,
+            function,
+            start_node=first_node,
+            end_node=last_node,
+            relative_twist=relative_twist,
+            set_nodal_arc_length=set_nodal_arc_length,
+            nodal_arc_length_offset=nodal_arc_length_offset,
         )
+        elements.append(element)
+        nodes.extend(created_nodes)
 
     # Set vtk cell data on created elements.
     if vtk_cell_data is not None:
