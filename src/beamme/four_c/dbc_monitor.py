@@ -25,6 +25,7 @@ conditions in a mesh."""
 from typing import Optional as _Optional
 
 import numpy as _np
+import yaml as _yaml
 
 from beamme.core.boundary_condition import BoundaryCondition as _BoundaryCondition
 from beamme.core.conf import bme as _bme
@@ -114,37 +115,25 @@ def read_dbc_monitor_file(file_path):
     [node_ids], [time], [force], [moment]
     """
 
-    with open(file_path, "r") as file:
-        lines = [line.strip() for line in file.readlines()]
+    with open(file_path, "r") as f:
+        dbc_monitor_file = _yaml.safe_load(f)
 
-    # Extract the nodes for this condition.
-    condition_nodes_prefix = "Nodes of this condition:"
-    if not lines[1].startswith(condition_nodes_prefix):
-        raise ValueError(
-            f'The second line in the monitor file is supposed to start with "{condition_nodes_prefix}" but the line reads "{lines[1]}"'
-        )
-    node_line = lines[1].split(":")[1]
-    node_ids_str = node_line.split()
-    nodes = []
-    for node_id_str in node_ids_str:
-        node_id = int(node_id_str)
-        nodes.append(node_id)
+    nodes = dbc_monitor_file["dbc monitor condition"]["node gids"]
 
-    # Find the start of the data lines.
-    for i, line in enumerate(lines):
-        if line.split(" ")[0] == "step":
-            break
-    else:
-        raise ValueError('Could not find "step" in file!')
-    start_line = i + 1
+    time = []
+    force = []
+    moment = []
+    for time_step_data in dbc_monitor_file["dbc monitor condition data"]:
+        time.append(time_step_data["time"])
+        force.append(time_step_data["f"])
+        moment.append(time_step_data["m"])
 
-    # Get the monitor data.
-    data = []
-    for line in lines[start_line:]:
-        data.append(_np.fromstring(line, dtype=float, sep=" "))
-    data = _np.array(data)
-
-    return nodes, data[:, 1], data[:, 4:7], data[:, 7:]
+    return (
+        nodes,
+        _np.asarray(time, dtype=float),
+        _np.asarray(force, dtype=float),
+        _np.asarray(moment, dtype=float),
+    )
 
 
 def add_point_neuman_condition_to_mesh(
