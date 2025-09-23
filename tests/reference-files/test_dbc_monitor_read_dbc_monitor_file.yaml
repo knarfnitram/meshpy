@@ -1,0 +1,39 @@
+dbc monitor condition:
+  node gids: [2, 4, 5, 9, 10]
+dbc monitor condition data:
+  - step: 0
+    time: 0
+    f:
+      - 0
+      - 0
+      - 0
+    m:
+      - 0
+      - 0
+      - 0
+    curr_area: 0
+    ref_area: 0
+  - step: 1
+    time: 0.1
+    f:
+      - 0.1
+      - 0.2
+      - 0.3
+    m:
+      - 0.4
+      - 0.5
+      - 0.6
+    curr_area: 0
+    ref_area: 0
+  - step: 2
+    time: 0.2
+    f:
+      - 0.7
+      - 0.8
+      - 0.9
+    m:
+      - 1.0
+      - 1.1
+      - 1.2
+    curr_area: 0
+    ref_area: 0

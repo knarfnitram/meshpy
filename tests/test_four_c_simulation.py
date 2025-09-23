@@ -745,9 +745,9 @@ def test_four_c_simulation_dbc_monitor_to_input(
     initial_input_file.add(
         {
             "IO/MONITOR STRUCTURE DBC": {
-                "PRECISION_FILE": 16,
-                "WRITE_HEADER": True,
                 "INTERVAL_STEPS": 1,
+                "WRITE_CONDITION_INFORMATION": True,
+                "FILE_TYPE": "yaml",
             }
         }
     )
@@ -801,20 +801,14 @@ def test_four_c_simulation_dbc_monitor_to_input(
     if initial_run_name == "test_cantilever_w_dbc_monitor_to_input":
         dbc_monitor_to_mesh(
             restart_mesh,
-            tmp_path
-            / initial_run_name
-            / f"{initial_run_name}_monitor_dbc"
-            / f"{initial_run_name}_102_monitor_dbc.csv",
+            tmp_path / initial_run_name / f"{initial_run_name}-102_monitor_dbc.yaml",
             n_dof=9,
             function=function_nbc,
         )
     elif initial_run_name == "test_cantilever_w_dbc_monitor_to_input_all_values":
         dbc_monitor_to_mesh_all_values(
             restart_mesh,
-            tmp_path
-            / initial_run_name
-            / f"{initial_run_name}_monitor_dbc"
-            / f"{initial_run_name}_102_monitor_dbc.csv",
+            tmp_path / initial_run_name / f"{initial_run_name}-102_monitor_dbc.yaml",
             n_dof=9,
             time_span=[10 * 0.5, 21 * 0.5],
             functions=[function_nbc, function_nbc, function_nbc],
@@ -937,9 +931,9 @@ def test_four_c_simulation_dirichlet_boundary_to_neumann_boundary_with_all_value
     initial_simulation.add(
         {
             "IO/MONITOR STRUCTURE DBC": {
-                "PRECISION_FILE": 16,
-                "WRITE_HEADER": True,
                 "INTERVAL_STEPS": 1,
+                "WRITE_CONDITION_INFORMATION": True,
+                "FILE_TYPE": "yaml",
             }
         }
     )
@@ -975,7 +969,7 @@ def test_four_c_simulation_dirichlet_boundary_to_neumann_boundary_with_all_value
     )
 
     # Set up path to monitor.
-    monitor_db_path = tmp_path / initial_run_name / (initial_run_name + "_monitor_dbc")
+    monitor_db_path = tmp_path / initial_run_name
 
     # Convert the Dirichlet conditions into Neuman conditions.
     for _, _, file_names in os.walk(monitor_db_path):
