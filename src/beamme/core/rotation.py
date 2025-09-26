@@ -484,3 +484,72 @@ def smallest_rotation(q: Rotation, t):
     q_rel[1:] = _np.cross(g1_old, g1) / (2.0 * q_rel[0])
 
     return Rotation.from_quaternion(q_rel) * q
+
+
+def get_rotation_vector_series(
+    rotation_vectors: list | _NDArray | list[Rotation],
+) -> _NDArray:
+    """Return an array containing the rotation vectors representing the given
+    rotation vectors.
+
+    The main feature of this function is, that the returned rotation
+    vectors don't have jumps when the rotation angle exceeds 2*pi. We
+    return a "continuous" series of rotation vectors that can be used to
+    interpolate between them.
+
+    Note: Interpolating between the returned rotation vectors will in general
+    result in a non-objective interpolation.
+
+    Args:
+        rotation_vectors: A list or array containing the rotation vectors, has
+            to be in order.
+
+    Returns:
+        An array containing the "continuous" rotation vectors.
+    """
+
+    if isinstance(rotation_vectors, list):
+        rotation_vector_array = _np.zeros((len(rotation_vectors), 3))
+        for i_rotation, rotation_entry in enumerate(rotation_vectors):
+            if isinstance(rotation_entry, Rotation):
+                rotation_vector_array[i_rotation] = rotation_entry.get_rotation_vector()
+            else:
+                rotation_vector_array[i_rotation] = rotation_entry
+
+    def closest_multiple_of_two_pi(x: float) -> float:
+        """Given the value x, return the multiple of 2*pi that is closest to
+        it."""
+        return 2.0 * _np.pi * round(x / (2 * _np.pi))
+
+    rotation_vectors_continuous = _np.zeros((len(rotation_vector_array), 3))
+    rotation_vectors_continuous[0, :] = rotation_vector_array[0]
+
+    for i, current_rotation_vector in enumerate(rotation_vector_array[1:]):
+        rotation_vector_last = rotation_vector_array[i]
+        theta = _np.linalg.norm(current_rotation_vector)
+
+        if theta < _bme.eps_quaternion:
+            # The current rotation is an identity rotation.
+            theta_last = _np.linalg.norm(rotation_vector_last)
+            if theta_last < _bme.eps_quaternion:
+                # The last rotation was also an identity rotation, so simply add
+                # an empty rotation vector
+                rotation_vectors_continuous[i + 1] = [0.0, 0.0, 0.0]
+            else:
+                # The last rotation was not a zero rotation. In this case we simply
+                # take the direction of the last rotation vector and set it to to the
+                # closest length which is a multiple of 2*pi.
+                rotation_vectors_continuous[i + 1] = (
+                    rotation_vector_last
+                    / theta_last
+                    * closest_multiple_of_two_pi(theta_last)
+                )
+        else:
+            axis = current_rotation_vector / theta
+            # This is the offset from the current rotation vector to the previous one
+            # in the sense of a multiple of 2*pi.
+            multiple_of_two_pi = closest_multiple_of_two_pi(
+                (_np.dot(axis, rotation_vector_last) - theta)
+            )
+            rotation_vectors_continuous[i + 1] = (multiple_of_two_pi + theta) * axis
+    return rotation_vectors_continuous
