@@ -25,75 +25,112 @@ files."""
 from typing import Any as _Any
 
 from beamme.core.conf import bme as _bme
+from beamme.core.element_volume import (
+    VolumeHEX8 as _VolumeHEX8,
+)
+from beamme.core.element_volume import (
+    VolumeHEX20 as _VolumeHEX20,
+)
+from beamme.core.element_volume import (
+    VolumeHEX27 as _VolumeHEX27,
+)
+from beamme.core.element_volume import (
+    VolumeTET4 as _VolumeTET4,
+)
+from beamme.core.element_volume import (
+    VolumeTET10 as _VolumeTET10,
+)
+from beamme.core.element_volume import (
+    VolumeWEDGE6 as _VolumeWEDGE6,
+)
+from beamme.four_c.element_volume import SolidRigidSphere as _SolidRigidSphere
 from beamme.four_c.four_c_types import BeamType as _BeamType
 
-INPUT_FILE_MAPPINGS: dict[str, _Any] = {
-    "beam_types": {
-        _BeamType.reissner: "BEAM3R",
-        _BeamType.kirchhoff: "BEAM3K",
-        _BeamType.euler_bernoulli: "BEAM3EB",
-    },
-    "boundary_conditions": {
-        (_bme.bc.dirichlet, _bme.geo.point): "DESIGN POINT DIRICH CONDITIONS",
-        (_bme.bc.dirichlet, _bme.geo.line): "DESIGN LINE DIRICH CONDITIONS",
-        (_bme.bc.dirichlet, _bme.geo.surface): "DESIGN SURF DIRICH CONDITIONS",
-        (_bme.bc.dirichlet, _bme.geo.volume): "DESIGN VOL DIRICH CONDITIONS",
-        (_bme.bc.locsys, _bme.geo.point): "DESIGN POINT LOCSYS CONDITIONS",
-        (_bme.bc.locsys, _bme.geo.line): "DESIGN LINE LOCSYS CONDITIONS",
-        (_bme.bc.locsys, _bme.geo.surface): "DESIGN SURF LOCSYS CONDITIONS",
-        (_bme.bc.locsys, _bme.geo.volume): "DESIGN VOL LOCSYS CONDITIONS",
-        (_bme.bc.neumann, _bme.geo.point): "DESIGN POINT NEUMANN CONDITIONS",
-        (_bme.bc.neumann, _bme.geo.line): "DESIGN LINE NEUMANN CONDITIONS",
-        (_bme.bc.neumann, _bme.geo.surface): "DESIGN SURF NEUMANN CONDITIONS",
-        (_bme.bc.neumann, _bme.geo.volume): "DESIGN VOL NEUMANN CONDITIONS",
-        (
-            _bme.bc.moment_euler_bernoulli,
-            _bme.geo.point,
-        ): "DESIGN POINT MOMENT EB CONDITIONS",
-        (
-            _bme.bc.beam_to_solid_volume_meshtying,
-            _bme.geo.line,
-        ): "BEAM INTERACTION/BEAM TO SOLID VOLUME MESHTYING LINE",
-        (
-            _bme.bc.beam_to_solid_volume_meshtying,
-            _bme.geo.volume,
-        ): "BEAM INTERACTION/BEAM TO SOLID VOLUME MESHTYING VOLUME",
-        (
-            _bme.bc.beam_to_solid_surface_meshtying,
-            _bme.geo.line,
-        ): "BEAM INTERACTION/BEAM TO SOLID SURFACE MESHTYING LINE",
-        (
-            _bme.bc.beam_to_solid_surface_meshtying,
-            _bme.geo.surface,
-        ): "BEAM INTERACTION/BEAM TO SOLID SURFACE MESHTYING SURFACE",
-        (
-            _bme.bc.beam_to_solid_surface_contact,
-            _bme.geo.line,
-        ): "BEAM INTERACTION/BEAM TO SOLID SURFACE CONTACT LINE",
-        (
-            _bme.bc.beam_to_solid_surface_contact,
-            _bme.geo.surface,
-        ): "BEAM INTERACTION/BEAM TO SOLID SURFACE CONTACT SURFACE",
-        (_bme.bc.point_coupling, _bme.geo.point): "DESIGN POINT COUPLING CONDITIONS",
-        (
-            _bme.bc.beam_to_beam_contact,
-            _bme.geo.line,
-        ): "BEAM INTERACTION/BEAM TO BEAM CONTACT CONDITIONS",
-        (
-            _bme.bc.point_coupling_penalty,
-            _bme.geo.point,
-        ): "DESIGN POINT PENALTY COUPLING CONDITIONS",
-        (
-            "DESIGN SURF MORTAR CONTACT CONDITIONS 3D",
-            _bme.geo.surface,
-        ): "DESIGN SURF MORTAR CONTACT CONDITIONS 3D",
-    },
-    "geometry_sets": {
-        _bme.geo.point: "DNODE-NODE TOPOLOGY",
-        _bme.geo.line: "DLINE-NODE TOPOLOGY",
-        _bme.geo.surface: "DSURF-NODE TOPOLOGY",
-        _bme.geo.volume: "DVOL-NODE TOPOLOGY",
-    },
-    "n_nodes_to_cell_type": {2: "LINE2", 3: "LINE3"},
-    "n_nodes_to_node_ordering": {2: [0, 1], 3: [0, 2, 1]},
+INPUT_FILE_MAPPINGS: dict[str, _Any] = {}
+INPUT_FILE_MAPPINGS["beam_types"] = {
+    _BeamType.reissner: "BEAM3R",
+    _BeamType.kirchhoff: "BEAM3K",
+    _BeamType.euler_bernoulli: "BEAM3EB",
 }
+INPUT_FILE_MAPPINGS["boundary_conditions"] = {
+    (_bme.bc.dirichlet, _bme.geo.point): "DESIGN POINT DIRICH CONDITIONS",
+    (_bme.bc.dirichlet, _bme.geo.line): "DESIGN LINE DIRICH CONDITIONS",
+    (_bme.bc.dirichlet, _bme.geo.surface): "DESIGN SURF DIRICH CONDITIONS",
+    (_bme.bc.dirichlet, _bme.geo.volume): "DESIGN VOL DIRICH CONDITIONS",
+    (_bme.bc.locsys, _bme.geo.point): "DESIGN POINT LOCSYS CONDITIONS",
+    (_bme.bc.locsys, _bme.geo.line): "DESIGN LINE LOCSYS CONDITIONS",
+    (_bme.bc.locsys, _bme.geo.surface): "DESIGN SURF LOCSYS CONDITIONS",
+    (_bme.bc.locsys, _bme.geo.volume): "DESIGN VOL LOCSYS CONDITIONS",
+    (_bme.bc.neumann, _bme.geo.point): "DESIGN POINT NEUMANN CONDITIONS",
+    (_bme.bc.neumann, _bme.geo.line): "DESIGN LINE NEUMANN CONDITIONS",
+    (_bme.bc.neumann, _bme.geo.surface): "DESIGN SURF NEUMANN CONDITIONS",
+    (_bme.bc.neumann, _bme.geo.volume): "DESIGN VOL NEUMANN CONDITIONS",
+    (
+        _bme.bc.moment_euler_bernoulli,
+        _bme.geo.point,
+    ): "DESIGN POINT MOMENT EB CONDITIONS",
+    (
+        _bme.bc.beam_to_solid_volume_meshtying,
+        _bme.geo.line,
+    ): "BEAM INTERACTION/BEAM TO SOLID VOLUME MESHTYING LINE",
+    (
+        _bme.bc.beam_to_solid_volume_meshtying,
+        _bme.geo.volume,
+    ): "BEAM INTERACTION/BEAM TO SOLID VOLUME MESHTYING VOLUME",
+    (
+        _bme.bc.beam_to_solid_surface_meshtying,
+        _bme.geo.line,
+    ): "BEAM INTERACTION/BEAM TO SOLID SURFACE MESHTYING LINE",
+    (
+        _bme.bc.beam_to_solid_surface_meshtying,
+        _bme.geo.surface,
+    ): "BEAM INTERACTION/BEAM TO SOLID SURFACE MESHTYING SURFACE",
+    (
+        _bme.bc.beam_to_solid_surface_contact,
+        _bme.geo.line,
+    ): "BEAM INTERACTION/BEAM TO SOLID SURFACE CONTACT LINE",
+    (
+        _bme.bc.beam_to_solid_surface_contact,
+        _bme.geo.surface,
+    ): "BEAM INTERACTION/BEAM TO SOLID SURFACE CONTACT SURFACE",
+    (_bme.bc.point_coupling, _bme.geo.point): "DESIGN POINT COUPLING CONDITIONS",
+    (
+        _bme.bc.beam_to_beam_contact,
+        _bme.geo.line,
+    ): "BEAM INTERACTION/BEAM TO BEAM CONTACT CONDITIONS",
+    (
+        _bme.bc.point_coupling_penalty,
+        _bme.geo.point,
+    ): "DESIGN POINT PENALTY COUPLING CONDITIONS",
+    (
+        "DESIGN SURF MORTAR CONTACT CONDITIONS 3D",
+        _bme.geo.surface,
+    ): "DESIGN SURF MORTAR CONTACT CONDITIONS 3D",
+}
+INPUT_FILE_MAPPINGS["element_type_to_four_c_string"] = {
+    _VolumeHEX8: "HEX8",
+    _VolumeHEX20: "HEX20",
+    _VolumeHEX27: "HEX27",
+    _VolumeTET4: "TET4",
+    _VolumeTET10: "TET10",
+    _VolumeWEDGE6: "WEDGE6",
+    _SolidRigidSphere: "POINT1",
+}
+INPUT_FILE_MAPPINGS["element_four_c_string_to_type"] = {
+    value: key
+    for key, value in INPUT_FILE_MAPPINGS["element_type_to_four_c_string"].items()
+}
+INPUT_FILE_MAPPINGS["geometry_sets_geometry_to_condition_name"] = {
+    _bme.geo.point: "DNODE-NODE TOPOLOGY",
+    _bme.geo.line: "DLINE-NODE TOPOLOGY",
+    _bme.geo.surface: "DSURF-NODE TOPOLOGY",
+    _bme.geo.volume: "DVOL-NODE TOPOLOGY",
+}
+INPUT_FILE_MAPPINGS["geometry_sets_geometry_to_entry_name"] = {
+    _bme.geo.point: "DNODE",
+    _bme.geo.line: "DLINE",
+    _bme.geo.surface: "DSURFACE",
+    _bme.geo.volume: "DVOL",
+}
+INPUT_FILE_MAPPINGS["n_nodes_to_cell_type"] = {2: "LINE2", 3: "LINE3"}
+INPUT_FILE_MAPPINGS["n_nodes_to_node_ordering"] = {2: [0, 1], 3: [0, 2, 1]}
