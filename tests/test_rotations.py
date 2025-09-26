@@ -24,7 +24,7 @@
 import numpy as np
 
 from beamme.core.conf import bme
-from beamme.core.rotation import Rotation, smallest_rotation
+from beamme.core.rotation import Rotation, get_rotation_vector_series, smallest_rotation
 
 
 def get_rotation_matrix(axis, alpha):
@@ -310,3 +310,68 @@ def test_error_accumulation_smallest_rotation(assert_results_close):
         0.5644581887089211,
     ]
     assert_results_close(q_ref, rotation_new.q)
+
+
+def test_rotations_rotation_vector_series(assert_results_close):
+    """Test the function get_rotation_vector_series."""
+
+    director = np.array([1, 2, 3])
+    director = director / np.linalg.norm(director)
+    director_2 = np.array([1.1, 2.5, 3.1])
+    director_2 = 1.1 * director_2 / np.linalg.norm(director_2)
+
+    # First rotation is 0, second is also zero but with a full 2pi rotation.
+    rotation_vectors = [
+        [0, 0, 0],
+        2.0 * np.pi * director,
+    ]
+    rotation_vectors_ref = [[0, 0, 0], [0, 0, 0]]
+    assert_results_close(
+        get_rotation_vector_series(rotation_vectors), rotation_vectors_ref
+    )
+
+    # First rotation is close to 2pi, second is 0.
+    rotation_vectors = [1.9 * np.pi * director, [0, 0, 0]]
+    rotation_vectors_ref = [1.9 * np.pi * director, 2.0 * np.pi * director]
+    assert_results_close(
+        get_rotation_vector_series(rotation_vectors), rotation_vectors_ref
+    )
+
+    # Two similar rotations, no jump over 2pi.
+    rotation_vectors = [director, director_2]
+    rotation_vectors_ref = rotation_vectors
+    assert_results_close(
+        get_rotation_vector_series(rotation_vectors), rotation_vectors_ref
+    )
+
+    # Standard case, two similar rotations, without jump over 2pi
+    rotation_vectors = [director, director_2]
+    rotation_vectors_ref = rotation_vectors
+    assert_results_close(
+        get_rotation_vector_series(rotation_vectors), rotation_vectors_ref
+    )
+
+    # Standard case, two similar rotations, with jump over 2pi
+    rotation_vectors = [
+        director,
+        (2 * np.pi + np.linalg.norm(director_2))
+        * director_2
+        / np.linalg.norm(director_2),
+    ]
+    rotation_vectors_ref = [director, director_2]
+    assert_results_close(
+        get_rotation_vector_series(rotation_vectors), rotation_vectors_ref
+    )
+
+    # Standard case, two similar rotations, with jump over 2pi, using rotation
+    # objects.
+    # With the rotation objects, there is no jump over 2pi, ut in this case we
+    # expect the same result as for the previous case.
+    # In theory it can be, that the rotation object leads to a different
+    # "initial" rotation vector and then also a different series.
+    rotation_vectors = [
+        Rotation.from_rotation_vector(item) for item in rotation_vectors
+    ]
+    assert_results_close(
+        get_rotation_vector_series(rotation_vectors), rotation_vectors_ref
+    )
