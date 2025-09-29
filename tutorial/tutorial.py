@@ -33,18 +33,24 @@ import numpy as np
 
 from beamme.core.boundary_condition import BoundaryCondition
 from beamme.core.conf import bme
+from beamme.core.function import Function
 from beamme.core.geometry_set import GeometrySet
 from beamme.core.mesh import Mesh
 from beamme.core.rotation import Rotation
 from beamme.four_c.element_beam import Beam3rHerm2Line3
-from beamme.four_c.function import Function
 from beamme.four_c.input_file import InputFile
 from beamme.four_c.material import MaterialReissner
-from beamme.mesh_creation_functions.beam_basic_geometry import (
-    create_beam_mesh_arc_segment_2d,
-    create_beam_mesh_line,
+from beamme.mesh_creation_functions.beam_arc import create_beam_mesh_arc_segment_2d
+from beamme.mesh_creation_functions.beam_line import create_beam_mesh_line
+from beamme.mesh_creation_functions.beam_parametric_curve import (
+    create_beam_mesh_parametric_curve,
 )
-from beamme.mesh_creation_functions.beam_curve import create_beam_mesh_parametric_curve
+
+# from beamme.mesh_creation_functions.beam_basic_geometry import (
+#    create_beam_mesh_arc_segment_2d,
+#    create_beam_mesh_line,
+# )
+# from beamme.mesh_creation_functions.beam_curve import create_beam_mesh_parametric_curve
 from beamme.utils.nodes import get_single_node
 
 
@@ -106,10 +112,12 @@ def beamme_tutorial(base_dir, preview=False):
     mesh.add(
         BoundaryCondition(
             beam_set_1["start"],
-            (
-                "NUMDOF 9 ONOFF 1 1 1 1 1 1 0 0 0 VAL 0 0 0 0 0 0 0 0 0 "
-                "FUNCT 0 0 0 0 0 0 0 0 0"
-            ),
+            {
+                "NUMDOF": 9,
+                "ONOFF": [1] * 6 + [0] * 3,
+                "VAL": [0.0] * 9,
+                "FUNCT": [0.0] * 9,
+            },
             bc_type=bme.bc.dirichlet,
         )
     )
@@ -233,11 +241,12 @@ def beamme_tutorial(base_dir, preview=False):
     mesh.add(
         BoundaryCondition(
             geometry_set_all_lines,
-            (
-                "NUMDOF 9 ONOFF 0 1 0 0 0 0 0 0 0 VAL 0 {} 0 0 0 0 0 0 0 "
-                "FUNCT 0 {} 0 0 0 0 0 0 0"
-            ),
-            format_replacement=[line_load_val, fun_t],
+            {
+                "NUMDOF": 9,
+                "ONOFF": [0, 1, 0] + [0] * 6,
+                "VAL": [0, line_load_val, 0] + [0] * 6,
+                "FUNCT": [0, fun_t, 0] + [0] * 6,
+            },
             bc_type=bme.bc.neumann,
         )
     )
@@ -253,52 +262,93 @@ def beamme_tutorial(base_dir, preview=False):
     solid_input_path = os.path.join(
         os.path.dirname(__file__), "4C_input_solid_tutorial.4C.yaml"
     )
-    input_file = InputFile(yaml_file=solid_input_path)
+    input_file = InputFile()
 
     # Add the beam geometry to the input file.
     input_file.add(mesh)
 
     # Add the input parameters.
+    # input_file.add(
+    #    {
+    #        "TITLE": "beamme tutorial",
+    #    }
+    # )
+
     input_file.add(
-        """
-        ------------------------------------------------------------------TITLE
-        beamme tutorial
-        -----------------------------------------------------------PROBLEM TYPE
-        PROBLEMTYPE                           Structure
-        RESTART                               0
-        ---------------------------------------------------------------------IO
-        OUTPUT_BIN                            no
-        STRUCT_DISP                           yes
-        FILESTEPS                             1000
-        VERBOSITY                             Standard
-        STRUCT_STRAIN                         yes
-        STRUCT_STRESS                         yes
-        -----------------------------------------------------STRUCTURAL DYNAMIC
-        LINEAR_SOLVER                         1
-        INT_STRATEGY                          Standard
-        DYNAMICTYPE                           Statics
-        RESULTSEVERY                          1
-        NLNSOL                                fullnewton
-        TIMESTEP                              0.1
-        NUMSTEP                               10
-        MAXTIME                               1.0
-        ---------------------------------------------------------------SOLVER 1
-        NAME                                  Structure_Solver
-        SOLVER                                Superlu
-        --------------------------------------------------IO/RUNTIME VTK OUTPUT
-        OUTPUT_DATA_FORMAT                    binary
-        INTERVAL_STEPS                        1
-        EVERY_ITERATION                       no
-        ----------------------------------------IO/RUNTIME VTK OUTPUT/STRUCTURE
-        OUTPUT_STRUCTURE                      yes
-        DISPLACEMENT                          yes
-        --------------------------------------------IO/RUNTIME VTK OUTPUT/BEAMS
-        OUTPUT_BEAMS                          yes
-        DISPLACEMENT                          yes
-        USE_ABSOLUTE_POSITIONS                yes
-        TRIAD_VISUALIZATIONPOINT              yes
-        STRAINS_GAUSSPOINT                    yes
-        """
+        {
+            "PROBLEM TYPE": {
+                "PROBLEMTYPE": "Structure",
+                "RESTART": 0,
+            }
+        }
+    )
+
+    input_file.add(
+        {
+            "IO": {
+                "OUTPUT_BIN": False,
+                "STRUCT_DISP": True,
+                "FILESTEPS": 1000,
+                "VERBOSITY": "Standard",
+                "STRUCT_STRAIN": True,
+                "STRUCT_STRESS": True,
+            }
+        }
+    )
+
+    input_file.add(
+        {
+            "STRUCTURAL DYNAMIC": {
+                "LINEAR_SOLVER": 1,
+                "INT_STRATEGY": "Standard",
+                "DYNAMICTYPE": "Statics",
+                "RESULTSEVERY": 1,
+                "NLNSOL": "fullnewton",
+                "TIMESTEP": 0.1,
+                "NUMSTEP": 10,
+                "MAXTIME": 1.0,
+            }
+        }
+    )
+
+    input_file.add(
+        {
+            "SOLVER 1": {
+                "NAME": "Structure_Solver",
+                "SOLVER": "Superlu",
+            }
+        }
+    )
+
+    input_file.add(
+        {
+            "IO/RUNTIME VTK OUTPUT": {
+                "OUTPUT_DATA_FORMAT": "binary",
+                "INTERVAL_STEPS": 1,
+                "EVERY_ITERATION": False,
+            }
+        }
+    )
+
+    input_file.add(
+        {
+            "IO/RUNTIME VTK OUTPUT/STRUCTURE": {
+                "OUTPUT_STRUCTURE": True,
+                "DISPLACEMENT": True,
+            }
+        }
+    )
+
+    input_file.add(
+        {
+            "IO/RUNTIME VTK OUTPUT/BEAMS": {
+                "OUTPUT_BEAMS": True,
+                "DISPLACEMENT": True,
+                "USE_ABSOLUTE_POSITIONS": True,
+                "TRIAD_VISUALIZATIONPOINT": True,
+                "STRAINS_GAUSSPOINT": True,
+            }
+        }
     )
 
     return input_file
@@ -308,6 +358,9 @@ if __name__ == "__main__":
     """Execution part of script."""
 
     # Adapt this path to the directory you want to store the tutorial files in.
-    tutorial_directory = ""
+    tutorial_directory = os.getcwd()
     input_file = beamme_tutorial(tutorial_directory)
-    input_file.dump(os.path.join(tutorial_directory, "tutorial.4C.yaml"))
+    input_file.dump(
+        input_file_path=os.path.join(tutorial_directory, "tutorial.4C.yaml"),
+        validate=False,
+    )
