@@ -45,12 +45,6 @@ from beamme.mesh_creation_functions.beam_line import create_beam_mesh_line
 from beamme.mesh_creation_functions.beam_parametric_curve import (
     create_beam_mesh_parametric_curve,
 )
-
-# from beamme.mesh_creation_functions.beam_basic_geometry import (
-#    create_beam_mesh_arc_segment_2d,
-#    create_beam_mesh_line,
-# )
-# from beamme.mesh_creation_functions.beam_curve import create_beam_mesh_parametric_curve
 from beamme.utils.nodes import get_single_node
 
 
@@ -114,9 +108,9 @@ def beamme_tutorial(base_dir, preview=False):
             beam_set_1["start"],
             {
                 "NUMDOF": 9,
-                "ONOFF": [1] * 6 + [0] * 3,
-                "VAL": [0.0] * 9,
-                "FUNCT": [0.0] * 9,
+                "ONOFF": [1, 1, 1, 1, 1, 1, 0, 0, 0],
+                "VAL": [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                "FUNCT": [0, 0, 0, 0, 0, 0, 0, 0, 0],
             },
             bc_type=bme.bc.dirichlet,
         )
@@ -235,7 +229,7 @@ def beamme_tutorial(base_dir, preview=False):
     # We add a line load in y-direction to all beam elements. The line load
     # is controlled by the function fun_t.
     line_load_val = 0.00000001
-    fun_t = Function("COMPONENT 0 SYMBOLIC_FUNCTION_OF_SPACE_TIME t")
+    fun_t = Function([{"COMPONENT": 0, "SYMBOLIC_FUNCTION_OF_SPACE_TIME": "t"}])
     mesh.add(fun_t)
     geometry_set_all_lines = GeometrySet(mesh.elements)
     mesh.add(
@@ -243,9 +237,9 @@ def beamme_tutorial(base_dir, preview=False):
             geometry_set_all_lines,
             {
                 "NUMDOF": 9,
-                "ONOFF": [0, 1, 0] + [0] * 6,
-                "VAL": [0, line_load_val, 0] + [0] * 6,
-                "FUNCT": [0, fun_t, 0] + [0] * 6,
+                "ONOFF": [0, 1, 0, 0, 0, 0, 0, 0, 0],
+                "VAL": [0, line_load_val, 0, 0, 0, 0, 0, 0, 0],
+                "FUNCT": [0, fun_t, 0, 0, 0, 0, 0, 0, 0],
             },
             bc_type=bme.bc.neumann,
         )
@@ -254,25 +248,12 @@ def beamme_tutorial(base_dir, preview=False):
     # The vtk output will also show all node sets for BCs on the mesh.
     mesh.write_vtk("step_13", base_dir)
 
-    # The object InputFile is a mesh, but can also store 4C input parameters.
-    # Additionally we load an existing solid mesh. This shows how solid, or in
-    # general, volume elements (fluid, ...) can be combined with beam elements.
-    # Everything from the volume input file will be included in the combined
-    # input file, e.g. BC, loads, materials, solver parameters, ... .
-    solid_input_path = os.path.join(
-        os.path.dirname(__file__), "4C_input_solid_tutorial.4C.yaml"
-    )
     input_file = InputFile()
 
     # Add the beam geometry to the input file.
     input_file.add(mesh)
 
     # Add the input parameters.
-    # input_file.add(
-    #    {
-    #        "TITLE": "beamme tutorial",
-    #    }
-    # )
 
     input_file.add(
         {
@@ -290,8 +271,8 @@ def beamme_tutorial(base_dir, preview=False):
                 "STRUCT_DISP": True,
                 "FILESTEPS": 1000,
                 "VERBOSITY": "Standard",
-                "STRUCT_STRAIN": True,
-                "STRUCT_STRESS": True,
+                "STRUCT_STRAIN": "GL",
+                "STRUCT_STRESS": "2PK",
             }
         }
     )
@@ -359,7 +340,7 @@ if __name__ == "__main__":
 
     # Adapt this path to the directory you want to store the tutorial files in.
     tutorial_directory = os.getcwd()
-    input_file = beamme_tutorial(tutorial_directory)
+    input_file = beamme_tutorial(tutorial_directory, True)
     input_file.dump(
         input_file_path=os.path.join(tutorial_directory, "tutorial.4C.yaml")
     )
