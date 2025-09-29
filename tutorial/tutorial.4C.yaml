@@ -1,0 +1,658 @@
+# ----------------------------------------
+# This input file was created with BeamMe.
+# Copyright (c) 2018-2025 BeamMe Authors
+# https://beamme-py.github.io/beamme/
+# ----------------------------------------
+TITLE:
+  BeamMe:
+    creation_date: "2025-09-29 15:54:59"
+    Application:
+      path: "/home/a11bmafr/software/py-libs/meshpy/tutorial/tutorial.py"
+      git_sha: "b2e5ecae160d3d67e94c8f35f2e833b363cf96c8"
+      git_date: "2025-09-29 15:47:37 +0200"
+    BeamMe:
+      git_SHA: "b2e5ecae160d3d67e94c8f35f2e833b363cf96c8"
+      git_date: "2025-09-29 15:47:37 +0200"
+PROBLEM TYPE:
+  PROBLEMTYPE: "Structure"
+  RESTART: 0
+DESIGN LINE NEUMANN CONDITIONS:
+  - E: 1
+    NUMDOF: 9
+    ONOFF: [0, 1, 0, 0, 0, 0, 0, 0, 0]
+    VAL: [0, 1e-08, 0, 0, 0, 0, 0, 0, 0]
+    FUNCT: [0, 1, 0, 0, 0, 0, 0, 0, 0]
+DESIGN POINT COUPLING CONDITIONS:
+  - E: 2
+    NUMDOF: 9
+    ONOFF: [1, 1, 1, 1, 1, 1, 0, 0, 0]
+  - E: 3
+    NUMDOF: 9
+    ONOFF: [1, 1, 1, 1, 1, 1, 0, 0, 0]
+  - E: 4
+    NUMDOF: 9
+    ONOFF: [1, 1, 1, 1, 1, 1, 0, 0, 0]
+  - E: 5
+    NUMDOF: 9
+    ONOFF: [1, 1, 1, 1, 1, 1, 0, 0, 0]
+  - E: 6
+    NUMDOF: 9
+    ONOFF: [1, 1, 1, 1, 1, 1, 0, 0, 0]
+  - E: 7
+    NUMDOF: 9
+    ONOFF: [1, 1, 1, 1, 1, 1, 0, 0, 0]
+DESIGN POINT DIRICH CONDITIONS:
+  - E: 1
+    NUMDOF: 9
+    ONOFF: [1, 1, 1, 1, 1, 1, 0, 0, 0]
+    VAL: [0, 0, 0, 0, 0, 0, 0, 0, 0]
+    FUNCT: [0, 0, 0, 0, 0, 0, 0, 0, 0]
+FUNCT1:
+  - COMPONENT: 0
+    SYMBOLIC_FUNCTION_OF_SPACE_TIME: "t"
+IO:
+  OUTPUT_BIN: false
+  STRUCT_DISP: true
+  FILESTEPS: 1000
+  VERBOSITY: "Standard"
+  STRUCT_STRAIN: "GL"
+  STRUCT_STRESS: "2PK"
+IO/RUNTIME VTK OUTPUT:
+  OUTPUT_DATA_FORMAT: "binary"
+  INTERVAL_STEPS: 1
+  EVERY_ITERATION: false
+IO/RUNTIME VTK OUTPUT/BEAMS:
+  OUTPUT_BEAMS: true
+  DISPLACEMENT: true
+  USE_ABSOLUTE_POSITIONS: true
+  TRIAD_VISUALIZATIONPOINT: true
+  STRAINS_GAUSSPOINT: true
+IO/RUNTIME VTK OUTPUT/STRUCTURE:
+  OUTPUT_STRUCTURE: true
+  DISPLACEMENT: true
+MATERIALS:
+  - MAT: 1
+    MAT_BeamReissnerElastHyper:
+      YOUNG: 1.0
+      POISSONRATIO: 0.0
+      DENS: 0.0
+      CROSSAREA: 0.0012566370614359172
+      SHEARCORR: 1
+      MOMINPOL: 2.5132741228718345e-07
+      MOMIN2: 1.2566370614359172e-07
+      MOMIN3: 1.2566370614359172e-07
+SOLVER 1:
+  NAME: "Structure_Solver"
+  SOLVER: "Superlu"
+STRUCTURAL DYNAMIC:
+  LINEAR_SOLVER: 1
+  INT_STRATEGY: "Standard"
+  DYNAMICTYPE: "Statics"
+  RESULTSEVERY: 1
+  NLNSOL: "fullnewton"
+  TIMESTEP: 0.1
+  NUMSTEP: 10
+  MAXTIME: 1.0
+STRUCTURE ELEMENTS:
+  - "1 BEAM3R LINE3 1 3 2 HERMITE_CENTERLINE true MAT 1 TRIADS 2.221441469079183 2.221441469079183 1.743934249004316e-16 2.1076394464869974 2.329691044903023 1.8289151703326805e-16 2.165217052871684 2.276277556679549 1.7869831128068445e-16"
+  - "2 BEAM3R LINE3 3 5 4 HERMITE_CENTERLINE true MAT 1 TRIADS 2.1076394464869974 2.329691044903023 1.8289151703326805e-16 1.9885694229159996 2.4321176063942476 1.9093247562158214e-16 2.0487446340548825 2.38164855205815 1.8697042154108172e-16"
+  - "3 BEAM3R LINE3 5 7 6 HERMITE_CENTERLINE true MAT 1 TRIADS 1.9885694229159996 2.4321176063942476 1.9093247562158214e-16 1.8645290114146469 2.5284651404918503 1.9849620245655335e-16 1.9271514206185232 2.4810666663951944 1.9477520311993944e-16"
+  - "4 BEAM3R LINE3 7 9 8 HERMITE_CENTERLINE true MAT 1 TRIADS 1.8645290114146469 2.5284651404918503 1.9849620245655335e-16 1.7358282484126966 2.618492828537414 2.0556379216020705e-16 1.8007413322716763 2.5742834061807924 2.0209314812796222e-16"
+  - "5 BEAM3R LINE3 9 11 10 HERMITE_CENTERLINE true MAT 1 TRIADS 1.7358282484126966 2.618492828537414 2.0556379216020705e-16 1.6027888187915897 2.701975648196337 2.121175794390137e-16 1.669830328402107 2.6610657781118205 2.0890596551374208e-16"
+  - "6 BEAM3R LINE3 11 13 12 HERMITE_CENTERLINE true MAT 1 TRIADS 1.6027888187915897 2.701975648196337 2.121175794390137e-16 0.8844825227330233 3.0145140683150213 2.3665329026287814e-16 1.253415233514011 2.8807212037065257 2.2614993187550314e-16"
+  - "7 BEAM3R LINE3 14 16 15 HERMITE_CENTERLINE true MAT 1 TRIADS 1.1436885951437321 1.877189096733282 2.1975377430500527 -1.0987096315701586 -1.6455473671386902 -1.8993978666146767 -1.1188712527986224 -1.7725119922667418 -2.077019540171097"
+  - "8 BEAM3R LINE3 16 18 17 HERMITE_CENTERLINE true MAT 1 TRIADS -1.0987096315701586 -1.6455473671386902 -1.8993978666146767 -1.1374352700899002 -1.4169188631979088 -1.5534543225968984 -1.1057289292140862 -1.5294001952815108 -1.7222894400395197"
+  - "9 BEAM3R LINE3 18 20 19 HERMITE_CENTERLINE true MAT 1 TRIADS -1.1374352700899002 -1.4169188631979088 -1.5534543225968984 -1.2611553562601516 -1.1748878653314627 -1.2611553562601518 -1.190648262001516 -1.3010325194470413 -1.3984815656169978"
+  - "10 BEAM3R LINE3 21 23 22 HERMITE_CENTERLINE true MAT 1 TRIADS 0.290882235714175 1.8677473886176121 1.7288195771648878 0.10624290781156215 1.8984788221984552 1.7525925122096693 0.219909745850422 1.8899513409191047 1.7552121418522528"
+  - "11 BEAM3R LINE3 23 25 24 HERMITE_CENTERLINE true MAT 1 TRIADS 0.10624290781156215 1.8984788221984552 1.7525925122096693 -0.31842430570028113 1.801318422971168 1.5854668023471186 -0.06567387063559076 1.8788431490784192 1.7063574134613644"
+  - "12 BEAM3R LINE3 25 27 26 HERMITE_CENTERLINE true MAT 1 TRIADS -0.31842430570028113 1.801318422971168 1.5854668023471186 -0.8900229255718153 1.4362954939559924 1.124672522755872 -0.6335227444811574 1.6352253274579305 1.3662594543248858"
+  - "13 BEAM3R LINE3 27 29 28 HERMITE_CENTERLINE true MAT 1 TRIADS -0.8900229255718153 1.4362954939559924 1.124672522755872 -1.0914251180013461 1.2200669972000349 0.8537119864792376 -1.0284460803801454 1.2961394119787575 0.9549735056441895"
+  - "14 BEAM3R LINE3 29 31 30 HERMITE_CENTERLINE true MAT 1 TRIADS -1.0914251180013461 1.2200669972000349 0.8537119864792376 -1.1141412898783316 1.1818903614897551 0.7702821112518443 -1.114799246570117 1.1865297016427412 0.7964005859764595"
+  - "15 BEAM3R LINE3 31 33 32 HERMITE_CENTERLINE true MAT 1 TRIADS -1.1141412898783316 1.1818903614897551 0.7702821112518443 -1.0519050362069267 1.2453721550990808 0.8102789811849513 -1.0940956337969274 1.2009676024658207 0.7728303043909565"
+  - "16 BEAM3R LINE3 33 35 34 HERMITE_CENTERLINE true MAT 1 TRIADS -1.0519050362069267 1.2453721550990808 0.8102789811849513 -0.836596920104786 1.4554171123609818 1.0753510057521058 -0.9753301057562072 1.3244378641859633 0.9003697402787858"
+  - "17 BEAM3R LINE3 35 37 36 HERMITE_CENTERLINE true MAT 1 TRIADS -0.836596920104786 1.4554171123609818 1.0753510057521058 -0.3687952418357657 1.8064523011904148 1.6217426907943453 -0.6105483207723675 1.6380172028151954 1.3477589574343982"
+  - "18 BEAM3R LINE3 37 39 38 HERMITE_CENTERLINE true MAT 1 TRIADS -0.3687952418357657 1.8064523011904148 1.6217426907943453 -0.15431510065442575 1.9865736981645676 1.923059066308496 -0.21629929994473954 1.9167849531876748 1.808179326113665"
+  - "19 BEAM3R LINE3 39 41 40 HERMITE_CENTERLINE true MAT 1 TRIADS -0.15431510065442575 1.9865736981645676 1.923059066308496 -0.19736452978714403 2.0603244759520876 2.0412023209942287 -0.15382409427899454 2.03261232897937 1.995758619918277"
+  - "20 BEAM3R LINE3 42 44 43 HERMITE_CENTERLINE true MAT 1 TRIADS 0.11118338733239827 3.139624604227494 2.4647504570978107e-16 1.4076436150019582 -2.808583958907686 -2.2048682467305903e-16 0.66902859258457 -3.069528488773751 -2.409721765969336e-16"
+  - "21 BEAM3R LINE3 45 47 46 HERMITE_CENTERLINE true MAT 1 TRIADS 1.8529881320322326 -0.6156986987624354 1.8529881320322323 1.888087677703975 -0.9476527362253557 2.0983383828019853 1.8620235401248912 -0.7882753981038806 1.9706178049866436"
+  - "22 BEAM3R LINE3 47 49 48 HERMITE_CENTERLINE true MAT 1 TRIADS 1.888087677703975 -0.9476527362253557 2.0983383828019853 -1.7764149924905333 1.0961917508790935 -2.0654313089762883 -1.925717512754907 1.0913910707052956 -2.2134158219109814"
+  - "23 BEAM3R LINE3 49 51 50 HERMITE_CENTERLINE true MAT 1 TRIADS -1.7764149924905333 1.0961917508790935 -2.0654313089762883 -1.5478640125024055 1.0462630797856654 -1.6800224123873337 -1.6505307228007493 1.0778934480098008 -1.8866549841455524"
+  - "24 BEAM3R LINE3 52 54 53 HERMITE_CENTERLINE true MAT 1 TRIADS 1.733877312730652 0.12488584987093311 1.3143440368953334 1.701500740657504 0.11611225391035936 1.190795972493069 1.7227390375865235 0.10283494206345146 1.269237867343296"
+  - "25 BEAM3R LINE3 54 56 55 HERMITE_CENTERLINE true MAT 1 TRIADS 1.701500740657504 0.11611225391035936 1.190795972493069 1.6051644250427788 0.3158973271084485 0.847221058297395 1.6661807717501584 0.17857733831186798 1.061302577542356"
+  - "26 BEAM3R LINE3 56 58 57 HERMITE_CENTERLINE true MAT 1 TRIADS 1.6051644250427788 0.3158973271084485 0.847221058297395 1.393184463591337 0.7339817455000814 0.2116862982450161 1.5046414468919662 0.5315732053366576 0.5315732053366576"
+  - "27 BEAM3R LINE3 58 60 59 HERMITE_CENTERLINE true MAT 1 TRIADS 1.393184463591337 0.7339817455000814 0.2116862982450161 1.288082837448808 0.9023150235915166 -0.14716589088432352 1.3203961927856174 0.8508730106507532 -0.010458259229748745"
+  - "28 BEAM3R LINE3 60 62 61 HERMITE_CENTERLINE true MAT 1 TRIADS 1.288082837448808 0.9023150235915166 -0.14716589088432352 1.2955284360299024 0.9002741983931087 -0.2794869517256963 1.2826072384717284 0.9148551875801036 -0.2309479070414693"
+  - "29 BEAM3R LINE3 62 64 63 HERMITE_CENTERLINE true MAT 1 TRIADS 1.2955284360299024 0.9002741983931087 -0.2794869517256963 1.3670505654333902 0.7880250635024272 -0.2853872396795211 1.3236075842432475 0.8602514801443936 -0.2987181814460933"
+  - "30 BEAM3R LINE3 64 66 65 HERMITE_CENTERLINE true MAT 1 TRIADS 1.3670505654333902 0.7880250635024272 -0.2853872396795211 1.503867374501235 0.45593350743334293 -0.0874579781689021 1.4279348554666318 0.6650388658022873 -0.2248460543303798"
+  - "31 BEAM3R LINE3 66 68 67 HERMITE_CENTERLINE true MAT 1 TRIADS 1.503867374501235 0.45593350743334293 -0.0874579781689021 1.5722061861850012 -0.18186390704383923 0.36834325566037895 1.566212125517683 0.14071225359424072 0.14071225359423997"
+  - "32 BEAM3R LINE3 68 70 69 HERMITE_CENTERLINE true MAT 1 TRIADS 1.5722061861850012 -0.18186390704383923 0.36834325566037895 1.5055436633082901 -0.5388649814869435 0.5649108644891955 1.5411070229224018 -0.4044575922374665 0.5048772315084009"
+  - "33 BEAM3R LINE3 70 72 71 HERMITE_CENTERLINE true MAT 1 TRIADS 1.5055436633082901 -0.5388649814869435 0.5649108644891955 1.45422950723018 -0.6635940976139197 0.5590636595858608 1.4758888000777377 -0.6189948116702854 0.5781189636919419"
+  - "34 BEAM3R LINE3 73 75 74 HERMITE_CENTERLINE true MAT 1 TRIADS 0.7431449972252683 -0.8565899520808211 1.287164892584797 0.4851602758391989 -0.968010193559758 0.8403222475676236 0.6145810051243805 -0.9186848599189001 1.0644855262421753"
+NODE COORDS:
+  - "NODE 1 COORD 1.0 0.0 0.0"
+  - "NODE 2 COORD 0.9987502603949663 0.04997916927067833 0.0"
+  - "NODE 3 COORD 0.9950041652780258 0.09983341664682815 0.0"
+  - "NODE 4 COORD 0.9887710779360422 0.14943813247359924 0.0"
+  - "NODE 5 COORD 0.9800665778412416 0.19866933079506122 0.0"
+  - "NODE 6 COORD 0.9689124217106447 0.24740395925452294 0.0"
+  - "NODE 7 COORD 0.955336489125606 0.29552020666133955 0.0"
+  - "NODE 8 COORD 0.9393727128473789 0.34289780745545134 0.0"
+  - "NODE 9 COORD 0.9210609940028851 0.3894183423086505 0.0"
+  - "NODE 10 COORD 0.9004471023526769 0.43496553411123023 0.0"
+  - "NODE 11 COORD 0.8775825618903728 0.479425538604203 0.0"
+  - "NODE 12 COORD 0.7316888688738209 0.6816387600233341 0.0"
+  - "NODE 13 COORD 0.5403023058681398 0.8414709848078965 0.0"
+  - "NODE 14 COORD 0.5403023058681398 0.8414709848078965 0.0"
+  - "NODE 15 COORD 0.4150599691896156 0.9097940547048631 0.09998096066546051"
+  - "NODE 16 COORD 0.3000565009688019 0.9539214308455175 0.22323779409789932"
+  - "NODE 17 COORD 0.20334287422260527 0.9791075913825251 0.3660254037844385"
+  - "NODE 18 COORD 0.13072845625987306 0.9914182118177527 0.5240052604587697"
+  - "NODE 19 COORD 0.08588264586721255 0.996305260017655 0.6923772261175082"
+  - "NODE 20 COORD 0.0707372016677029 0.9974949866040544 0.8660254037844384"
+  - "NODE 21 COORD 0.5403023058681398 0.8414709848078965 0.0"
+  - "NODE 22 COORD 0.4900671952431106 0.8716846586619217 -0.0160981327011122"
+  - "NODE 23 COORD 0.43876466912042505 0.8986020059690741 -0.03448474122722777"
+  - "NODE 24 COORD 0.3877834153929984 0.9217505208819473 -0.058066001045123807"
+  - "NODE 25 COORD 0.34028309578933214 0.9403230374291742 -0.09091068818138627"
+  - "NODE 26 COORD 0.3031191524522128 0.952952663785905 -0.13692887940016202"
+  - "NODE 27 COORD 0.2837840441562786 0.958888218867198 -0.19393279804850572"
+  - "NODE 28 COORD 0.28096321387825385 0.9597185381387621 -0.2545290829500276"
+  - "NODE 29 COORD 0.28822683235753704 0.9575621614856866 -0.31481528975955775"
+  - "NODE 30 COORD 0.3006966010085342 0.9537198509740239 -0.3741890087527704"
+  - "NODE 31 COORD 0.3153223623952687 0.9489846193555862 -0.43301270189221935"
+  - "NODE 32 COORD 0.32987360197227933 0.9440251091585616 -0.4918363950316683"
+  - "NODE 33 COORD 0.3421631933246007 0.9396405425128866 -0.5512101140248808"
+  - "NODE 34 COORD 0.349272926254109 0.9370210365759628 -0.6114963208344109"
+  - "NODE 35 COORD 0.3465161131315843 0.9380440199373263 -0.672092605735933"
+  - "NODE 36 COORD 0.3274736501884396 0.9448603115975713 -0.7290965243842766"
+  - "NODE 37 COORD 0.2901415146904137 0.956983751927457 -0.7751147156030526"
+  - "NODE 38 COORD 0.24097180310407237 0.9705321169898358 -0.807959402739315"
+  - "NODE 39 COORD 0.1862747558150365 0.9824976922853552 -0.831540662557211"
+  - "NODE 40 COORD 0.12906478199391505 0.9916361641493634 -0.8499272710833266"
+  - "NODE 41 COORD 0.0707372016677029 0.9974949866040544 -0.8660254037844387"
+  - "NODE 42 COORD 0.0707372016677029 0.9974949866040544 0.8660254037844384"
+  - "NODE 43 COORD -0.4161468365471424 0.9092974268256817 0.8660254037844384"
+  - "NODE 44 COORD -0.8011436155469337 0.5984721441039565 0.8660254037844384"
+  - "NODE 45 COORD -0.8011436155469337 0.5984721441039565 -0.8660254037844386"
+  - "NODE 46 COORD -0.8101429504837676 0.5862323769474487 -0.6923772261175083"
+  - "NODE 47 COORD -0.8357575980970132 0.5490985678574579 -0.5240052604587699"
+  - "NODE 48 COORD -0.8739048409169081 0.4860970366315696 -0.3660254037844385"
+  - "NODE 49 COORD -0.9180601369485103 0.396441149410707 -0.22323779409789934"
+  - "NODE 50 COORD -0.9598357119535975 0.28056265977234124 -0.09998096066546036"
+  - "NODE 51 COORD -0.9899924966004454 0.1411200080598672 1.1102230246251565e-16"
+  - "NODE 52 COORD -0.8011436155469337 0.5984721441039565 -0.8660254037844386"
+  - "NODE 53 COORD -0.774514704783123 0.6325559043078421 -0.8232998433461018"
+  - "NODE 54 COORD -0.7453452725998313 0.6666786516854152 -0.7823127328790046"
+  - "NODE 55 COORD -0.7122031105731285 0.7019734534082896 -0.7456077858873706"
+  - "NODE 56 COORD -0.6733151456039208 0.7393556077425605 -0.7178561881221113"
+  - "NODE 57 COORD -0.6281736227227391 0.7780731968879212 -0.7068704606925433"
+  - "NODE 58 COORD -0.5808103698465045 0.8140388899056155 -0.7178561881221115"
+  - "NODE 59 COORD -0.5360707684576294 0.844173045770384 -0.7456077858873708"
+  - "NODE 60 COORD -0.49458280823721834 0.8691305113710983 -0.7823127328790048"
+  - "NODE 61 COORD -0.4550780012021444 0.8904515780332253 -0.823299843346102"
+  - "NODE 62 COORD -0.4161468365471424 0.9092974268256817 -0.8660254037844386"
+  - "NODE 63 COORD -0.37643714372528264 0.9264421605388816 -0.9087509642227755"
+  - "NODE 64 COORD -0.33447924216083436 0.9424031178659766 -0.9497380746898724"
+  - "NODE 65 COORD -0.28847302937693675 0.9574880215031899 -0.9864430216815064"
+  - "NODE 66 COORD -0.23642366997666328 0.9716500647222568 -1.014194619446766"
+  - "NODE 67 COORD -0.1782460556494923 0.9839859468739368 -1.025180346876334"
+  - "NODE 68 COORD -0.11943801910462265 0.9928416588723319 -1.0141946194467661"
+  - "NODE 69 COORD -0.0657282411939703 0.9978375610837403 -0.9864430216815064"
+  - "NODE 70 COORD -0.01735388438831757 0.9998494100096459 -0.9497380746898725"
+  - "NODE 71 COORD 0.027536709244613725 0.9996207929229852 -0.9087509642227755"
+  - "NODE 72 COORD 0.0707372016677029 0.9974949866040544 -0.8660254037844387"
+  - "NODE 73 COORD -0.9899924966004454 0.1411200080598672 1.1102230246251565e-16"
+  - "NODE 74 COORD -0.9243023786324633 0.3816609920523321 0.4330127018922193"
+  - "NODE 75 COORD -0.8011436155469335 0.5984721441039569 0.8660254037844387"
+DNODE-NODE TOPOLOGY:
+  - "NODE 1 DNODE 1"
+  - "NODE 13 DNODE 2"
+  - "NODE 14 DNODE 2"
+  - "NODE 21 DNODE 2"
+  - "NODE 20 DNODE 3"
+  - "NODE 42 DNODE 3"
+  - "NODE 41 DNODE 4"
+  - "NODE 72 DNODE 4"
+  - "NODE 44 DNODE 5"
+  - "NODE 75 DNODE 5"
+  - "NODE 45 DNODE 6"
+  - "NODE 52 DNODE 6"
+  - "NODE 51 DNODE 7"
+  - "NODE 73 DNODE 7"
+DLINE-NODE TOPOLOGY:
+  - "NODE 1 DLINE 1"
+  - "NODE 2 DLINE 1"
+  - "NODE 3 DLINE 1"
+  - "NODE 4 DLINE 1"
+  - "NODE 5 DLINE 1"
+  - "NODE 6 DLINE 1"
+  - "NODE 7 DLINE 1"
+  - "NODE 8 DLINE 1"
+  - "NODE 9 DLINE 1"
+  - "NODE 10 DLINE 1"
+  - "NODE 11 DLINE 1"
+  - "NODE 12 DLINE 1"
+  - "NODE 13 DLINE 1"
+  - "NODE 14 DLINE 1"
+  - "NODE 15 DLINE 1"
+  - "NODE 16 DLINE 1"
+  - "NODE 17 DLINE 1"
+  - "NODE 18 DLINE 1"
+  - "NODE 19 DLINE 1"
+  - "NODE 20 DLINE 1"
+  - "NODE 21 DLINE 1"
+  - "NODE 22 DLINE 1"
+  - "NODE 23 DLINE 1"
+  - "NODE 24 DLINE 1"
+  - "NODE 25 DLINE 1"
+  - "NODE 26 DLINE 1"
+  - "NODE 27 DLINE 1"
+  - "NODE 28 DLINE 1"
+  - "NODE 29 DLINE 1"
+  - "NODE 30 DLINE 1"
+  - "NODE 31 DLINE 1"
+  - "NODE 32 DLINE 1"
+  - "NODE 33 DLINE 1"
+  - "NODE 34 DLINE 1"
+  - "NODE 35 DLINE 1"
+  - "NODE 36 DLINE 1"
+  - "NODE 37 DLINE 1"
+  - "NODE 38 DLINE 1"
+  - "NODE 39 DLINE 1"
+  - "NODE 40 DLINE 1"
+  - "NODE 41 DLINE 1"
+  - "NODE 42 DLINE 1"
+  - "NODE 43 DLINE 1"
+  - "NODE 44 DLINE 1"
+  - "NODE 45 DLINE 1"
+  - "NODE 46 DLINE 1"
+  - "NODE 47 DLINE 1"
+  - "NODE 48 DLINE 1"
+  - "NODE 49 DLINE 1"
+  - "NODE 50 DLINE 1"
+  - "NODE 51 DLINE 1"
+  - "NODE 52 DLINE 1"
+  - "NODE 53 DLINE 1"
+  - "NODE 54 DLINE 1"
+  - "NODE 55 DLINE 1"
+  - "NODE 56 DLINE 1"
+  - "NODE 57 DLINE 1"
+  - "NODE 58 DLINE 1"
+  - "NODE 59 DLINE 1"
+  - "NODE 60 DLINE 1"
+  - "NODE 61 DLINE 1"
+  - "NODE 62 DLINE 1"
+  - "NODE 63 DLINE 1"
+  - "NODE 64 DLINE 1"
+  - "NODE 65 DLINE 1"
+  - "NODE 66 DLINE 1"
+  - "NODE 67 DLINE 1"
+  - "NODE 68 DLINE 1"
+  - "NODE 69 DLINE 1"
+  - "NODE 70 DLINE 1"
+  - "NODE 71 DLINE 1"
+  - "NODE 72 DLINE 1"
+  - "NODE 73 DLINE 1"
+  - "NODE 74 DLINE 1"
+  - "NODE 75 DLINE 1"
+# Application script which created this input file:
+# # The MIT License (MIT)
+# #
+# # Copyright (c) 2018-2025 BeamMe Authors
+# #
+# # Permission is hereby granted, free of charge, to any person obtaining a copy
+# # of this software and associated documentation files (the "Software"), to deal
+# # in the Software without restriction, including without limitation the rights
+# # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# # copies of the Software, and to permit persons to whom the Software is
+# # furnished to do so, subject to the following conditions:
+# #
+# # The above copyright notice and this permission notice shall be included in
+# # all copies or substantial portions of the Software.
+# #
+# # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# # THE SOFTWARE.
+# """This script contains a tutorial for beamme.
+#
+# Most basic functionality is covered by this tutorial. For more
+# information have a closer look at the test cases, as they cover all
+# functionality.
+# """
+#
+# import os
+#
+# import autograd.numpy as npAD
+# import numpy as np
+#
+# from beamme.core.boundary_condition import BoundaryCondition
+# from beamme.core.conf import bme
+# from beamme.core.function import Function
+# from beamme.core.geometry_set import GeometrySet
+# from beamme.core.mesh import Mesh
+# from beamme.core.rotation import Rotation
+# from beamme.four_c.element_beam import Beam3rHerm2Line3
+# from beamme.four_c.input_file import InputFile
+# from beamme.four_c.material import MaterialReissner
+# from beamme.mesh_creation_functions.beam_arc import create_beam_mesh_arc_segment_2d
+# from beamme.mesh_creation_functions.beam_line import create_beam_mesh_line
+# from beamme.mesh_creation_functions.beam_parametric_curve import (
+#     create_beam_mesh_parametric_curve,
+# )
+#
+# from beamme.utils.nodes import get_single_node
+#
+#
+# def beamme_tutorial(base_dir, preview=False):
+#     """Create a honeycomb like structure with different type of connectors.
+#
+#     Args
+#     ----
+#     base_dir: str
+#         Path where all created files will be saved.
+#     """
+#
+#     # In the first step an empty Mesh object is created, which in general holds
+#     # information about the nodes, elements, materials and boundary conditions.
+#     # A mesh can be added to a mesh, i.e. created geometries can be combined.
+#     # The first geometry is created in the final mesh, as its position is
+#     # already final.
+#     mesh = Mesh()
+#
+#     # We now add a straight line, with a SR beam element. If other beam
+#     # theories or element orders are used, simply replace the material and beam
+#     # objects.
+#     # The line is created between the two given points, with n_el elements.
+#     # Each mesh creation function returns certain geometry sets, where boundary
+#     # conditions can be applied or points can be coupled.
+#     mat = MaterialReissner(youngs_modulus=1.0, radius=0.02)
+#     beam_class = Beam3rHerm2Line3
+#     beam_set_1 = create_beam_mesh_line(
+#         mesh, beam_class, mat, [0, 0, 0], [0, 0.5, 0], n_el=5
+#     )
+#
+#     # We now add a second line, extending the first one and we give the end
+#     # node of the first line as a parameter, then the new line uses the end
+#     # node of the last line as a starting node, i.e. the lines are connected.
+#     # This only works if the two nodes have the same position and orientation,
+#     # i.e. corners have to be coupled via coupling conditions.
+#     create_beam_mesh_line(
+#         mesh,
+#         beam_class,
+#         mat,
+#         [0, 0.5, 0],
+#         [0, 1.0, 0],
+#         n_el=1,
+#         start_node=beam_set_1["end"],
+#     )
+#
+#     # The mesh should now have 13 nodes and 6 elements.
+#     # Note that the employed SR elements insert a middle node in each element.
+#     print("mesh_1 number of nodes: {}".format(len(mesh.nodes)))
+#     print("mesh_1 number of elements: {}".format(len(mesh.elements)))
+#
+#     # We can also look at the created mesh, either with pyvista or in ParaView.
+#     if preview:
+#         mesh.display_pyvista()
+#     mesh.write_vtk("step_1", base_dir)
+#
+#     # We want to fix all positions and rotations of the first node.
+#     # bme is a global object that stores enums and other options for beamme.
+#     mesh.add(
+#         BoundaryCondition(
+#             beam_set_1["start"],
+#             {
+#                 "NUMDOF": 9,
+#                 "ONOFF": [1,1,1, 1, 1, 1, 0, 0, 0],
+#                 "VAL": [ 0, 0, 0, 0, 0, 0 ,0, 0, 0],
+#                 "FUNCT": [ 0, 0, 0, 0, 0, 0 ,0, 0, 0],
+#             },
+#             bc_type=bme.bc.dirichlet,
+#         )
+#     )
+#
+#     # In the next few steps we will create the honeycomb structure. Therefore,
+#     # we create a honeycomb mesh object.
+#     mesh_honeycomb = Mesh()
+#
+#     # Now lets add a new mesh and create a circular segment.
+#     mesh_arc = Mesh()
+#     beam_set_arc = create_beam_mesh_arc_segment_2d(
+#         mesh_arc, beam_class, mat, [0, 0, 0], 1, 0, np.pi / 3.0, n_el=3
+#     )
+#
+#     # Opening it in ParaView, will show the arc.
+#     mesh_arc.write_vtk("step_2", base_dir)
+#
+#     # Now the arc is moved, so it coincides with the end point of the last
+#     # line. Therefore, we get the positions of the two nodes.
+#     # This can be done with the utility function get_node.
+#     arc_start_point = get_single_node(beam_set_arc["start"]).coordinates
+#     line_end_point = mesh.nodes[-1].coordinates
+#     distance = line_end_point - arc_start_point
+#     mesh_arc.translate(distance)
+#
+#     # The arc matches the end of the line.
+#     mesh_arc.write_vtk("step_3", base_dir)
+#
+#     # The arc is also rotated.
+#     mesh_arc.rotate(Rotation([0, 0, 1], np.pi / 6.0), origin=line_end_point)
+#     mesh_arc.write_vtk("step_4", base_dir)
+#
+#     # Finally, the mesh is added to the honeycomb mesh.
+#     mesh_honeycomb.add(mesh_arc)
+#
+#     # Next, a sinusoidal beam is created.
+#     def beam_sinus(t):
+#         """Define a parametric function for the beam.
+#
+#         For this the numpy wrapper autograd has to be used.
+#         """
+#         return 0.5 / npAD.pi * npAD.array([t, npAD.sin(t)])
+#
+#     mesh_sin = Mesh()
+#     beam_set_sin = create_beam_mesh_parametric_curve(
+#         mesh_sin, beam_class, mat, beam_sinus, [0, 2.0 * np.pi], n_el=10
+#     )
+#     mesh_sin.write_vtk("step_5", base_dir)
+#
+#     # The sinus is not also moved to the end of the initially created line and
+#     # rotated.
+#     sin_start_point = get_single_node(beam_set_sin["start"]).coordinates
+#     distance = line_end_point - sin_start_point
+#     mesh_sin.translate(distance)
+#     mesh_sin.rotate(Rotation([0, 0, 1], np.pi / 6.0), origin=line_end_point)
+#     mesh_sin.write_vtk("step_6", base_dir)
+#
+#     # Also add this mesh to the honeycomb mesh.
+#     mesh_honeycomb.add(mesh_sin)
+#
+#     # In a next step, a straight vertical load is added directly to the end of
+#     # the arc.
+#     start = get_single_node(beam_set_arc["end"]).coordinates
+#     create_beam_mesh_line(
+#         mesh_honeycomb, beam_class, mat, start, start + [0, 1, 0], n_el=1
+#     )
+#
+#     # Half of the honeycomb is now complete.
+#     mesh_honeycomb.write_vtk("step_7", base_dir)
+#
+#     # We now create a copy of the honeycomb and reflect it, so it is a complete
+#     # honeycomb structure.
+#     mesh_honeycomb_copy = mesh_honeycomb.copy()
+#     mesh_honeycomb_copy.reflect(
+#         [np.sin(np.pi / 6.0), np.cos(np.pi / 6.0), 0],
+#         get_single_node(beam_set_sin["end"]).coordinates,
+#     )
+#     mesh_honeycomb_copy.write_vtk("step_8", base_dir)
+#
+#     # Add the reflected part and the honeycomb like structure is complete.
+#     mesh_honeycomb.add(mesh_honeycomb_copy)
+#
+#     # Now add everything to the final mesh.
+#     mesh.add(mesh_honeycomb)
+#     mesh.write_vtk("step_9", base_dir)
+#
+#     # The mesh is now complete, but the nodes at the corners are not connected.
+#     # This can be done easily with couple_nodes.
+#     print(
+#         'Point couplings before "couple_nodes": {}'.format(
+#             len(mesh.boundary_conditions[(bme.bc.point_coupling, bme.geo.point)])
+#         )
+#     )
+#     mesh.couple_nodes()
+#     print(
+#         'Point couplings after "couple_nodes": {}'.format(
+#             len(mesh.boundary_conditions[(bme.bc.point_coupling, bme.geo.point)])
+#         )
+#     )
+#
+#     # We can also display the coupling points in the vtk output.
+#     mesh.write_vtk("step_10", base_dir, coupling_sets=True)
+#
+#     # Finally the mesh is wrapped around a cylinder. Therefore, the mesh is
+#     # has to be moved to the correct position. For details look into the
+#     # documentation of wrap_around_cylinder.
+#     mesh.rotate(Rotation([0, 1, 0], 0.5 * np.pi))
+#     mesh.translate([1, 0, 0])
+#     mesh.write_vtk("step_11", base_dir)
+#
+#     mesh.wrap_around_cylinder()
+#     mesh.write_vtk("step_12", base_dir)
+#
+#     # The geometry of the mesh is now complete.
+#     # We add a line load in y-direction to all beam elements. The line load
+#     # is controlled by the function fun_t.
+#     line_load_val = 0.00000001
+#     fun_t =Function([{"COMPONENT": 0, "SYMBOLIC_FUNCTION_OF_SPACE_TIME": "t"}])
+#     mesh.add(fun_t)
+#     geometry_set_all_lines = GeometrySet(mesh.elements)
+#     mesh.add(
+#         BoundaryCondition(
+#             geometry_set_all_lines,
+#             {
+#                 "NUMDOF": 9,
+#                 "ONOFF": [ 0, 1, 0, 0, 0, 0 ,0, 0, 0],
+#                 "VAL": [ 0, line_load_val, 0, 0, 0, 0 ,0, 0, 0],
+#                 "FUNCT": [ 0, fun_t, 0, 0, 0, 0 ,0, 0, 0],
+#             },
+#             bc_type=bme.bc.neumann,
+#         )
+#     )
+#
+#     # The vtk output will also show all node sets for BCs on the mesh.
+#     mesh.write_vtk("step_13", base_dir)
+#
+#     # The object InputFile is a mesh, but can also store 4C input parameters.
+#     # Additionally we load an existing solid mesh. This shows how solid, or in
+#     # general, volume elements (fluid, ...) can be combined with beam elements.
+#     # Everything from the volume input file will be included in the combined
+#     # input file, e.g. BC, loads, materials, solver parameters, ... .
+#     solid_input_path = os.path.join(
+#         os.path.dirname(__file__), "4C_input_solid_tutorial.4C.yaml"
+#     )
+#     input_file = InputFile()
+#
+#     # Add the beam geometry to the input file.
+#     input_file.add(mesh)
+#
+#     # Add the input parameters.
+#     # input_file.add(
+#     #    {
+#     #        "TITLE": "beamme tutorial",
+#     #    }
+#     # )
+#
+#     input_file.add(
+#         {
+#             "PROBLEM TYPE": {
+#                 "PROBLEMTYPE": "Structure",
+#                 "RESTART": 0,
+#             }
+#         }
+#     )
+#
+#     input_file.add(
+#         {
+#             "IO": {
+#                 "OUTPUT_BIN": False,
+#                 "STRUCT_DISP": True,
+#                 "FILESTEPS": 1000,
+#                 "VERBOSITY": "Standard",
+#                 "STRUCT_STRAIN": "GL",
+#                 "STRUCT_STRESS": "2PK",
+#             }
+#         }
+#     )
+#
+#     input_file.add(
+#         {
+#             "STRUCTURAL DYNAMIC": {
+#                 "LINEAR_SOLVER": 1,
+#                 "INT_STRATEGY": "Standard",
+#                 "DYNAMICTYPE": "Statics",
+#                 "RESULTSEVERY": 1,
+#                 "NLNSOL": "fullnewton",
+#                 "TIMESTEP": 0.1,
+#                 "NUMSTEP": 10,
+#                 "MAXTIME": 1.0,
+#             }
+#         }
+#     )
+#
+#     input_file.add(
+#         {
+#             "SOLVER 1": {
+#                 "NAME": "Structure_Solver",
+#                 "SOLVER": "Superlu",
+#             }
+#         }
+#     )
+#
+#     input_file.add(
+#         {
+#             "IO/RUNTIME VTK OUTPUT": {
+#                 "OUTPUT_DATA_FORMAT": "binary",
+#                 "INTERVAL_STEPS": 1,
+#                 "EVERY_ITERATION": False,
+#             }
+#         }
+#     )
+#
+#     input_file.add(
+#         {
+#             "IO/RUNTIME VTK OUTPUT/STRUCTURE": {
+#                 "OUTPUT_STRUCTURE": True,
+#                 "DISPLACEMENT": True,
+#             }
+#         }
+#     )
+#
+#     input_file.add(
+#         {
+#             "IO/RUNTIME VTK OUTPUT/BEAMS": {
+#                 "OUTPUT_BEAMS": True,
+#                 "DISPLACEMENT": True,
+#                 "USE_ABSOLUTE_POSITIONS": True,
+#                 "TRIAD_VISUALIZATIONPOINT": True,
+#                 "STRAINS_GAUSSPOINT": True,
+#             }
+#         }
+#     )
+#
+#     return input_file
+#
+#
+# if __name__ == "__main__":
+#     """Execution part of script."""
+#
+#     # Adapt this path to the directory you want to store the tutorial files in.
+#     tutorial_directory = os.getcwd()
+#     input_file = beamme_tutorial(tutorial_directory)
+#     input_file.dump(
+#         input_file_path=os.path.join(tutorial_directory, "tutorial.4C.yaml")
+#     )
