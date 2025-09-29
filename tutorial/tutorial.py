@@ -361,6 +361,5 @@ if __name__ == "__main__":
     tutorial_directory = os.getcwd()
     input_file = beamme_tutorial(tutorial_directory)
     input_file.dump(
-        input_file_path=os.path.join(tutorial_directory, "tutorial.4C.yaml"),
-        validate=False,
+        input_file_path=os.path.join(tutorial_directory, "tutorial.4C.yaml")
     )
