@@ -111,7 +111,7 @@ You can also interactively test the entire BeamMe framework directly from your b
 
 ## Getting started
 This example demonstrates how to create a small structural model using BeamMe:
-```python
+```python test:getting_started
 import numpy as np
 
 from beamme.core.element_beam import Beam2, Beam3, Beam4
