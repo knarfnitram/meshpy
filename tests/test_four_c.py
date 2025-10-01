@@ -355,6 +355,8 @@ def test_four_c_locsys_condition(
     material, and an additional line locsys condition.
     """
 
+    locsys_rotation = Rotation([0, 0, 1], 0.1)
+
     # Create the mesh.
     mesh = Mesh()
 
@@ -397,7 +399,7 @@ def test_four_c_locsys_condition(
     )
 
     # Add locsys condition with rotation
-    mesh.add(LocSysCondition(beam_set["end"], Rotation([0, 0, 1], 0.1)))
+    mesh.add(LocSysCondition(beam_set["end"], rotation=locsys_rotation))
 
     # Add line Function with function array
 
@@ -408,10 +410,7 @@ def test_four_c_locsys_condition(
     mesh.add(
         LocSysCondition(
             GeometrySet(beam_set["line"]),
-            Rotation(
-                [0, 0, 1],
-                0.1,
-            ),
+            rotation=locsys_rotation,
             function_array=[fun_2],
             update_node_position=True,
             use_consistent_node_normal=True,
@@ -422,10 +421,6 @@ def test_four_c_locsys_condition(
     mesh.add(
         LocSysCondition(
             GeometrySet(beam_set["start"]),
-            Rotation(
-                [0, 0, 1],
-                0.1,
-            ),
             function_array=[fun, fun_2, fun_2],
             update_node_position=True,
             use_consistent_node_normal=False,
@@ -434,6 +429,18 @@ def test_four_c_locsys_condition(
 
     # Compare with the reference solution.
     assert_results_close(get_corresponding_reference_file_path(), mesh)
+
+    # Check that the combination of 3 functions and a rotation raises an error
+    with pytest.raises(ValueError, match="If more than a single"):
+        mesh.add(
+            LocSysCondition(
+                GeometrySet(beam_set["start"]),
+                rotation=locsys_rotation,
+                function_array=[fun, fun_2, fun_2],
+                update_node_position=True,
+                use_consistent_node_normal=False,
+            )
+        )
 
 
 def test_four_c_linear_time_transformation_scaling():

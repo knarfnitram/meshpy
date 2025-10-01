@@ -22,7 +22,6 @@
 """This file contains the wrapper for the LocSys condition for 4c."""
 
 from typing import List as _List
-from typing import Optional as _Optional
 from typing import Union as _Union
 
 from beamme.core.boundary_condition import BoundaryCondition as _BoundaryCondition
@@ -45,9 +44,9 @@ class LocSysCondition(_BoundaryCondition):
     def __init__(
         self,
         geometry_set: _GeometrySet,
-        rotation: _Rotation,
         *,
-        function_array: _Optional[_List[_Union[_Function, int]]] = None,
+        rotation: None | _Rotation = None,
+        function_array: None | _List[_Union[_Function, int]] = None,
         update_node_position: bool = False,
         use_consistent_node_normal: bool = False,
         **kwargs,
@@ -56,20 +55,42 @@ class LocSysCondition(_BoundaryCondition):
 
         Args:
             geometry_set: Geometry that this boundary condition acts on
-            rotation: Object that represents the rotation of the coordinate system
-            function_array: _List containing functions
+            rotation: Object that represents the rotation of the coordinate system.
+            function_array:
+                - If a single function is provided, it is used to scale the entire rotation.
+                - If three functions are provided, they represent the components of a rotation vector,
+                  in which case no explicit rotation should be passed.
             update_node_position: Flag to enable the updated node position
             use_consistent_node_normal: Flag to use a consistent node normal
         """
 
-        # Validate provided function array.
+        # Check for invalid input arguments
+        if (
+            function_array is not None
+            and len(function_array) > 1
+            and rotation is not None
+        ):
+            raise ValueError(
+                "If more than a single function is provided in `function_array`, "
+                "no explicit `rotation` should be given. Either provide "
+                "a rotation with a single function (scaling), or three "
+                "functions (rotation vector components) without rotation."
+            )
+
+        # Validate provided function array
         if function_array is None:
             function_array = [0, 0, 0]
         else:
             function_array = _ensure_length_of_function_array(function_array, 3)
 
+        # Validate provided rotation
+        if rotation is None:
+            rotation_vector = [1, 1, 1]
+        else:
+            rotation_vector = rotation.get_rotation_vector()
+
         condition_dict = {
-            "ROTANGLE": rotation.get_rotation_vector().tolist(),
+            "ROTANGLE": rotation_vector,
             "FUNCT": function_array,
             "USEUPDATEDNODEPOS": int(update_node_position),
         }
