@@ -92,9 +92,9 @@ DESIGN POINT LOCSYS CONDITIONS:
       - 2
       - 2
     ROTANGLE:
-      - 0.0
-      - 0.0
-      - 0.1
+      - 1.0
+      - 1.0
+      - 1.0
     USEUPDATEDNODEPOS: 1
 DLINE-NODE TOPOLOGY:
   - NODE 1 DLINE 1
