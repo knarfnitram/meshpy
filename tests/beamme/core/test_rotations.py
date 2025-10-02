@@ -22,6 +22,7 @@
 """This script is used to test the functionality of the Rotation class."""
 
 import numpy as np
+import pytest
 
 from beamme.core.conf import bme
 from beamme.core.rotation import Rotation, get_rotation_vector_series, smallest_rotation
@@ -186,24 +187,53 @@ def test_rotation_operator_overload(assert_results_close):
     assert_results_close(result_vector, rot * np.array(vector))
 
 
-def test_rotation_matrix(assert_results_close):
-    """Test if the correct quaternions are generated from a rotation matrix."""
-
-    # Do one calculation for each case in
-    # Rotation().from_rotation_matrix().
-    vectors = [
+@pytest.mark.parametrize(
+    "vectors",
+    [
         [[1, 0, 0], [0, -1, 0]],
         [[0, 0, 1], [0, 1, 0]],
         [[-1, 0, 0], [0, 1, 0]],
         [[0, 1, 0], [0, 0, 1]],
-    ]
+    ],
+)
+def test_from_rotation_matrix(vectors, assert_results_close):
+    """Test if the correct quaternions are generated from a rotation matrix.
 
-    for t1, t2 in vectors:
-        rot = Rotation().from_basis(t1, t2)
-        t1_rot = rot * [1, 0, 0]
-        t2_rot = rot * [0, 1, 0]
-        assert_results_close(t1, t1_rot)
-        assert_results_close(t2, t2_rot)
+    The from_rotation_matrix function has different branches, the input
+    vectors to this functions are chosen to trigger all branches.
+    """
+
+    t1, t2 = vectors
+    rot = Rotation().from_basis(t1, t2)
+    t1_rot = rot * [1, 0, 0]
+    t2_rot = rot * [0, 1, 0]
+    assert_results_close(t1, t1_rot)
+    assert_results_close(t2, t2_rot)
+
+
+def test_from_basis(assert_results_close):
+    """Test the from_basis function for general input values."""
+
+    t1 = [1, 2, 3]
+    t2 = [-1, 3, 1]
+    rot = Rotation().from_basis(t1, t2)
+    t1_rot = rot * [1, 0, 0]
+    t3_rot = rot * [0, 0, 1]
+
+    # The first basis vector has to be in t1 direction
+    assert_results_close(t1 / np.linalg.norm(t1), t1_rot)
+
+    # The third basis vector has to be orthogonal to t1 and t2
+    for vector in (t1, t2):
+        assert_results_close(np.dot(vector, t3_rot), 0.0)
+
+    # Check that an error is raised for wrong input parameters
+    with pytest.raises(ValueError, match="The given vector t1"):
+        Rotation().from_basis([0, 0, 0], [2, 4, 6])
+    with pytest.raises(ValueError, match="Got two vectors"):
+        Rotation().from_basis([1, 2, 3], [2, 4, 6])
+    with pytest.raises(ValueError, match="Got two vectors"):
+        Rotation().from_basis([1, 2, 3], [0, 0, 0])
 
 
 def test_transformation_matrix(assert_results_close):
