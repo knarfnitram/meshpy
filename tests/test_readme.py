@@ -21,6 +21,7 @@
 # THE SOFTWARE.
 """Test README.md."""
 
+import os
 import re
 from pathlib import Path
 
@@ -74,8 +75,11 @@ def test_readme_auto(code):
     exec(code, {})
 
 
-def test_readme_getting_started():
+def test_readme_getting_started(
+    get_corresponding_reference_file_path, assert_results_close, tmp_path
+):
     """Test the getting started example in the README.md."""
+    os.chdir(tmp_path)
     globals = {}
     exec(SNIPPETS_NAMED["getting_started"], globals)
 
@@ -86,3 +90,10 @@ def test_readme_getting_started():
     # with the corresponding 4C structures.
     assert "mesh" in globals
     assert isinstance(globals["mesh"], Mesh)
+
+    # What we can do, is to check the created vtk output.
+    ref_file = get_corresponding_reference_file_path(
+        additional_identifier="beam", extension="vtu"
+    )
+    vtk_file = tmp_path / "getting_started_beam.vtu"
+    assert_results_close(ref_file, vtk_file)

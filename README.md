@@ -112,43 +112,34 @@ You can also interactively test the entire BeamMe framework directly from your b
 ## Getting started
 This example demonstrates how to create a small structural model using BeamMe:
 ```python test:getting_started
-import numpy as np
-
-from beamme.core.element_beam import Beam2, Beam3, Beam4
+from beamme.core.element_beam import Beam3
 from beamme.core.material import MaterialBeamBase
 from beamme.core.mesh import Mesh
-from beamme.mesh_creation_functions.beam_arc import create_beam_mesh_arc_segment_2d
-from beamme.mesh_creation_functions.beam_line import create_beam_mesh_line
+from beamme.mesh_creation_functions.beam_helix import create_beam_mesh_helix
 
-# Create a new empty mesh container
+# Create a new empty BeamMe mesh container
 mesh = Mesh()
 
-# Define a simple circular cross-section beam material with radius 0.02
-material = MaterialBeamBase(radius=0.03)
-
-# Create a straight line: 3 two-noded beam elements
-create_beam_mesh_line(
-    mesh, Beam2, material, start_point=[0, 0, 0], end_point=[1, 0, 0], n_el=3
+# Create a helical beam structure (other options include lines, arcs, curves, ...)
+create_beam_mesh_helix(
+    mesh=mesh,  # The helix will be added to this mesh
+    beam_class=Beam3,  # Type of beam element for the line
+    material=MaterialBeamBase(
+        radius=0.05
+    ),  #  Simple circular cross-section beam material
+    axis_vector=[1, 1, 1],  # Vector for the orientation of the helical center axis
+    axis_point=[0, 0, 0],  # Point defining the helical center axis
+    start_point=[1, 0, 0],  # Start point of the helix. Defines the radius.
+    height_helix=5,  # Height of helix
+    turns=1.5,  # Number of turns
+    n_el=20,  # Number of beam elements along the helix
 )
-
-# Create a quarter-circle arc: 5 three-noded beam elements
-create_beam_mesh_arc_segment_2d(
-    mesh,
-    Beam3,
-    material,
-    center=[0, 0, 0],
-    radius=1.0,
-    phi_start=0.0,
-    phi_end=0.5 * np.pi,
-    n_el=5,
-)
-
-# Add a vertical line with a single four-noded element and a thicker beam cross-section
-material_thick = MaterialBeamBase(radius=0.05)
-create_beam_mesh_line(mesh, Beam4, material_thick, [0, 1, 0], [0, 1, 1], n_el=1)
 
 # Visualize the final structure with PyVista
 mesh.display_pyvista()
+
+# Alternatively, write the mesh to a VTK file that can be opened in ParaView.
+mesh.write_vtk("getting_started", ".")
 ```
 This will open the following window, displaying the created beam structure:
 <td align="center">
