@@ -54,6 +54,7 @@ the [Institute for Computational Mechanics (LNM)](https://www.epc.ed.tum.de/lnm/
 ## Overview <!-- omit from toc -->
 - [Examples](#examples)
 - [How to use BeamMe?](#how-to-use-beamme)
+- [Getting started](#getting-started)
 - [How to cite BeamMe?](#how-to-cite-beamme)
 - [Work that uses BeamMe](#work-that-uses-beamme)
 - [Installation](#installation)
@@ -107,6 +108,43 @@ They can be run locally or directly tested from your browser via the following l
 
 You can also interactively test the entire BeamMe framework directly from your browser here [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/beamme-py/beamme/main)
 
+
+## Getting started
+This example demonstrates how to create a small structural model using BeamMe:
+```python test:getting_started
+from beamme.core.element_beam import Beam3
+from beamme.core.material import MaterialBeamBase
+from beamme.core.mesh import Mesh
+from beamme.mesh_creation_functions.beam_helix import create_beam_mesh_helix
+
+# Create a new empty BeamMe mesh container
+mesh = Mesh()
+
+# Create a helical beam structure (other options include lines, arcs, curves, ...)
+create_beam_mesh_helix(
+    mesh=mesh,  # The helix will be added to this mesh
+    beam_class=Beam3,  # Type of beam element for the line
+    material=MaterialBeamBase(
+        radius=0.05
+    ),  #  Simple circular cross-section beam material
+    axis_vector=[1, 1, 1],  # Vector for the orientation of the helical center axis
+    axis_point=[0, 0, 0],  # Point defining the helical center axis
+    start_point=[1, 0, 0],  # Start point of the helix. Defines the radius.
+    height_helix=5,  # Height of helix
+    turns=1.5,  # Number of turns
+    n_el=20,  # Number of beam elements along the helix
+)
+
+# Visualize the final structure with PyVista
+mesh.display_pyvista()
+
+# Alternatively, write the mesh to a VTK file that can be opened in ParaView.
+mesh.write_vtk("getting_started", ".")
+```
+This will open the following window, displaying the created beam structure:
+<td align="center">
+  <img src="https://raw.githubusercontent.com/beamme-py/beamme/refs/heads/main/doc/assets/snippet_getting_started_result.png" width="500" class="dark-light" title="Getting started example">
+</td>
 
 ## How to cite BeamMe?
 
