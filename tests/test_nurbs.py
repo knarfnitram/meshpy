@@ -146,6 +146,33 @@ def test_nurbs_flat_plate_2d_splinepy(
     )
 
 
+def test_nurbs_flat_plate_2d_splinepy_copy(
+    assert_results_close, get_corresponding_reference_file_path
+):
+    """Test that a mesh created from a splinepy NURBS can be copied."""
+
+    # Create a flat plate
+    surf_obj = splinepy.helpme.create.box(0.5, 1.0).nurbs
+    surf_obj.elevate_degrees([0, 1])
+    ensure_3d_splinepy_object(surf_obj)
+
+    # Create mesh
+    mesh = Mesh()
+    mat = MaterialSolid(
+        material_string="MAT_Kirchhoff_Love_shell",
+        data={"YOUNG_MODULUS": 10.0, "POISSON_RATIO": 0.3, "THICKNESS": 0.05},
+    )
+    element_description = {"type": "SHELL_KIRCHHOFF_LOVE_NURBS", "GP": [3, 3]}
+    add_splinepy_nurbs_to_mesh(mesh, surf_obj, material=mat, data=element_description)
+
+    mesh_copy = mesh.copy()
+    mesh_copy.translate([3, 0, 0])
+    mesh.add(mesh_copy)
+
+    # Compare with the reference file
+    assert_results_close(get_corresponding_reference_file_path(), mesh)
+
+
 def test_nurbs_brick(assert_results_close, get_corresponding_reference_file_path):
     """Test the creation of a brick."""
 

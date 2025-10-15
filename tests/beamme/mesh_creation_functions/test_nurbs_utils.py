@@ -107,15 +107,24 @@ def test_nurbs_utils_rotate_splinepy_3d_origin(origin, assert_results_close):
     assert_results_close(spline.control_points, expected)
 
 
-def test_nurbs_utils_ensure_3d_splinepy_object_already_3d(assert_results_close):
+def test_nurbs_utils_ensure_3d_splinepy_object_already_3d():
     """Ensure that a 3D splinepy object is left unchanged."""
     original_points = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
     spline = MockSpline(original_points)
     spline_cp_initial = spline.control_points
     ensure_3d_splinepy_object(spline)
-    # Control point object should not be changed and be same object identical
+    # Control point object should be same identical object
     assert spline.control_points is spline_cp_initial
-    assert_results_close(spline.control_points, original_points)
+
+
+def test_nurbs_utils_ensure_3d_splinepy_object_from_1d(assert_results_close):
+    """Ensure that a 1D splinepy object is converted to 3D by adding y=0 and
+    z=0."""
+    original_points = np.array([[1.0], [3.0]])
+    spline = MockSpline(original_points)
+    ensure_3d_splinepy_object(spline)
+    expected = np.array([[1.0, 0.0, 0.0], [3.0, 0.0, 0.0]])
+    assert_results_close(spline.control_points, expected)
 
 
 def test_nurbs_utils_ensure_3d_splinepy_object_from_2d(assert_results_close):
@@ -130,5 +139,5 @@ def test_nurbs_utils_ensure_3d_splinepy_object_from_2d(assert_results_close):
 def test_nurbs_utils_ensure_3d_splinepy_object_invalid_dimension():
     """Ensure that an invalid spline dimension raises ValueError."""
     spline = MockSpline(np.zeros((2, 4)))  # 4D control points
-    with pytest.raises(ValueError, match="Splinepy object must be 2D or 3D"):
+    with pytest.raises(ValueError, match="Splinepy object must be 1D, 2D or 3D"):
         ensure_3d_splinepy_object(spline)
