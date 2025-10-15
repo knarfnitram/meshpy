@@ -196,7 +196,7 @@ def dump_nurbs_patch_elements(nurbs_patch):
     patch_elements = []
     j = 0
 
-    for knot_span in nurbs_patch._get_knot_span_iterator():  # TODO better name for this
+    for knot_span in nurbs_patch._get_knot_span_iterator():
         element_cps_ids = nurbs_patch._get_ids_ctrlpts(*knot_span)
         connectivity = [nurbs_patch.nodes[i] for i in element_cps_ids]
         num_cp = len(connectivity)

@@ -87,15 +87,18 @@ class NURBSPatch(_Element):
             n_cp_per_dim.append(knot_vector_size - polynomial_order - 1)
         return n_cp_per_dim
 
-    def get_number_elements(self) -> int:
-        """Determine the number of elements in this patch by checking the
-        amount of nonzero knot spans in the knot vector.
+    def get_non_empty_knot_span_indices(self) -> list[list[int]]:
+        """Determine the indices of the non-empty knot spans in each parameter
+        direction.
 
         Returns:
-            Number of elements for this patch.
+            List of lists with the indices of the non-empty knot spans in
+            each parameter direction.
         """
 
-        num_elements_dir = _np.zeros(len(self.knot_vectors), dtype=int)
+        non_empty_knot_spans_indices: list[list[int]] = [
+            [] for _ in range(self.get_nurbs_dimension())
+        ]
 
         for i_dir in range(len(self.knot_vectors)):
             for i_knot in range(len(self.knot_vectors[i_dir]) - 1):
@@ -106,10 +109,20 @@ class NURBSPatch(_Element):
                     )
                     > _bme.eps_knot_vector
                 ):
-                    num_elements_dir[i_dir] += 1
+                    non_empty_knot_spans_indices[i_dir].append(i_knot)
+        return non_empty_knot_spans_indices
 
+    def get_number_of_elements(self) -> int:
+        """Determine the number of elements in this patch by checking the
+        amount of nonzero knot spans in the knot vector.
+
+        Returns:
+            Number of elements for this patch.
+        """
+
+        non_empty_knot_spans_indices = self.get_non_empty_knot_span_indices()
+        num_elements_dir = [len(indices) for indices in non_empty_knot_spans_indices]
         total_num_elements = _np.prod(num_elements_dir)
-
         return total_num_elements
 
     def _check_material(self) -> None:
@@ -133,12 +146,11 @@ class NURBSSurface(NURBSPatch):
     def _get_knot_span_iterator(self) -> _Iterator[tuple[int, ...]]:
         """Return a tuple with the knot spans for this patch."""
 
-        p, q = self.polynomial_orders
-        kv_u, kv_v = self.knot_vectors[:2]
+        non_empty_knot_spans_indices = self.get_non_empty_knot_span_indices()
         return (
             (u, v)
-            for v in range(q, len(kv_v) - q - 1)
-            for u in range(p, len(kv_u) - p - 1)
+            for v in non_empty_knot_spans_indices[1]
+            for u in non_empty_knot_spans_indices[0]
         )
 
     def _get_ids_ctrlpts(self, knot_span_u: int, knot_span_v: int) -> list[int]:
@@ -166,13 +178,12 @@ class NURBSVolume(NURBSPatch):
     def _get_knot_span_iterator(self) -> _Iterator[tuple[int, ...]]:
         """Return a tuple with the knot spans for this patch."""
 
-        p, q, r = self.polynomial_orders
-        kv_u, kv_v, kv_w = self.knot_vectors
+        non_empty_knot_spans_indices = self.get_non_empty_knot_span_indices()
         return (
             (u, v, w)
-            for w in range(r, len(kv_w) - r - 1)
-            for v in range(q, len(kv_v) - q - 1)
-            for u in range(p, len(kv_u) - p - 1)
+            for w in non_empty_knot_spans_indices[2]
+            for v in non_empty_knot_spans_indices[1]
+            for u in non_empty_knot_spans_indices[0]
         )
 
     def _get_ids_ctrlpts(
