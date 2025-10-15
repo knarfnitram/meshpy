@@ -69,6 +69,11 @@ def add_splinepy_nurbs_to_mesh(
                 Volume: 'vol'
     """
 
+    # Check the control point dimensions
+    nurbs_cp_dim = splinepy_obj.control_points.shape[1]
+    if not nurbs_cp_dim == 3:
+        raise ValueError(f"Invalid control point dimension: {nurbs_cp_dim}")
+
     # Make sure the material is in the mesh
     mesh.add_material(material)
 

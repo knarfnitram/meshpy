@@ -42,6 +42,10 @@ from beamme.mesh_creation_functions.nurbs_geometries import (
     create_nurbs_sphere_surface,
     create_nurbs_torus_surface,
 )
+from beamme.mesh_creation_functions.nurbs_utils import (
+    ensure_3d_splinepy_object,
+    translate_splinepy,
+)
 
 
 def test_nurbs_hollow_cylinder_segment_2d(
@@ -120,10 +124,8 @@ def test_nurbs_flat_plate_2d_splinepy(
     surf_obj.elevate_degrees([0, 1])
     surf_obj.insert_knots(0, np.linspace(0, 1, n_ele_u + 1))
     surf_obj.insert_knots(1, np.linspace(0, 1, n_ele_v + 1))
-
-    control_points_3d = np.zeros([len(surf_obj.control_points), 3])
-    control_points_3d[:, :2] = surf_obj.control_points
-    surf_obj.control_points = control_points_3d - 0.5 * np.array([0.75, 0.91, 0])
+    ensure_3d_splinepy_object(surf_obj)
+    translate_splinepy(surf_obj, -0.5 * np.array([0.75, 0.91, 0]))
 
     # Create the shell mesh
     mesh = Mesh()

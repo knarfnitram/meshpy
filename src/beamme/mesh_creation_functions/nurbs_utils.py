@@ -27,6 +27,30 @@ from beamme.core.conf import bme as _bme
 from beamme.core.rotation import Rotation as _Rotation
 
 
+def ensure_3d_splinepy_object(splinepy_obj) -> None:
+    """Ensure that a given splinepy object has 3D control points.
+
+    Args:
+        splinepy_obj:
+            Splinepy object to ensure 3D, if this is an object with fewer than
+            3 dimensions, it will be converted to 3D by adding the missing
+            coordinates with a value of 0.
+    """
+
+    control_points_dim = splinepy_obj.control_points.shape[1]
+    if control_points_dim == 3:
+        pass
+    elif control_points_dim < 3:
+        # Add "empty" coordinates to make control points 3D
+        control_points_3d = _np.zeros([len(splinepy_obj.control_points), 3])
+        control_points_3d[:, :control_points_dim] = splinepy_obj.control_points
+        splinepy_obj.control_points = control_points_3d
+    else:
+        raise ValueError(
+            f"Splinepy object must be 1D, 2D or 3D, but has {control_points_dim} dimensions."
+        )
+
+
 def translate_splinepy(splinepy_obj, vector) -> None:
     """Translate a splinepy object by a vector.
 
