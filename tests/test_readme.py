@@ -23,14 +23,14 @@
 
 import os
 import re
-from pathlib import Path
 
 import pytest
 
 from beamme.core.mesh import Mesh
 
 
-def extract_code_snippets() -> tuple[dict[str, str], list[str]]:
+@pytest.fixture(scope="session")
+def extract_code_snippets(pytestconfig) -> tuple[dict[str, str], list[str]]:
     """Parse README.md for fenced code blocks marked as tests.
 
     Code fences may be written in two forms:
@@ -50,7 +50,7 @@ def extract_code_snippets() -> tuple[dict[str, str], list[str]]:
               `test:`) to the code string.
             - **snippets_unnamed**: list of code strings from unnamed test blocks.
     """
-    readme_content = Path("README.md").read_text(encoding="utf-8")
+    readme_content = (pytestconfig.rootpath / "README.md").read_text(encoding="utf-8")
 
     # Match ```python test or ```python test:name
     pattern = re.compile(r"```python\s+test(?::([^\n]+))?\s*\r?\n(.*?)```", re.DOTALL)
@@ -65,29 +65,26 @@ def extract_code_snippets() -> tuple[dict[str, str], list[str]]:
     return snippets_named, snippets_unnamed
 
 
-# Register the snippets globally
-SNIPPETS_NAMED, SNIPPETS_UNNAMED = extract_code_snippets()
-
-
-@pytest.mark.parametrize("code", SNIPPETS_UNNAMED)
-def test_readme_auto(code):
+def test_readme_auto(extract_code_snippets):
     """Run all unnamed code snippets from README automatically."""
-    exec(code, {})
+    _, snippets_unnamed = extract_code_snippets
+    for code in snippets_unnamed:
+        exec(code, {})
 
 
 def test_readme_getting_started(
-    get_corresponding_reference_file_path, assert_results_close, tmp_path
+    extract_code_snippets,
+    get_corresponding_reference_file_path,
+    assert_results_close,
+    tmp_path,
 ):
     """Test the getting started example in the README.md."""
+    snippets_named, _ = extract_code_snippets
     os.chdir(tmp_path)
     globals = {}
-    exec(SNIPPETS_NAMED["getting_started"], globals)
+    exec(snippets_named["getting_started"], globals)
 
     # The example creates an object `mesh` - check if it exists and is of type `Mesh`.
-    # TODO: We can't do a comparison with a reference file yet, as the comparison
-    # for mesh requires some 4C structures at the moment.
-    # Alternatively we could monkeypatch the core structures, e.g., `BeamX` and `MaterialBeamBase`
-    # with the corresponding 4C structures.
     assert "mesh" in globals
     assert isinstance(globals["mesh"], Mesh)
 
