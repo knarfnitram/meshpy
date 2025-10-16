@@ -1,0 +1,46 @@
+MATERIALS:
+  - MAT: 1
+    MAT_Kirchhoff_Love_shell:
+      YOUNG_MODULUS: 10.0
+      POISSON_RATIO: 0.3
+      THICKNESS: 0.05
+STRUCTURE KNOTVECTORS:
+  PATCHES:
+    - KNOT_VECTORS:
+        - DEGREE: 2
+          TYPE: "Interpolated"
+          KNOTS: [0.0, 0.0, 0.0, 1.0, 1.0, 1.0]
+        - DEGREE: 2
+          TYPE: "Interpolated"
+          KNOTS: [0.0, 0.0, 0.0, 1.0, 1.0, 1.0]
+      ID: 1
+    - KNOT_VECTORS:
+        - DEGREE: 2
+          TYPE: "Interpolated"
+          KNOTS: [0.0, 0.0, 0.0, 1.0, 1.0, 1.0]
+        - DEGREE: 2
+          TYPE: "Interpolated"
+          KNOTS: [0.0, 0.0, 0.0, 1.0, 1.0, 1.0]
+      ID: 2
+STRUCTURE ELEMENTS:
+  - "1 SHELL_KIRCHHOFF_LOVE_NURBS NURBS9 1 2 3 4 5 6 7 8 9 MAT 1 GP 3 3"
+  - "2 SHELL_KIRCHHOFF_LOVE_NURBS NURBS9 10 11 12 13 14 15 16 17 18 MAT 1 GP 3 3"
+NODE COORDS:
+  - "CP 1 COORD 0.0 0.0 0.0 1.0"
+  - "CP 2 COORD 0.25 0.0 0.0 1.0"
+  - "CP 3 COORD 0.5 0.0 0.0 1.0"
+  - "CP 4 COORD 0.0 0.5 0.0 1.0"
+  - "CP 5 COORD 0.25 0.5 0.0 1.0"
+  - "CP 6 COORD 0.5 0.5 0.0 1.0"
+  - "CP 7 COORD 0.0 1.0 0.0 1.0"
+  - "CP 8 COORD 0.25 1.0 0.0 1.0"
+  - "CP 9 COORD 0.5 1.0 0.0 1.0"
+  - "CP 10 COORD 3.0 0.0 0.0 1.0"
+  - "CP 11 COORD 3.25 0.0 0.0 1.0"
+  - "CP 12 COORD 3.5 0.0 0.0 1.0"
+  - "CP 13 COORD 3.0 0.5 0.0 1.0"
+  - "CP 14 COORD 3.25 0.5 0.0 1.0"
+  - "CP 15 COORD 3.5 0.5 0.0 1.0"
+  - "CP 16 COORD 3.0 1.0 0.0 1.0"
+  - "CP 17 COORD 3.25 1.0 0.0 1.0"
+  - "CP 18 COORD 3.5 1.0 0.0 1.0"

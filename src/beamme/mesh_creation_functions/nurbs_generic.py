@@ -69,13 +69,20 @@ def add_splinepy_nurbs_to_mesh(
                 Volume: 'vol'
     """
 
+    # Make sure that the control points are 3D
+    nurbs_cp_dim = splinepy_obj.control_points.shape[1]
+    if not nurbs_cp_dim == 3:
+        raise ValueError(f"Invalid control point dimension: {nurbs_cp_dim}")
+
     # Make sure the material is in the mesh
     mesh.add_material(material)
 
     # Fill control points
     control_points = [
         _ControlPoint(coord, weight[0])
-        for coord, weight in zip(splinepy_obj.control_points, splinepy_obj.weights)
+        for coord, weight in zip(
+            _np.asarray(splinepy_obj.control_points), _np.asarray(splinepy_obj.weights)
+        )
     ]
 
     # Fill element
@@ -91,8 +98,8 @@ def add_splinepy_nurbs_to_mesh(
         )
 
     element = nurbs_object(
-        splinepy_obj.knot_vectors,
-        splinepy_obj.degrees,
+        [_np.asarray(knot_vector) for knot_vector in splinepy_obj.knot_vectors],
+        _np.asarray(splinepy_obj.degrees),
         nodes=control_points,
         material=material,
         data=data,
