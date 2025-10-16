@@ -21,6 +21,7 @@
 # THE SOFTWARE.
 """This module implements NURBS patches for the mesh."""
 
+from abc import abstractmethod as _abstractmethod
 from typing import Iterator as _Iterator
 
 import numpy as _np
@@ -136,6 +137,15 @@ class NURBSPatch(_Element):
             f" type {type(self.material)}!"
         )
 
+    @_abstractmethod
+    def get_knot_span_iterator(self) -> _Iterator[tuple[int, ...]]:
+        """Return a tuple with the knot spans for this patch."""
+
+    @_abstractmethod
+    def get_ids_ctrlpts(self, *args) -> list[int]:
+        """Compute the global indices of the control points that influence the
+        element defined by the given knot span."""
+
 
 class NURBSSurface(NURBSPatch):
     """A patch of a NURBS surface."""
@@ -143,7 +153,7 @@ class NURBSSurface(NURBSPatch):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def _get_knot_span_iterator(self) -> _Iterator[tuple[int, ...]]:
+    def get_knot_span_iterator(self) -> _Iterator[tuple[int, ...]]:
         """Return a tuple with the knot spans for this patch."""
 
         non_empty_knot_spans_indices = self.get_non_empty_knot_span_indices()
@@ -153,7 +163,7 @@ class NURBSSurface(NURBSPatch):
             for u in non_empty_knot_spans_indices[0]
         )
 
-    def _get_ids_ctrlpts(self, knot_span_u: int, knot_span_v: int) -> list[int]:
+    def get_ids_ctrlpts(self, knot_span_u: int, knot_span_v: int) -> list[int]:
         """Compute the global indices of the control points that influence the
         element defined by the given knot span."""
 
@@ -175,7 +185,7 @@ class NURBSVolume(NURBSPatch):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def _get_knot_span_iterator(self) -> _Iterator[tuple[int, ...]]:
+    def get_knot_span_iterator(self) -> _Iterator[tuple[int, ...]]:
         """Return a tuple with the knot spans for this patch."""
 
         non_empty_knot_spans_indices = self.get_non_empty_knot_span_indices()
@@ -186,7 +196,7 @@ class NURBSVolume(NURBSPatch):
             for u in non_empty_knot_spans_indices[0]
         )
 
-    def _get_ids_ctrlpts(
+    def get_ids_ctrlpts(
         self, knot_span_u: int, knot_span_v: int, knot_span_w: int
     ) -> list[int]:
         """Compute the global indices of the control points that influence the
