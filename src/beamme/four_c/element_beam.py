@@ -79,11 +79,10 @@ def get_four_c_reissner_beam(n_nodes: int, is_hermite_centerline: bool) -> type[
     """Return a Simo-Reissner beam for 4C."""
 
     four_c_element_data = {
-        "type": _INPUT_FILE_MAPPINGS["beam_types"][_BeamType.reissner]
+        "type": _INPUT_FILE_MAPPINGS["beam_types"][_BeamType.reissner],
+        "HERMITE_CENTERLINE": is_hermite_centerline,
     }
     if is_hermite_centerline:
-        # TODO: Move this to the four_c_element_data.
-        four_c_element_data["HERMITE_CENTERLINE"] = is_hermite_centerline
         coupling_fix_dict = {"NUMDOF": 9, "ONOFF": [1, 1, 1, 1, 1, 1, 0, 0, 0]}
         coupling_joint_dict = {"NUMDOF": 9, "ONOFF": [1, 1, 1, 0, 0, 0, 0, 0, 0]}
     else:
@@ -111,12 +110,10 @@ def get_four_c_kirchhoff_beam(weak=True, rotvec=True, is_fad=True) -> type[_Beam
     # Set the parameters for this beam.
     four_c_element_data = {
         "type": _INPUT_FILE_MAPPINGS["beam_types"][_BeamType.kirchhoff],
-        "WK": weak,
+        "WK": 1 if weak else 0,
         "ROTVEC": 1 if rotvec else 0,
+        "USE_FAD": is_fad,
     }
-    # TODO: Move this to the four_c_element_data.
-    if is_fad:
-        four_c_element_data["USE_FAD"] = True
 
     # Show warning when not using rotvec.
     if not rotvec:
