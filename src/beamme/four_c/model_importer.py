@@ -165,16 +165,11 @@ def _extract_mesh_sections(input_file: _InputFile) -> _Tuple[_InputFile, _Mesh]:
         if not items:
             continue
 
-        # Find geometry key for this section
-        geom_section_keys = list(
-            _INPUT_FILE_MAPPINGS["geometry_sets_geometry_to_condition_name"].keys()
-        )
-        geom_section_values = list(
-            _INPUT_FILE_MAPPINGS["geometry_sets_geometry_to_condition_name"].values()
-        )
-
+        # Find geometry type for this section
         try:
-            geometry_key = geom_section_keys[geom_section_values.index(section_name)]
+            geometry_type = _INPUT_FILE_MAPPINGS[
+                "geometry_sets_condition_to_geometry_name"
+            ][section_name]
         except ValueError as e:
             raise ValueError(f"Unknown geometry section: {section_name}") from e
 
@@ -183,13 +178,13 @@ def _extract_mesh_sections(input_file: _InputFile) -> _Tuple[_InputFile, _Mesh]:
         for entry in items:
             geom_dict[entry["d_id"]].append(entry["node_id"] - 1)
 
-        geometry_sets_in_sections[geometry_key] = {
-            gid: _GeometrySetNodes(geometry_key, nodes=[mesh.nodes[i] for i in ids])
+        geometry_sets_in_sections[geometry_type] = {
+            gid: _GeometrySetNodes(geometry_type, nodes=[mesh.nodes[i] for i in ids])
             for gid, ids in geom_dict.items()
         }
 
-        mesh.geometry_sets[geometry_key] = list(
-            geometry_sets_in_sections[geometry_key].values()
+        mesh.geometry_sets[geometry_type] = list(
+            geometry_sets_in_sections[geometry_type].values()
         )
 
     # extract boundary conditions
@@ -202,11 +197,11 @@ def _extract_mesh_sections(input_file: _InputFile) -> _Tuple[_InputFile, _Mesh]:
         _bme.bc.beam_to_solid_volume_meshtying,
     )
 
-    for (bc_key, geometry_key), section_name in _INPUT_FILE_MAPPINGS[
+    for (bc_key, geometry_type), section_name in _INPUT_FILE_MAPPINGS[
         "boundary_conditions"
     ].items():
         for bc_data in _pop_section(section_name):
-            geometry_set = geometry_sets_in_sections[geometry_key][bc_data.pop("E")]
+            geometry_set = geometry_sets_in_sections[geometry_type][bc_data.pop("E")]
 
             bc_obj: _BoundaryConditionBase
 
@@ -219,6 +214,6 @@ def _extract_mesh_sections(input_file: _InputFile) -> _Tuple[_InputFile, _Mesh]:
             else:
                 raise ValueError(f"Unexpected boundary condition: {bc_key}")
 
-            mesh.boundary_conditions.append((bc_key, geometry_key), bc_obj)
+            mesh.boundary_conditions.append((bc_key, geometry_type), bc_obj)
 
     return input_file, mesh
