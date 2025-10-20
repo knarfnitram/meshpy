@@ -37,6 +37,10 @@ from beamme.four_c.element_beam import (
     Beam3rLine2Line2,
     get_four_c_kirchhoff_beam,
 )
+from beamme.four_c.four_c_types import (
+    BeamKirchhoffConstraintType,
+    BeamKirchhoffParametrizationType,
+)
 from beamme.four_c.input_file import InputFile
 from beamme.four_c.material import (
     MaterialEulerBernoulli,
@@ -91,12 +95,14 @@ def test_kirchhoff_beam(assert_results_close, get_corresponding_reference_file_p
         # Loop over options.
         for is_fad in (True, False):
             material = MaterialKirchhoff(radius=0.1, youngs_modulus=1000, is_fad=is_fad)
-            for weak in (True, False):
-                for rotvec in (True, False):
+            for constraint in BeamKirchhoffConstraintType:
+                for parametrization in BeamKirchhoffParametrizationType:
                     # Define the beam object factory function for the
                     # creation functions.
                     BeamObject = get_four_c_kirchhoff_beam(
-                        weak=weak, rotvec=rotvec, is_fad=is_fad
+                        constraint=constraint,
+                        parametrization=parametrization,
+                        is_fad=is_fad,
                     )
 
                     # Create a beam.
@@ -118,7 +124,7 @@ def test_kirchhoff_beam(assert_results_close, get_corresponding_reference_file_p
                     )
 
                     # Couple the nodes.
-                    if rotvec:
+                    if parametrization == BeamKirchhoffParametrizationType.rot:
                         mesh.couple_nodes(
                             nodes=[
                                 get_single_node(set_1["end"]),

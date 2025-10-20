@@ -34,6 +34,9 @@ from beamme.core.node import Node as _Node
 from beamme.core.nurbs_patch import NURBSPatch as _NURBSPatch
 from beamme.core.nurbs_patch import NURBSSurface as _NURBSSurface
 from beamme.core.nurbs_patch import NURBSVolume as _NURBSVolume
+from beamme.four_c.four_c_types import (
+    BeamKirchhoffParametrizationType as _BeamKirchhoffParametrizationType,
+)
 from beamme.four_c.four_c_types import BeamType as _BeamType
 from beamme.four_c.input_file_mappings import (
     INPUT_FILE_MAPPINGS as _INPUT_FILE_MAPPINGS,
@@ -94,13 +97,20 @@ def dump_coupling(coupling):
             )
         element_type = element_types.pop()
         if element_type.four_c_beam_type is _BeamType.kirchhoff:
-            rotvec = {
-                type(element).four_c_element_data["ROTVEC"]
+            unique_parametrization_flags = {
+                _BeamKirchhoffParametrizationType[
+                    type(element).four_c_element_data["PARAMETRIZATION"]
+                ]
                 for element in connected_elements
             }
-            if len(rotvec) > 1 or not rotvec.pop():
+            if (
+                len(unique_parametrization_flags) > 1
+                or not unique_parametrization_flags.pop()
+                == _BeamKirchhoffParametrizationType.rot
+            ):
                 raise TypeError(
-                    "Couplings for Kirchhoff beams and rotvec==False not yet implemented."
+                    "Couplings for Kirchhoff beams and tangent "
+                    "based parametrization not yet implemented."
                 )
 
         data = element_type.get_coupling_dict(coupling.data)
