@@ -28,6 +28,12 @@ import numpy as _np
 from beamme.core.conf import bme as _bme
 from beamme.core.element_beam import Beam as _Beam
 from beamme.core.element_beam import generate_beam_class as _generate_beam_class
+from beamme.four_c.four_c_types import (
+    BeamKirchhoffConstraintType as _BeamKirchhoffConstraintType,
+)
+from beamme.four_c.four_c_types import (
+    BeamKirchhoffParametrizationType as _BeamKirchhoffParametrizationType,
+)
 from beamme.four_c.four_c_types import BeamType as _BeamType
 from beamme.four_c.input_file_mappings import (
     INPUT_FILE_MAPPINGS as _INPUT_FILE_MAPPINGS,
@@ -79,11 +85,10 @@ def get_four_c_reissner_beam(n_nodes: int, is_hermite_centerline: bool) -> type[
     """Return a Simo-Reissner beam for 4C."""
 
     four_c_element_data = {
-        "type": _INPUT_FILE_MAPPINGS["beam_types"][_BeamType.reissner]
+        "type": _INPUT_FILE_MAPPINGS["beam_types"][_BeamType.reissner],
+        "HERMITE_CENTERLINE": is_hermite_centerline,
     }
     if is_hermite_centerline:
-        # TODO: Move this to the four_c_element_data.
-        four_c_element_data["HERMITE_CENTERLINE"] = is_hermite_centerline
         coupling_fix_dict = {"NUMDOF": 9, "ONOFF": [1, 1, 1, 1, 1, 1, 0, 0, 0]}
         coupling_joint_dict = {"NUMDOF": 9, "ONOFF": [1, 1, 1, 0, 0, 0, 0, 0, 0]}
     else:
@@ -105,24 +110,26 @@ def get_four_c_reissner_beam(n_nodes: int, is_hermite_centerline: bool) -> type[
     )
 
 
-def get_four_c_kirchhoff_beam(weak=True, rotvec=True, is_fad=True) -> type[_Beam]:
+def get_four_c_kirchhoff_beam(
+    constraint: _BeamKirchhoffConstraintType = _BeamKirchhoffConstraintType.weak,
+    parametrization: _BeamKirchhoffParametrizationType = _BeamKirchhoffParametrizationType.rot,
+    is_fad: bool = True,
+) -> type[_Beam]:
     """Return a Kirchhoff-Love beam for 4C."""
 
     # Set the parameters for this beam.
     four_c_element_data = {
         "type": _INPUT_FILE_MAPPINGS["beam_types"][_BeamType.kirchhoff],
-        "WK": weak,
-        "ROTVEC": 1 if rotvec else 0,
+        "CONSTRAINT": constraint.name,
+        "PARAMETRIZATION": parametrization.name,
+        "USE_FAD": is_fad,
     }
-    # TODO: Move this to the four_c_element_data.
-    if is_fad:
-        four_c_element_data["USE_FAD"] = True
 
     # Show warning when not using rotvec.
-    if not rotvec:
+    if not parametrization == _BeamKirchhoffParametrizationType.rot:
         _warnings.warn(
-            "Use rotvec=False with caution, especially when applying the boundary conditions "
-            "and couplings."
+            "Use tangent based parametrization with caution, especially when "
+            " applying the boundary conditions and couplings."
         )
 
     coupling_fix_dict = {"NUMDOF": 7, "ONOFF": [1, 1, 1, 1, 1, 1, 0]}

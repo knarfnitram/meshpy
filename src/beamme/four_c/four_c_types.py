@@ -31,3 +31,17 @@ class BeamType(_Enum):
     reissner = _auto()
     kirchhoff = _auto()
     euler_bernoulli = _auto()
+
+
+class BeamKirchhoffConstraintType(_Enum):
+    """Enum for type of Kirchhoff constraint enforcement."""
+
+    weak = _auto()
+    strong = _auto()
+
+
+class BeamKirchhoffParametrizationType(_Enum):
+    """Enum for type of Kirchhoff parameterization."""
+
+    rot = _auto()
+    tan = _auto()
