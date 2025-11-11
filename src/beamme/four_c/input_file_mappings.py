@@ -128,6 +128,12 @@ INPUT_FILE_MAPPINGS["geometry_sets_geometry_to_condition_name"] = {
     _bme.geo.surface: "DSURF-NODE TOPOLOGY",
     _bme.geo.volume: "DVOL-NODE TOPOLOGY",
 }
+INPUT_FILE_MAPPINGS["geometry_sets_condition_to_geometry_name"] = {
+    value: key
+    for key, value in INPUT_FILE_MAPPINGS[
+        "geometry_sets_geometry_to_condition_name"
+    ].items()
+}
 INPUT_FILE_MAPPINGS["geometry_sets_geometry_to_entry_name"] = {
     _bme.geo.point: "DNODE",
     _bme.geo.line: "DLINE",
