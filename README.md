@@ -168,35 +168,39 @@ Feel free to leave a ⭐️ on [GitHub](https://github.com/beamme-py/beamme).
 
 ### Peer-reviewed articles <!-- omit from toc -->
 
+1. </span><span class="csl-right-inline">Ranno, A., Manjunatha, K., Koritzius, T., Steinbrecher, I., Hosters, N., Nachtsheim, M., Nilcham, P., Schaaps, N., Turoni-Glitz, A., Datz, J., Popp, A., Linka, K., Vogt, F., and Behr, M. (2025):
+A computational model of coronary arteries with in-stent restenosis coupling hemodynamics and pharmacokinetics with growth mechanics. Scientific Reports, 15, 39229
+<https://doi.org/10.1038/s41598-025-22291-w></span>
+1. </span><span class="csl-right-inline">Steinbrecher, I., Hagmeyer, N.
+Meier, C., Popp, A. (2025):
+A consistent mixed-dimensional coupling approach for 1D Cosserat beams and 2D surfaces in 3D space. Computational Mechanics, 76(5),
+1233-1260,
+<https://doi.org/10.1007/s00466-025-02647-9></span>
 1. </span><span class="csl-right-inline">Datz, J.C., Steinbrecher, I.,
-Meier, C., Engel, L.C., Popp, A., Pfaller, M.R., Schunkert, H., Wall, W.A.:
+Meier, C., Engel, L.C., Popp, A., Pfaller, M.R., Schunkert, H., Wall, W.A. (2025):
 Patient-specific coronary angioplasty simulations — A mixed-dimensional
-finite element modeling approach. Computers in Biology and Medicine. 189,
-109914 (2025).
-<https://doi.org/10.1016/j.compbiomed.2025.109914></span>
+finite element modeling approach. Computers in Biology and Medicine, 189, 109914, <https://doi.org/10.1016/j.compbiomed.2025.109914></span>
 1. </span><span class="csl-right-inline">Firmbach, M., Steinbrecher, I.,
-Popp, A., Mayr, M.: An approximate block factorization preconditioner
+Popp, A., Mayr, M. (2024): An approximate block factorization preconditioner
 for mixed-dimensional beam-solid interaction. Computer Methods in
-Applied Mechanics and Engineering. 431, 117256 (2024).
+Applied Mechanics and Engineering, 431, 117256.
 <https://doi.org/10.1016/j.cma.2024.117256></span>
-1. </span><span class="csl-right-inline">Hagmeyer, N., Mayr, M., Popp, A.:
+1. </span><span class="csl-right-inline">Hagmeyer, N., Mayr, M., Popp, A. (2024):
 A fully coupled regularized mortar-type finite element approach for
 embedding one-dimensional fibers into three-dimensional fluid flow.
-International Journal for Numerical Methods in Engineering. 125, e7435
-(2024). <https://doi.org/10.1002/nme.7435></span>
+International Journal for Numerical Methods in Engineering, 125, e7435, <https://doi.org/10.1002/nme.7435></span>
 1. </span><span class="csl-right-inline">Steinbrecher, I., Popp, A., Meier,
-C.: Consistent coupling of positions and rotations for embedding 1D
-Cosserat beams into 3D solid volumes. Computational Mechanics. 69,
-701–732 (2022). <https://doi.org/10.1007/s00466-021-02111-4></span>
+C. (2022): Consistent coupling of positions and rotations for embedding 1D
+Cosserat beams into 3D solid volumes, Computational Mechanics, 69(3),
+701–732. <https://doi.org/10.1007/s00466-021-02111-4></span>
 1. </span><span class="csl-right-inline">Hagmeyer, N., Mayr, M.,
-Steinbrecher, I., Popp, A.: One-way coupled fluid-beam interaction:
+Steinbrecher, I., Popp, A. (2022): One-way coupled fluid-beam interaction:
 Capturing the effect of embedded slender bodies on global fluid flow and
-vice versa. Advanced Modeling and Simulation in Engineering Sciences. 9,
-9 (2022). <https://doi.org/10.1186/s40323-022-00222-y></span>
+vice versa. Advanced Modeling and Simulation in Engineering Sciences, 9, <https://doi.org/10.1186/s40323-022-00222-y></span>
 1. </span><span class="csl-right-inline">Steinbrecher, I., Mayr, M., Grill,
-M.J., Kremheller, J., Meier, C., Popp, A.: A mortar-type finite element
-approach for embedding 1D beams into 3D solid volumes. Computational
-Mechanics. 66, 1377–1398 (2020).
+M.J., Kremheller, J., Meier, C., Popp, A. (2020): A mortar-type finite element
+approach for embedding 1D beams into 3D solid volumes, Computational
+Mechanics, 66(6), 1377–1398.
 <https://doi.org/10.1007/s00466-020-01907-0></span>
 
 ### PhD thesis <!-- omit from toc -->
