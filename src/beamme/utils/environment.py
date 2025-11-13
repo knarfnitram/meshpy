@@ -24,6 +24,7 @@
 import os as _os
 import shutil as _shutil
 import subprocess as _subprocess  # nosec B404
+import sys as _sys
 from importlib.util import find_spec as _find_spec
 from pathlib import Path as _Path
 from typing import Optional as _Optional
@@ -107,3 +108,18 @@ def get_git_data(repo_path: _Path) -> _Tuple[_Optional[str], _Optional[str]]:
     git_date = out_date.stdout.decode("ascii").strip()
 
     return git_sha, git_date
+
+
+def get_application_path() -> _Path | None:
+    """Returns the application path which created this input file and ensures
+    that the file exists.
+
+    Returns:
+        A path to the file, which created this input file or None.
+    """
+
+    # return valid application path if it exists.
+    if _Path(_sys.argv[0]).resolve().exists():
+        return _Path(_sys.argv[0]).resolve()
+
+    return None
