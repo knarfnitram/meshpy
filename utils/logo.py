@@ -954,7 +954,7 @@ def create_curve(curve, **kwargs):
     _, length = create_beam_mesh_from_splinepy(
         mesh,
         Beam3rLine2Line2,
-        MaterialReissner(),
+        MaterialReissner(radius=1.0, youngs_modulus=1.0),
         curve_tmp,
         tol=10,
         output_length=True,
