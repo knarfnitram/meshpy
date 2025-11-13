@@ -538,7 +538,9 @@ def test_nurbs_torus_surface(
 
 
 def test_nurbs_empty_knot_spans(
-    assert_results_close, get_corresponding_reference_file_path
+    get_default_test_solid_material,
+    assert_results_close,
+    get_corresponding_reference_file_path,
 ):
     """Test that NURBS patches with empty knot spans are handled correctly."""
 
@@ -552,7 +554,7 @@ def test_nurbs_empty_knot_spans(
 
     # Create mesh
     mesh = Mesh()
-    mat = MaterialStVenantKirchhoff(youngs_modulus=1, nu=0.3)
+    mat = get_default_test_solid_material(material_type="st_venant_kirchhoff")
     patch_set = add_splinepy_nurbs_to_mesh(mesh, pipe, material=mat)
     mesh.add(patch_set)
     mesh.couple_nodes(reuse_matching_nodes=True)
