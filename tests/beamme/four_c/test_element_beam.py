@@ -42,6 +42,11 @@ from beamme.four_c.four_c_types import (
     BeamKirchhoffParametrizationType,
 )
 from beamme.four_c.input_file import InputFile
+from beamme.four_c.material import (
+    MaterialEulerBernoulli,
+    MaterialKirchhoff,
+    MaterialReissner,
+)
 from beamme.mesh_creation_functions.beam_arc import (
     create_beam_mesh_arc_segment_via_rotation,
 )
@@ -50,7 +55,6 @@ from beamme.utils.nodes import get_single_node
 
 
 def test_reissner_beam(
-    get_default_test_beam_material,
     assert_results_close,
     get_corresponding_reference_file_path,
 ):
@@ -61,7 +65,9 @@ def test_reissner_beam(
     mesh = Mesh()
 
     # Create material
-    material = get_default_test_beam_material("reissner", interaction_radius=2.0)
+    material = MaterialReissner(
+        radius=1.0, youngs_modulus=1.0, nu=0.3, density=1.0, interaction_radius=2.0
+    )
 
     # Create a beam arc with the different Reissner beam types.
     for i, beam_type in enumerate([Beam3rHerm2Line3, Beam3rLine2Line2]):
@@ -81,7 +87,6 @@ def test_reissner_beam(
 
 
 def test_kirchhoff_beam(
-    get_default_test_beam_material,
     assert_results_close,
     get_corresponding_reference_file_path,
 ):
@@ -97,7 +102,9 @@ def test_kirchhoff_beam(
 
         # Loop over options.
         for is_fad in (True, False):
-            material = get_default_test_beam_material("kirchhoff", is_fad=is_fad)
+            material = MaterialKirchhoff(
+                radius=1.0, youngs_modulus=1.0, nu=1.0, density=1.0, is_fad=is_fad
+            )
             for constraint in BeamKirchhoffConstraintType:
                 for parametrization in BeamKirchhoffParametrizationType:
                     # Define the beam object factory function for the
@@ -143,7 +150,6 @@ def test_kirchhoff_beam(
 
 
 def test_euler_bernoulli(
-    get_default_test_beam_material,
     assert_results_close,
     get_corresponding_reference_file_path,
 ):
@@ -154,7 +160,7 @@ def test_euler_bernoulli(
     mesh = Mesh()
     fun = Function([{"COMPONENT": 0, "SYMBOLIC_FUNCTION_OF_SPACE_TIME": "t"}])
     mesh.add(fun)
-    mat = get_default_test_beam_material("euler_bernoulli")
+    mat = MaterialEulerBernoulli(radius=1.0, youngs_modulus=1.0, nu=0.3, density=1.0)
 
     # Create the beam.
     beam_set = create_beam_mesh_line(mesh, Beam3eb, mat, [-1, 0, 0], [1, 0, 0], n_el=16)

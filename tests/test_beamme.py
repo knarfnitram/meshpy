@@ -44,8 +44,8 @@ from beamme.core.node import Node, NodeCosserat
 from beamme.core.rotation import Rotation
 from beamme.core.vtk_writer import VTKWriter
 from beamme.four_c.element_beam import (
-    Beam3eb,
     Beam3rHerm2Line3,
+    get_four_c_reissner_beam,
 )
 from beamme.four_c.header_functions import (
     add_result_description,
@@ -325,11 +325,16 @@ def test_fluid_element_section(
     )
 
     beam_mesh = Mesh()
-    material = get_default_test_beam_material(material_type="euler_bernoulli")
+    material = get_default_test_beam_material(material_type="reissner")
     beam_mesh.add(material)
 
     create_beam_mesh_line(
-        beam_mesh, Beam3eb, material, [0, -0.5, 0], [0, 0.2, 0], n_el=5
+        beam_mesh,
+        get_four_c_reissner_beam(n_nodes=2, is_hermite_centerline=False),
+        material,
+        [0, -0.5, 0],
+        [0, 0.2, 0],
+        n_el=5,
     )
 
     input_file.add(beam_mesh)

@@ -32,8 +32,6 @@ from _pytest.config.argparsing import Parser
 from beamme.core.conf import bme
 from beamme.core.material import MaterialBeamBase
 from beamme.four_c.material import (
-    MaterialEulerBernoulli,
-    MaterialKirchhoff,
     MaterialReissner,
     MaterialStVenantKirchhoff,
 )
@@ -255,7 +253,7 @@ def get_default_test_beam_material() -> Callable:
         A function that creates a default beam material.
     """
 
-    def _get_default_test_beam_material(material_type: str = "reissner", **kwargs):
+    def _get_default_test_beam_material(material_type: str = "base", **kwargs):
         """Return a default material for testing purposes.
 
         Args:
@@ -272,16 +270,6 @@ def get_default_test_beam_material() -> Callable:
 
         elif material_type == "reissner":
             return MaterialReissner(
-                radius=1.0, youngs_modulus=1.0, nu=0.3, density=1.0, **kwargs
-            )
-
-        elif material_type == "kirchhoff":
-            return MaterialKirchhoff(
-                radius=1.0, youngs_modulus=1.0, nu=1.0, density=1.0, **kwargs
-            )
-
-        elif material_type == "euler_bernoulli":
-            return MaterialEulerBernoulli(
                 radius=1.0, youngs_modulus=1.0, nu=0.3, density=1.0, **kwargs
             )
 

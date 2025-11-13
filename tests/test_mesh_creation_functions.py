@@ -32,7 +32,7 @@ from autograd import jacobian
 from beamme.core.mesh import Mesh
 from beamme.core.node import NodeCosserat
 from beamme.core.rotation import Rotation
-from beamme.four_c.element_beam import Beam3eb, Beam3rHerm2Line3
+from beamme.four_c.element_beam import Beam3rHerm2Line3, get_four_c_reissner_beam
 from beamme.mesh_creation_functions.applications.beam_fibers_in_rectangle import (
     create_fibers_in_rectangle,
 )
@@ -436,22 +436,84 @@ def test_mesh_creation_functions_fibers_in_rectangle(
     mesh = Mesh()
 
     # Create mesh.
-    mat = get_default_test_beam_material(material_type="euler_bernoulli")
-    create_fibers_in_rectangle(mesh, Beam3eb, mat, 4, 1, 45, 0.45, 0.35)
-    mesh.translate([0, 0, 1])
-    create_fibers_in_rectangle(mesh, Beam3eb, mat, 4, 1, 0, 0.45, 0.35)
-    mesh.translate([0, 0, 1])
-    create_fibers_in_rectangle(mesh, Beam3eb, mat, 4, 1, 90, 0.45, 0.35)
-    mesh.translate([0, 0, 1])
-    create_fibers_in_rectangle(mesh, Beam3eb, mat, 4, 1, -90, 0.45, 0.35)
-    mesh.translate([0, 0, 1])
-    create_fibers_in_rectangle(mesh, Beam3eb, mat, 4, 1, 235, 0.45, 0.35)
-    mesh.translate([0, 0, 1])
+    mat = get_default_test_beam_material(material_type="reissner")
     create_fibers_in_rectangle(
-        mesh, Beam3eb, mat, 1, 4, 30, 0.45, 5, fiber_element_length_min=0.2
+        mesh,
+        get_four_c_reissner_beam(n_nodes=2, is_hermite_centerline=False),
+        mat,
+        4,
+        1,
+        45,
+        0.45,
+        0.35,
     )
     mesh.translate([0, 0, 1])
-    create_fibers_in_rectangle(mesh, Beam3eb, mat, 4, 1, 30, 0.45, 0.9)
+    create_fibers_in_rectangle(
+        mesh,
+        get_four_c_reissner_beam(n_nodes=2, is_hermite_centerline=False),
+        mat,
+        4,
+        1,
+        0,
+        0.45,
+        0.35,
+    )
+    mesh.translate([0, 0, 1])
+    create_fibers_in_rectangle(
+        mesh,
+        get_four_c_reissner_beam(n_nodes=2, is_hermite_centerline=False),
+        mat,
+        4,
+        1,
+        90,
+        0.45,
+        0.35,
+    )
+    mesh.translate([0, 0, 1])
+    create_fibers_in_rectangle(
+        mesh,
+        get_four_c_reissner_beam(n_nodes=2, is_hermite_centerline=False),
+        mat,
+        4,
+        1,
+        -90,
+        0.45,
+        0.35,
+    )
+    mesh.translate([0, 0, 1])
+    create_fibers_in_rectangle(
+        mesh,
+        get_four_c_reissner_beam(n_nodes=2, is_hermite_centerline=False),
+        mat,
+        4,
+        1,
+        235,
+        0.45,
+        0.35,
+    )
+    mesh.translate([0, 0, 1])
+    create_fibers_in_rectangle(
+        mesh,
+        get_four_c_reissner_beam(n_nodes=2, is_hermite_centerline=False),
+        mat,
+        1,
+        4,
+        30,
+        0.45,
+        5,
+        fiber_element_length_min=0.2,
+    )
+    mesh.translate([0, 0, 1])
+    create_fibers_in_rectangle(
+        mesh,
+        get_four_c_reissner_beam(n_nodes=2, is_hermite_centerline=False),
+        mat,
+        4,
+        1,
+        30,
+        0.45,
+        0.9,
+    )
     mesh.translate([0, 0, 1])
 
     # Check the output.
@@ -470,14 +532,23 @@ def test_mesh_creation_functions_fibers_in_rectangle_reference_point(
     mesh = Mesh()
 
     # Create mesh.
-    mat = get_default_test_beam_material(material_type="euler_bernoulli")
-    create_fibers_in_rectangle(mesh, Beam3eb, mat, 4, 1, 45, 0.45, 0.35)
+    mat = get_default_test_beam_material(material_type="reissner")
+    create_fibers_in_rectangle(
+        mesh,
+        get_four_c_reissner_beam(n_nodes=2, is_hermite_centerline=False),
+        mat,
+        4,
+        1,
+        45,
+        0.45,
+        0.35,
+    )
     reference_point = 0.5 * np.array([4.0, 1.0]) + 0.1 * np.array(
         [-1.0, 1.0]
     ) / np.sqrt(2.0)
     create_fibers_in_rectangle(
         mesh,
-        Beam3eb,
+        get_four_c_reissner_beam(n_nodes=2, is_hermite_centerline=False),
         mat,
         4,
         1,
@@ -502,8 +573,17 @@ def test_mesh_creation_functions_fibers_in_rectangle_return_set(
     mesh = Mesh()
 
     # Create mesh.
-    mat = get_default_test_beam_material(material_type="euler_bernoulli")
-    beam_set = create_fibers_in_rectangle(mesh, Beam3eb, mat, 4, 1, 45, 0.45, 0.35)
+    mat = get_default_test_beam_material(material_type="reissner")
+    beam_set = create_fibers_in_rectangle(
+        mesh,
+        get_four_c_reissner_beam(n_nodes=2, is_hermite_centerline=False),
+        mat,
+        4,
+        1,
+        45,
+        0.45,
+        0.35,
+    )
     mesh.add(beam_set)
 
     # Check the output.
@@ -521,11 +601,27 @@ def test_mesh_creation_functions_wire(
     mesh = Mesh()
 
     # Create two wires with different parameters.
-    mat = get_default_test_beam_material(material_type="euler_bernoulli")
+    mat = get_default_test_beam_material(material_type="reissner")
     mesh_1 = Mesh()
-    set_1 = create_wire_fibers(mesh_1, Beam3eb, mat, 3.0, layers=2, n_el=2, radius=0.05)
+    set_1 = create_wire_fibers(
+        mesh_1,
+        get_four_c_reissner_beam(n_nodes=2, is_hermite_centerline=False),
+        mat,
+        3.0,
+        layers=2,
+        n_el=2,
+        radius=0.05,
+    )
     mesh_2 = Mesh()
-    set_2 = create_wire_fibers(mesh_2, Beam3eb, mat, 3.0, layers=2, n_el=2, radius=0.1)
+    set_2 = create_wire_fibers(
+        mesh_2,
+        get_four_c_reissner_beam(n_nodes=2, is_hermite_centerline=False),
+        mat,
+        3.0,
+        layers=2,
+        n_el=2,
+        radius=0.1,
+    )
     mesh_2.translate([0.0, 1.5, 0.0])
     mesh.add(mesh_1, mesh_2, set_1, set_2)
 
