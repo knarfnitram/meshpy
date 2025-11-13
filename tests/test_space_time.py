@@ -58,7 +58,7 @@ def test_space_time_straight(
     create_beam_mesh_line(
         mesh,
         beam_type,
-        get_default_test_beam_material(material_type="base"),
+        get_default_test_beam_material(),
         [0, 0, 0],
         [6, 0, 0],
         n_el=3,
@@ -96,7 +96,7 @@ def test_space_time_curved(
     create_beam_mesh_arc_segment_2d(
         mesh,
         beam_type,
-        get_default_test_beam_material(material_type="base"),
+        get_default_test_beam_material(),
         [0.5, 1, 0],
         0.75,
         0.0,
@@ -135,7 +135,7 @@ def test_space_time_elbow(
     # Create the beam mesh in space
     beam_type = generate_beam_class(n_nodes)
     mesh = Mesh()
-    mat = get_default_test_beam_material(material_type="base")
+    mat = get_default_test_beam_material()
     create_beam_mesh_line(mesh, beam_type, mat, [0, 0, 0], [1, 0, 0], n_el=3)
     create_beam_mesh_line(mesh, beam_type, mat, [1, 0, 0], [1, 1, 0], n_el=2)
 
@@ -179,7 +179,7 @@ def test_space_time_varying_material_length(
 
     def beam_mesh_in_space_generator(time):
         """Create the beam mesh in space generator."""
-        mat = get_default_test_beam_material(material_type="base")
+        mat = get_default_test_beam_material()
         pos_y = 0.25 * (time - 1.7)
 
         mesh_1 = Mesh()
@@ -247,7 +247,7 @@ def test_space_time_named_node_set(
     create_beam_mesh_line(
         mesh,
         beam_type,
-        get_default_test_beam_material(material_type="base"),
+        get_default_test_beam_material(),
         [0, 0, 0],
         [6, 0, 0],
         n_el=2,
@@ -285,7 +285,7 @@ def test_performance_create_mesh_in_space(
         kwargs={
             "mesh": mesh,
             "beam_class": beam_type,
-            "material": get_default_test_beam_material(material_type="base"),
+            "material": get_default_test_beam_material(),
             "start_point": [0, 0, 0],
             "end_point": [1, 0, 0],
             "n_el": 100,

@@ -1536,7 +1536,7 @@ def test_vtk_writer_beam(
     honeycomb_set = create_beam_mesh_honeycomb(
         mesh,
         Beam3rHerm2Line3,
-        get_default_test_beam_material(material_type="base"),
+        get_default_test_beam_material(),
         2.0,
         2,
         3,
@@ -1659,7 +1659,7 @@ def test_vtk_curve_cell_data(
         mesh = Mesh()
 
         # Add content to the mesh.
-        mat = get_default_test_beam_material(material_type="base")
+        mat = get_default_test_beam_material()
         create_beam_mesh_line(mesh, Beam3rHerm2Line3, mat, [0, 0, 0], [2, 0, 0], n_el=2)
         create_beam_mesh_line(
             mesh,

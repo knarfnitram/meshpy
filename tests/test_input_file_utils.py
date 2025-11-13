@@ -33,7 +33,7 @@ def test_input_file_utils_get_coupled_nodes_to_master_map(
     """Test the get_coupled_nodes_to_master_map function."""
 
     beam_class = Beam2
-    mat = get_default_test_beam_material(material_type="base")
+    mat = get_default_test_beam_material()
     mesh = Mesh()
     create_beam_mesh_line(mesh, beam_class, mat, [0, 0, 0], [1, 0, 0])
     create_beam_mesh_line(mesh, beam_class, mat, [1, 0, 0], [1, 1, 0])
