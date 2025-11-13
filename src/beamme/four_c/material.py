@@ -74,6 +74,12 @@ class MaterialReissner(_MaterialBeamBase):
 
     def dump_to_list(self):
         """Return a list with the (single) item representing this material."""
+
+        if self.radius is None or self.youngs_modulus is None:
+            raise ValueError(
+                "Radius and Young's modulus must be provided for beam materials."
+            )
+
         if (
             self.area is None
             and self.mom2 is None
@@ -177,6 +183,12 @@ class MaterialKirchhoff(_MaterialBeamBase):
 
     def dump_to_list(self):
         """Return a list with the (single) item representing this material."""
+
+        if self.radius is None or self.youngs_modulus is None:
+            raise ValueError(
+                "Radius and Young's modulus must be provided for beam materials."
+            )
+
         if (
             self.area is None
             and self.mom2 is None
@@ -225,6 +237,12 @@ class MaterialEulerBernoulli(_MaterialBeamBase):
 
     def dump_to_list(self):
         """Return a list with the (single) item representing this material."""
+
+        if self.radius is None or self.youngs_modulus is None:
+            raise ValueError(
+                "Radius and Young's modulus must be provided for beam materials."
+            )
+
         area, mom2, _, _ = self.calc_area_stiffness()
         if self.area is None and self.mom2 is None:
             area, mom2, _, _ = self.calc_area_stiffness()
