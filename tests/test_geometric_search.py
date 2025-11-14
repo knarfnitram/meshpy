@@ -27,10 +27,10 @@ import random
 import numpy as np
 import pytest
 
+from beamme.core.element_beam import Beam3
+from beamme.core.material import MaterialBeamBase
 from beamme.core.mesh import Mesh
 from beamme.core.rotation import Rotation
-from beamme.four_c.element_beam import Beam3rHerm2Line3
-from beamme.four_c.material import MaterialReissner
 from beamme.geometric_search.find_close_points import (
     FindClosePointAlgorithm,
     find_close_points,
@@ -354,13 +354,13 @@ def test_find_close_points_binning_flat(algorithm, assert_results_close):
     """
 
     # Dummy material.
-    material = MaterialReissner(radius=0.1)
+    material = MaterialBeamBase()
 
     def create_flat_mesh():
         """Create a flat honeycomb mesh."""
         mesh = Mesh()
         create_beam_mesh_honeycomb_flat(
-            mesh, Beam3rHerm2Line3, material, 1, 5, 5, create_couplings=False
+            mesh, Beam3, material, 1, 5, 5, create_couplings=False
         )
         return mesh
 

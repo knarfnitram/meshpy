@@ -52,10 +52,10 @@ def test_space_time_straight(
 
     # Create the beam mesh in space
     beam_type = generate_beam_class(n_nodes)
-    beam_radius = 0.05
-    mat = MaterialBeamBase(radius=beam_radius)
     mesh = Mesh()
-    create_beam_mesh_line(mesh, beam_type, mat, [0, 0, 0], [6, 0, 0], n_el=3)
+    create_beam_mesh_line(
+        mesh, beam_type, MaterialBeamBase(), [0, 0, 0], [6, 0, 0], n_el=3
+    )
 
     # Get the space-time mesh
     space_time_mesh, return_set = beam_to_space_time(mesh, 6.9, 5, time_start=2.5)
@@ -82,11 +82,16 @@ def test_space_time_curved(
 
     # Create the beam mesh in space
     beam_type = generate_beam_class(n_nodes)
-    beam_radius = 0.05
-    mat = MaterialBeamBase(radius=beam_radius)
     mesh = Mesh()
     create_beam_mesh_arc_segment_2d(
-        mesh, beam_type, mat, [0.5, 1, 0], 0.75, 0.0, np.pi * 2.0 / 3.0, n_el=3
+        mesh,
+        beam_type,
+        MaterialBeamBase(),
+        [0.5, 1, 0],
+        0.75,
+        0.0,
+        np.pi * 2.0 / 3.0,
+        n_el=3,
     )
 
     # Get the space-time mesh
@@ -115,9 +120,8 @@ def test_space_time_elbow(
 
     # Create the beam mesh in space
     beam_type = generate_beam_class(n_nodes)
-    beam_radius = 0.05
-    mat = MaterialBeamBase(radius=beam_radius)
     mesh = Mesh()
+    mat = MaterialBeamBase()
     create_beam_mesh_line(mesh, beam_type, mat, [0, 0, 0], [1, 0, 0], n_el=3)
     create_beam_mesh_line(mesh, beam_type, mat, [1, 0, 0], [1, 1, 0], n_el=2)
 
@@ -160,8 +164,7 @@ def test_space_time_varying_material_length(
 
     def beam_mesh_in_space_generator(time):
         """Create the beam mesh in space generator."""
-        beam_radius = 0.05
-        mat = MaterialBeamBase(youngs_modulus=100, radius=beam_radius, density=1)
+        mat = MaterialBeamBase()
         pos_y = 0.25 * (time - 1.7)
 
         mesh_1 = Mesh()
@@ -223,9 +226,10 @@ def test_space_time_named_node_set(
 
     # Create the beam mesh in space
     mesh = Mesh()
-    mat = MaterialBeamBase()
     beam_type = generate_beam_class(2)
-    create_beam_mesh_line(mesh, beam_type, mat, [0, 0, 0], [6, 0, 0], n_el=2)
+    create_beam_mesh_line(
+        mesh, beam_type, MaterialBeamBase(), [0, 0, 0], [6, 0, 0], n_el=2
+    )
 
     # Get the space-time mesh
     space_time_mesh, return_set = beam_to_space_time(mesh, 6.9, 3, time_start=2.5)
@@ -257,7 +261,7 @@ def test_performance_create_mesh_in_space(evaluate_execution_time, cache_data):
         kwargs={
             "mesh": mesh,
             "beam_class": beam_type,
-            "material": MaterialBeamBase(radius=0.05),
+            "material": MaterialBeamBase(),
             "start_point": [0, 0, 0],
             "end_point": [1, 0, 0],
             "n_el": 100,

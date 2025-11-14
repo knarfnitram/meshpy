@@ -49,15 +49,16 @@ class MaterialBeamBase(Material):
 
     def __init__(
         self,
-        radius=-1.0,
+        radius=None,
         material_string=None,
-        youngs_modulus=-1.0,
+        youngs_modulus=None,
         nu=0.0,
         density=0.0,
         interaction_radius=None,
         **kwargs,
     ):
         """Set the material values that all beams have."""
+
         super().__init__(**kwargs)
 
         self.radius = radius

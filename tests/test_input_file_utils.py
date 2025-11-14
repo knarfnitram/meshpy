@@ -21,18 +21,18 @@
 # THE SOFTWARE.
 """This script is used to test the functionality of the input file utils."""
 
+from beamme.core.element_beam import Beam2
+from beamme.core.material import MaterialBeamBase
 from beamme.core.mesh import Mesh
 from beamme.core.mesh_utils import get_coupled_nodes_to_master_map
-from beamme.four_c.element_beam import Beam3rLine2Line2
-from beamme.four_c.material import MaterialReissner
 from beamme.mesh_creation_functions.beam_line import create_beam_mesh_line
 
 
 def test_input_file_utils_get_coupled_nodes_to_master_map():
     """Test the get_coupled_nodes_to_master_map function."""
 
-    beam_class = Beam3rLine2Line2
-    mat = MaterialReissner(radius=0.1)
+    beam_class = Beam2
+    mat = MaterialBeamBase()
     mesh = Mesh()
     create_beam_mesh_line(mesh, beam_class, mat, [0, 0, 0], [1, 0, 0])
     create_beam_mesh_line(mesh, beam_class, mat, [1, 0, 0], [1, 1, 0])
