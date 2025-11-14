@@ -264,9 +264,7 @@ def get_default_test_beam_material() -> Callable:
         """
 
         if material_type == "base":
-            return MaterialBeamBase(
-                radius=1.0, youngs_modulus=1.0, nu=0.3, density=1.0, **kwargs
-            )
+            return MaterialBeamBase(radius=1.0, **kwargs)
 
         elif material_type == "reissner":
             return MaterialReissner(
