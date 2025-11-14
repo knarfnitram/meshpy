@@ -2,11 +2,7 @@ MATERIALS:
   - MAT: 1
     MAT_ViscoElastHyper:
       DENS: 1.3e-06
-      MATIDS:
-        - 10
-        - 11
-        - 12
-        - 13
+      MATIDS: [10, 11, 12, 13]
       NUMMAT: 4
   - ELAST_CoupNeoHooke:
       NUE: 0.45
@@ -15,7 +11,7 @@ MATERIALS:
   - MAT: 11
     VISCO_GenMax:
       BETA: 0.4
-      SOLVE: OST
+      SOLVE: "OST"
       TAU: 0.1
   - ELAST_CoupAnisoExpo:
       GAMMA: 0
@@ -37,15 +33,12 @@ MATERIALS:
       STR_TENS_ID: 100
     MAT: 13
   - ELAST_StructuralTensor:
-      STRATEGY: Standard
+      STRATEGY: "Standard"
     MAT: 100
   - MAT: 2
     MAT_ElastHyper:
       DENS: 1.3e-06
-      MATIDS:
-        - 20
-        - 21
-        - 22
+      MATIDS: [20, 21, 22]
       NUMMAT: 3
   - ELAST_CoupNeoHooke:
       NUE: 0.45
@@ -71,7 +64,7 @@ MATERIALS:
       STR_TENS_ID: 200
     MAT: 22
   - ELAST_StructuralTensor:
-      STRATEGY: Standard
+      STRATEGY: "Standard"
     MAT: 200
   - MAT: 201
     MAT_BeamReissnerElastHyper:
