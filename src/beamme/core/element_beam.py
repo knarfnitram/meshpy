@@ -229,7 +229,8 @@ class Beam(_Element):
 
         # Dictionary with cell data.
         cell_data = self.vtk_cell_data.copy()
-        cell_data["cross_section_radius"] = self.material.radius
+        if self.material.radius is not None:
+            cell_data["cross_section_radius"] = self.material.radius
 
         # Dictionary with point data.
         point_data = {}

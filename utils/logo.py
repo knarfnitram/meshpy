@@ -31,10 +31,10 @@ from vistools.pyvista.polyline_cross_section import polyline_cross_section
 from vistools.vtk.merge_polylines import merge_polylines
 
 from beamme.core.conf import bme
+from beamme.core.element_beam import Beam2
+from beamme.core.material import MaterialBeamBase
 from beamme.core.mesh import Mesh
 from beamme.core.rotation import Rotation
-from beamme.four_c.element_beam import Beam3rLine2Line2
-from beamme.four_c.material import MaterialReissner
 from beamme.four_c.model_importer import import_four_c_model
 from beamme.mesh_creation_functions.beam_splinepy import (
     create_beam_mesh_from_splinepy,
@@ -952,13 +952,7 @@ def create_curve(curve, **kwargs):
         curve_tmp.knot_vectors = [knot_scaled]
 
     _, length = create_beam_mesh_from_splinepy(
-        mesh,
-        Beam3rLine2Line2,
-        MaterialReissner(radius=1.0, youngs_modulus=1.0),
-        curve_tmp,
-        tol=10,
-        output_length=True,
-        **kwargs,
+        mesh, Beam2, MaterialBeamBase(), curve_tmp, tol=10, output_length=True, **kwargs
     )
     return mesh, length
 
