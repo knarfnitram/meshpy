@@ -26,6 +26,8 @@ import pytest
 import pyvista as pv
 import quaternion
 
+from beamme.core.element_beam import Beam3
+from beamme.core.material import MaterialBeamBase
 from beamme.core.rotation import Rotation
 from beamme.cosserat_curve.cosserat_curve import CosseratCurve
 from beamme.cosserat_curve.warping_along_cosserat_curve import (
@@ -51,7 +53,7 @@ def load_cosserat_curve_from_file(get_corresponding_reference_file_path, **kwarg
 
 
 def create_beam_solid_input_file(
-    get_default_test_beam_material, get_corresponding_reference_file_path
+    beam_type, material, get_corresponding_reference_file_path
 ):
     """Create a beam and solid input file for testing purposes."""
 
@@ -64,8 +66,8 @@ def create_beam_solid_input_file(
 
     create_beam_mesh_helix(
         mesh,
-        Beam3rHerm2Line3,
-        get_default_test_beam_material(material_type="reissner"),
+        beam_type,
+        material,
         [0, 0, 1],
         [0, 0, 0],
         [2, 0, 0],
@@ -189,7 +191,6 @@ def test_cosserat_curve_project_point(
 
 
 def test_cosserat_curve_mesh_transformation(
-    get_default_test_beam_material,
     get_corresponding_reference_file_path,
     assert_results_close,
 ):
@@ -202,7 +203,7 @@ def test_cosserat_curve_mesh_transformation(
     curve.translate([1, 2, 3])
 
     mesh = create_beam_solid_input_file(
-        get_default_test_beam_material, get_corresponding_reference_file_path
+        Beam3, MaterialBeamBase(), get_corresponding_reference_file_path
     )
     pos, rot = get_mesh_transformation(
         curve,
@@ -237,7 +238,9 @@ def test_cosserat_curve_mesh_warp(
     # Warp the mesh. The reference coordinate system is rotated such that z axis is the longitudinal direction,
     # and x and y are the first and second cross-section basis vectors respectively.
     mesh = create_beam_solid_input_file(
-        get_default_test_beam_material, get_corresponding_reference_file_path
+        Beam3rHerm2Line3,
+        get_default_test_beam_material(material_type="reissner"),
+        get_corresponding_reference_file_path,
     )
     warp_mesh_along_curve(
         mesh,
@@ -266,7 +269,9 @@ def test_cosserat_curve_mesh_warp_transform_boundary_conditions(
 
     # Load the mesh
     mesh = create_beam_solid_input_file(
-        get_default_test_beam_material, get_corresponding_reference_file_path
+        Beam3rHerm2Line3,
+        get_default_test_beam_material(material_type="reissner"),
+        get_corresponding_reference_file_path,
     )
 
     # Apply the transform boundary conditions
