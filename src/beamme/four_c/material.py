@@ -282,13 +282,15 @@ class MaterialStVenantKirchhoff(MaterialSolid):
     """Holds material definition for StVenant Kirchhoff solids."""
 
     def __init__(self, youngs_modulus=None, nu=None, density=None):
-        if youngs_modulus is None or nu is None or density is None:
+        if youngs_modulus is None or nu is None:
             raise ValueError(
-                "Young's modulus, Poisson's ratio, and density "
-                "must be provided for StVenant Kirchhoff solid materials."
+                "Young's modulus and Poisson's ratio must be provided "
+                "for StVenant Kirchhoff solid materials."
             )
-
+        data = {"YOUNG": youngs_modulus, "NUE": nu}
+        if density is not None:
+            data["DENS"] = density
         super().__init__(
             material_string="MAT_Struct_StVenantKirchhoff",
-            data={"YOUNG": youngs_modulus, "NUE": nu, "DENS": density},
+            data=data,
         )
