@@ -23,7 +23,6 @@
 4C."""
 
 import os as _os
-import sys as _sys
 from datetime import datetime as _datetime
 from pathlib import Path as _Path
 from typing import Callable as _Callable
@@ -48,6 +47,7 @@ from beamme.four_c.input_file_mappings import (
     INPUT_FILE_MAPPINGS as _INPUT_FILE_MAPPINGS,
 )
 from beamme.utils.environment import cubitpy_is_available as _cubitpy_is_available
+from beamme.utils.environment import get_application_path as _get_application_path
 from beamme.utils.environment import get_git_data as _get_git_data
 
 if _cubitpy_is_available():
@@ -186,8 +186,9 @@ class InputFile(_FourCInput):
                     lines = ["# " + line + "\n" for line in _INPUT_FILE_HEADER] + lines
 
                 if add_footer_application_script:
-                    application_path = _Path(_sys.argv[0]).resolve()
-                    lines += self._get_application_script(application_path)
+                    application_path = _get_application_path()
+                    if application_path is not None:
+                        lines += self._get_application_script(application_path)
 
                 with open(input_file_path, "w") as input_file:
                     input_file.writelines(lines)
@@ -403,19 +404,20 @@ class InputFile(_FourCInput):
         )
 
         # application which created the input file
-        application_path = _Path(_sys.argv[0]).resolve()
-        header["BeamMe"]["Application"] = {"path": str(application_path)}
+        application_path = _get_application_path()
+        if application_path is not None:
+            header["BeamMe"]["Application"] = {"path": str(application_path)}
 
-        application_git_sha, application_git_date = _get_git_data(
-            application_path.parent
-        )
-        if application_git_sha is not None and application_git_date is not None:
-            header["BeamMe"]["Application"].update(
-                {
-                    "git_sha": application_git_sha,
-                    "git_date": application_git_date,
-                }
+            application_git_sha, application_git_date = _get_git_data(
+                application_path.parent
             )
+            if application_git_sha is not None and application_git_date is not None:
+                header["BeamMe"]["Application"].update(
+                    {
+                        "git_sha": application_git_sha,
+                        "git_date": application_git_date,
+                    }
+                )
 
         # BeamMe information
         beamme_git_sha, beamme_git_date = _get_git_data(
