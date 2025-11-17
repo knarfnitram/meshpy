@@ -68,6 +68,22 @@ def find_close_nodes(nodes, **kwargs):
     return [[nodes[i] for i in partners] for partners in partner_indices]
 
 
+def adjust_close_nodes(nodes: list[_Node], *, tol=_bme.eps_pos) -> None:
+    """Adjust the coordinates of nodes that are within the given tolerance by
+    setting all involved coordinates of the nodes to their common mean.
+
+    Args:
+        nodes: List of nodes whose coordinates need adjustment.
+        tol: Distance tolerance used to detect partner nodes.
+    """
+
+    partner_nodes = find_close_nodes(nodes, tol=tol)
+    for close_nodes in partner_nodes:
+        average_coords = _np.mean([node.coordinates for node in close_nodes], axis=0)
+        for node in close_nodes:
+            node.coordinates = average_coords.copy()
+
+
 def check_node_by_coordinate(node, axis, value, eps=_bme.eps_pos):
     """Check if the node is at a certain coordinate value.
 
