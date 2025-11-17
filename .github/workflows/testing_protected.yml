@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 env:
-  CUBIT_DOWNLOAD_URL: https://f002.backblazeb2.com/file/cubit-downloads/Coreform-Cubit/Releases/Linux/Coreform-Cubit-2025.3%2B58709-Lin64.tar.gz
+  CUBIT_DOWNLOAD_URL: https://f002.backblazeb2.com/file/cubit-downloads/Coreform-Cubit/Releases/Linux/Coreform-Cubit-2025.8%2B61943-Lin64.tar.gz
 
 jobs:
   beamme-testing-all-dependencies:
