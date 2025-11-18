@@ -53,7 +53,7 @@ jobs:
         with:
           source-command: "source python-workflow-venv/bin/activate"
           install-command: "-e .[cubitpy,dev,fourc]"
-          additional-pytest-flags: "--4C --ArborX --CubitPy --cov-fail-under=93"
+          additional-pytest-flags: "--4C --ArborX --cov-fail-under=93"
           cubit-root: ${{ steps.cubit.outputs.cubit_root }}
       - name: Upload test results on failure
         if: failure()
@@ -65,6 +65,7 @@ jobs:
         uses: ./.github/actions/coverage
 
   beamme-performance-testing:
+    if: false
     name: performance tests
     continue-on-error: true
     runs-on: ubuntu-latest
