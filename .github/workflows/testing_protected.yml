@@ -38,6 +38,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref || github.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
       - name: Setup cubit
+        if: false # TODO: Fix after cubit issues are solved
         id: cubit
         uses: ./.github/actions/setup_cubit
         with:
@@ -53,7 +54,7 @@ jobs:
         with:
           source-command: "source python-workflow-venv/bin/activate"
           install-command: "-e .[cubitpy,dev,fourc]"
-          additional-pytest-flags: "--4C --ArborX --cov-fail-under=93"
+          additional-pytest-flags: "--4C --ArborX --cov-fail-under=93" # TODO: Fix after cubit issues are solved, add --CubitPy
           cubit-root: ${{ steps.cubit.outputs.cubit_root }}
       - name: Upload test results on failure
         if: failure()
@@ -65,7 +66,7 @@ jobs:
         uses: ./.github/actions/coverage
 
   beamme-performance-testing:
-    if: false
+    if: false # TODO: Fix after cubit issues are solved
     name: performance tests
     continue-on-error: true
     runs-on: ubuntu-latest
