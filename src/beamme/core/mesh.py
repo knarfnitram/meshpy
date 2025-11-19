@@ -1003,9 +1003,23 @@ class Mesh:
         else:
             return plotter
 
-    def copy(self):
+    def copy(self) -> "Mesh":
         """Return a deep copy of this mesh.
 
-        The functions and materials will not be deep copied.
+        The internal mesh data (nodes, elements, boundary conditions, and
+        geometry sets) are deep-copied. Materials and functions are not
+        deep-copied.
+
+        **Important:** Some mesh creation functions return geometry set
+        containers (e.g., node or element sets) that hold a reference to the
+        nodes or elements of the mesh they were created with. When using
+        ``mesh.copy()``, these externally returned sets remain linked to the
+        original mesh and are therefore not transferred to the copied mesh.
+
+        To copy both the mesh and the corresponding geometry sets correctly,
+        deep-copy them together.
+
+        Returns:
+            A deep copy of the mesh.
         """
         return _copy.deepcopy(self)
