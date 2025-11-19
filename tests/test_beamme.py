@@ -170,7 +170,11 @@ def test_mesh_rotations_individual(
 @pytest.mark.parametrize("origin", [False, True])
 @pytest.mark.parametrize("flip", [False, True])
 def test_mesh_reflection(
-    origin, flip, get_default_test_beam_material, assert_results_close
+    origin,
+    flip,
+    get_default_test_beam_material,
+    get_corresponding_reference_file_path,
+    assert_results_close,
 ):
     """Create a mesh, and its mirrored counterpart and then compare the input
     files."""
@@ -237,8 +241,16 @@ def test_mesh_reflection(
         mesh.reflect(2 * (rot_2 * [1, 0, 0]), flip_beams=flip)
 
     # Compare the input files.
-    # TODO: Also add fixed result files to compare the tests with
     assert_results_close(mesh_ref, mesh)
+
+    # Compare with reference file.
+    assert_results_close(
+        get_corresponding_reference_file_path(
+            additional_identifier=("origin" if origin else "no_origin")
+            + ("_flip" if flip else "_no_flip")
+        ),
+        mesh,
+    )
 
 
 @pytest.mark.parametrize(
