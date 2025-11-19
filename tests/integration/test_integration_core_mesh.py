@@ -23,11 +23,271 @@
 with end-to-end integration tests."""
 
 import copy
+import random
+from contextlib import nullcontext
+
+import numpy as np
+import pytest
 
 from beamme.core.conf import bme
 from beamme.core.mesh import Mesh
+from beamme.core.node import NodeCosserat
+from beamme.core.rotation import Rotation
 from beamme.four_c.element_beam import Beam3rHerm2Line3
+from beamme.four_c.model_importer import import_four_c_model
 from beamme.mesh_creation_functions.beam_line import create_beam_mesh_line
+
+
+def create_test_mesh(get_default_test_beam_material):
+    """Create a mesh with a couple of test nodes and elements."""
+
+    # Set the seed for the pseudo random numbers
+    random.seed(0)
+
+    # Add material to mesh.
+    mesh = Mesh()
+    material = get_default_test_beam_material(material_type="reissner")
+    mesh.add(material)
+
+    # Add three test nodes and add them to a beam element
+    for _j in range(3):
+        mesh.add(
+            NodeCosserat(
+                [100 * random.uniform(-1, 1) for _i in range(3)],
+                Rotation(
+                    [100 * random.uniform(-1, 1) for _i in range(3)],
+                    100 * random.uniform(-1, 1),
+                ),
+            )
+        )
+    beam = Beam3rHerm2Line3(material=material, nodes=mesh.nodes)
+    mesh.add(beam)
+
+    # Add a beam line with three elements
+    create_beam_mesh_line(
+        mesh,
+        Beam3rHerm2Line3,
+        material,
+        [100 * random.uniform(-1, 1) for _i in range(3)],
+        [100 * random.uniform(-1, 1) for _i in range(3)],
+        n_el=3,
+    )
+
+    return mesh
+
+
+def test_integration_core_mesh_rotation(
+    get_default_test_beam_material,
+    get_corresponding_reference_file_path,
+    assert_results_close,
+):
+    """Check if the Mesh function rotation gives the same results as rotating
+    each node it self."""
+
+    mesh_1 = create_test_mesh(get_default_test_beam_material)
+    mesh_2 = create_test_mesh(get_default_test_beam_material)
+
+    # Set the seed for the pseudo random numbers
+    random.seed(0)
+    rot = Rotation(
+        [100 * random.uniform(-1, 1) for _i in range(3)],
+        100 * random.uniform(-1, 1),
+    )
+    origin = [100 * random.uniform(-1, 1) for _i in range(3)]
+
+    for node in mesh_1.nodes:
+        node.rotate(rot, origin=origin)
+
+    mesh_2.rotate(rot, origin=origin)
+
+    # Compare the output for the two meshes.
+    assert_results_close(mesh_1, mesh_2)
+
+    # Compare with reference results.
+    assert_results_close(mesh_1, get_corresponding_reference_file_path())
+
+
+def test_integration_core_mesh_rotation_individual(
+    get_default_test_beam_material,
+    get_corresponding_reference_file_path,
+    assert_results_close,
+):
+    """Check if the Mesh function rotation gives the same results as rotating
+    each node it self, when an array is passed with different rotations."""
+
+    mesh_1 = create_test_mesh(get_default_test_beam_material)
+    mesh_2 = create_test_mesh(get_default_test_beam_material)
+
+    # Set the seed for the pseudo random numbers
+    random.seed(0)
+
+    # Rotate each node with a different rotation
+    rotations = np.zeros([len(mesh_1.nodes), 4])
+    origin = [100 * random.uniform(-1, 1) for _i in range(3)]
+    for j, node in enumerate(mesh_1.nodes):
+        rot = Rotation(
+            [100 * random.uniform(-1, 1) for _i in range(3)],
+            100 * random.uniform(-1, 1),
+        )
+        rotations[j, :] = rot.get_quaternion()
+        node.rotate(rot, origin=origin)
+
+    mesh_2.rotate(rotations, origin=origin)
+
+    # Compare the output for the two meshes.
+    assert_results_close(mesh_1, mesh_2)
+
+    # Compare with reference results.
+    assert_results_close(mesh_1, get_corresponding_reference_file_path())
+
+
+@pytest.mark.parametrize("origin", [False, True])
+@pytest.mark.parametrize("flip", [False, True])
+def test_integration_core_mesh_reflection(
+    origin,
+    flip,
+    get_default_test_beam_material,
+    get_corresponding_reference_file_path,
+    assert_results_close,
+):
+    """Create a mesh, and its mirrored counterpart and then compare the input
+    files."""
+
+    # Rotations to be applied.
+    rot_1 = Rotation([0, 1, 1], np.pi / 6)
+    rot_2 = Rotation([1, 2.455, -1.2324], 1.2342352)
+
+    mesh_ref = Mesh()
+    mesh = Mesh()
+    mat = get_default_test_beam_material(material_type="reissner")
+
+    # Create the reference mesh.
+    if not flip:
+        create_beam_mesh_line(
+            mesh_ref, Beam3rHerm2Line3, mat, [0, 0, 0], [1, 0, 0], n_el=1
+        )
+        create_beam_mesh_line(
+            mesh_ref, Beam3rHerm2Line3, mat, [1, 0, 0], [1, 1, 0], n_el=1
+        )
+        create_beam_mesh_line(
+            mesh_ref, Beam3rHerm2Line3, mat, [1, 1, 0], [1, 1, 1], n_el=1
+        )
+    else:
+        create_beam_mesh_line(
+            mesh_ref, Beam3rHerm2Line3, mat, [1, 0, 0], [0, 0, 0], n_el=1
+        )
+        create_beam_mesh_line(
+            mesh_ref, Beam3rHerm2Line3, mat, [1, 1, 0], [1, 0, 0], n_el=1
+        )
+        create_beam_mesh_line(
+            mesh_ref, Beam3rHerm2Line3, mat, [1, 1, 1], [1, 1, 0], n_el=1
+        )
+
+        # Reorder the internal nodes.
+        old = mesh_ref.nodes.copy()
+        mesh_ref.nodes[0] = old[2]
+        mesh_ref.nodes[2] = old[0]
+        mesh_ref.nodes[3] = old[5]
+        mesh_ref.nodes[5] = old[3]
+        mesh_ref.nodes[6] = old[8]
+        mesh_ref.nodes[8] = old[6]
+
+    mesh_ref.rotate(rot_1)
+
+    # Create the mesh that will be mirrored.
+    create_beam_mesh_line(mesh, Beam3rHerm2Line3, mat, [0, 0, 0], [-1, 0, 0], n_el=1)
+    create_beam_mesh_line(mesh, Beam3rHerm2Line3, mat, [-1, 0, 0], [-1, 1, 0], n_el=1)
+    create_beam_mesh_line(mesh, Beam3rHerm2Line3, mat, [-1, 1, 0], [-1, 1, 1], n_el=1)
+    mesh.rotate(rot_1.inv())
+
+    # Rotate everything, to show generalized reflection.
+    mesh_ref.rotate(rot_2)
+    mesh.rotate(rot_2)
+
+    if origin:
+        # Translate everything so the reflection plane is not in the
+        # origin.
+        r = [1, 2.455, -1.2324]
+        mesh_ref.translate(r)
+        mesh.translate(r)
+        mesh.reflect(2 * (rot_2 * [1, 0, 0]), origin=r, flip_beams=flip)
+    else:
+        mesh.reflect(2 * (rot_2 * [1, 0, 0]), flip_beams=flip)
+
+    # Compare the input files.
+    assert_results_close(mesh_ref, mesh)
+
+    # Compare with reference file.
+    assert_results_close(
+        get_corresponding_reference_file_path(
+            additional_identifier=("origin" if origin else "no_origin")
+            + ("_flip" if flip else "_no_flip")
+        ),
+        mesh,
+    )
+
+
+@pytest.mark.parametrize(
+    ("import_full", "radius", "reflect", "context"),
+    [
+        (False, None, True, nullcontext()),
+        (False, 0.2, True, nullcontext()),
+        (True, 0.2, False, nullcontext()),
+        (False, 666, False, pytest.raises(ValueError)),
+        (True, None, False, pytest.raises(ValueError)),
+    ],
+)
+def test_integration_core_mesh_transformations_with_solid(
+    import_full,
+    radius,
+    reflect,
+    context,
+    get_default_test_beam_material,
+    assert_results_close,
+    get_corresponding_reference_file_path,
+):
+    """Test the different mesh transformation methods in combination with solid
+    elements."""
+
+    with context:
+        # First, we create a line and wrap it with passing radius to the wrap function.
+
+        # Create the mesh.
+        input_file, mesh = import_four_c_model(
+            input_file_path=get_corresponding_reference_file_path(
+                reference_file_base_name="4C_input_solid_cuboid"
+            ),
+            convert_input_to_mesh=import_full,
+        )
+
+        mat = get_default_test_beam_material(material_type="reissner")
+
+        # Create the line.
+        create_beam_mesh_line(
+            mesh,
+            Beam3rHerm2Line3,
+            mat,
+            [0.2, 0, 0],
+            [0.2, 5 * 0.2 * 2 * np.pi, 4],
+            n_el=3,
+        )
+
+        # Transform the mesh.
+        mesh.wrap_around_cylinder(radius=radius)
+        mesh.translate([1, 2, 3])
+        mesh.rotate(Rotation([1, 2, 3], np.pi * 17.0 / 27.0))
+        if reflect:
+            mesh.reflect([0.1, -2, 1])
+
+        input_file.add(mesh)
+
+        # Check the output.
+        assert_results_close(
+            get_corresponding_reference_file_path(
+                additional_identifier="full" if import_full else "yaml"
+            ),
+            input_file,
+        )
 
 
 def test_integration_core_mesh_deep_copy_with_geometry_sets(
