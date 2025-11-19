@@ -24,6 +24,7 @@
 import os
 import random
 import warnings
+from contextlib import nullcontext
 from unittest.mock import patch
 
 import autograd.numpy as npAD
@@ -240,7 +241,21 @@ def test_mesh_reflection(
     assert_results_close(mesh_ref, mesh)
 
 
+@pytest.mark.parametrize(
+    ("import_full", "radius", "reflect", "context"),
+    [
+        (False, None, True, nullcontext()),
+        (False, 0.2, True, nullcontext()),
+        (True, 0.2, False, nullcontext()),
+        (False, 666, False, pytest.raises(ValueError)),
+        (True, None, False, pytest.raises(ValueError)),
+    ],
+)
 def test_mesh_transformations_with_solid(
+    import_full,
+    radius,
+    reflect,
+    context,
     get_default_test_beam_material,
     assert_results_close,
     get_corresponding_reference_file_path,
@@ -248,11 +263,8 @@ def test_mesh_transformations_with_solid(
     """Test the different mesh transformation methods in combination with solid
     elements."""
 
-    # TODO use pytest fixtures for the different setups
-
-    def base_test_mesh_translations(*, import_full=False, radius=None, reflect=True):
-        """Create the line and wrap it with passing radius to the wrap
-        function."""
+    with context:
+        # First, we create a line and wrap it with passing radius to the wrap function.
 
         # Create the mesh.
         input_file, mesh = import_four_c_model(
@@ -289,25 +301,6 @@ def test_mesh_transformations_with_solid(
                 additional_identifier="full" if import_full else "yaml"
             ),
             input_file,
-        )
-
-    base_test_mesh_translations(import_full=False, radius=None)
-    base_test_mesh_translations(import_full=False, radius=0.2)
-    base_test_mesh_translations(import_full=True, radius=0.2, reflect=False)
-
-    # Not specifying or specifying the wrong radius should raise an error
-    # In this case because everything is on one plane ("no" solid nodes in this case)
-    # and we specify the radius
-    with pytest.raises(ValueError):
-        base_test_mesh_translations(import_full=False, radius=666, reflect=False)
-
-    # In this case because we need to specify a radius because with the solid nodes there
-    # is no clear radius
-    with pytest.raises(ValueError):
-        base_test_mesh_translations(
-            import_full=True,
-            radius=None,
-            reflect=False,
         )
 
 
