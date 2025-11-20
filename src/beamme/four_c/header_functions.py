@@ -22,6 +22,7 @@
 """This module defines functions that can be used to add header information to
 an input file."""
 
+from typing import Any as _Any
 from typing import List as _List
 from typing import Union as _Union
 
@@ -274,61 +275,60 @@ def set_beam_to_solid_meshtying(
 
 
 def set_header_static(
-    input_file,
+    input_file: _InputFile,
     *,
-    time_step=None,
-    n_steps=None,
-    total_time=None,
-    max_iter=20,
-    tol_residuum=1e-8,
-    tol_increment=1e-10,
-    load_lin=False,
-    write_bin=False,
-    write_stress="no",
-    write_strain="no",
-    prestress="None",
-    prestress_time=0,
-    create_nox_file=True,
+    time_step: float | None = None,
+    n_steps: int | None = None,
+    total_time: float | None = None,
+    max_iter: int = 20,
+    tol_residuum: float = 1e-8,
+    tol_increment: float = 1e-10,
+    load_lin: bool = False,
+    write_bin: bool = False,
+    write_stress: str = "no",
+    write_strain: str = "no",
+    prestress: str = "None",
+    prestress_time: float = 0,
+    create_nox_file: bool = True,
 ):
     """Set the default parameters for a static structure analysis.
 
     At least two of the three time stepping keyword arguments ["time_step",
     "n_steps", "total_time"] have to be set.
 
-    Args
-    ----
-    input_file:
-        Input file that the options will be added to.
-    time_step: float
-        Time increment per step.
-    n_steps: int
-        Number of time steps.
-    total_time: float
-        Total time of simulation
-    max_iter: int
-        Maximal number of Newton iterations.
-    tol_residuum: float
-        Tolerance for the convergence of the residuum.
-    tol_increment: int
-        Tolerance for the convergence of the displacement increment.
-    load_lin: bool
-        If the load_lin option should be set.
-    write_bin: bool
-        If binary output should be written.
-    write_stress: string
-        If and which stress output to write
-    write_strain: string
-        If and which strain output to write
-    prestress: string
-        Type of prestressing strategy to be used
-    presetrss_time: int
-        Prestress Time
-    create_nox_file: bool
-        If the nonlinear solver parameters should be set via a NOX xml file or
-        directly in the input file.
+    Args:
+        input_file:
+            Input file that the options will be added to.
+        time_step:
+            Time increment per step.
+        n_steps:
+            Number of time steps.
+        total_time:
+            Total time of simulation
+        max_iter:
+            Maximal number of Newton iterations.
+        tol_residuum:
+            Tolerance for the convergence of the residuum.
+        tol_increment:
+            Tolerance for the convergence of the displacement increment.
+        load_lin:
+            If the load_lin option should be set.
+        write_bin:
+            If binary output should be written.
+        write_stress:
+            If and which stress output to write
+        write_strain:
+            If and which strain output to write
+        prestress:
+            Type of prestressing strategy to be used
+        prestress_time:
+            Prestress Time
+        create_nox_file:
+            If the nonlinear solver parameters should be set via a NOX xml file or
+            directly in the input file.
     """
 
-    input_file_parameters = {}
+    input_file_parameters: dict[str, _Any] = {}
 
     # Set the parameters for a static analysis.
     input_file_parameters["PROBLEM TYPE"] = {"PROBLEMTYPE": "Structure"}
@@ -349,11 +349,11 @@ def set_header_static(
             'At least two of the following arguments "time_step", "n_steps" or '
             '"total_time" are required'
         )
-    if time_step is None:
+    elif time_step is None and total_time is not None and n_steps is not None:
         time_step = total_time / n_steps
-    elif n_steps is None:
+    elif n_steps is None and total_time is not None and time_step is not None:
         n_steps = round(total_time / time_step)
-    elif total_time is None:
+    elif total_time is None and time_step is not None and n_steps is not None:
         total_time = time_step * n_steps
 
     input_file_parameters["STRUCTURAL DYNAMIC"] = {
