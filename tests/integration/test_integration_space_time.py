@@ -19,7 +19,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-"""Test the beam to space-time surface functionality."""
+"""This script is used to test general functionality of the BeamMe space-time
+module with end-to-end integration tests."""
 
 import numpy as np
 import pytest
@@ -45,7 +46,7 @@ def get_name(beam_class):
 
 
 @pytest.mark.parametrize("n_nodes", [2, 3])
-def test_space_time_straight(
+def test_integration_space_time_straight(
     n_nodes, assert_results_close, get_corresponding_reference_file_path
 ):
     """Create the straight beam for the tests."""
@@ -75,7 +76,7 @@ def test_space_time_straight(
 
 
 @pytest.mark.parametrize("n_nodes", [2, 3])
-def test_space_time_curved(
+def test_integration_space_time_curved(
     n_nodes, assert_results_close, get_corresponding_reference_file_path
 ):
     """Create a curved beam for the tests."""
@@ -113,7 +114,7 @@ def test_space_time_curved(
 
 @pytest.mark.parametrize("n_nodes", [2, 3])
 @pytest.mark.parametrize("couple_nodes", [False, True])
-def test_space_time_elbow(
+def test_integration_space_time_elbow(
     n_nodes, couple_nodes, assert_results_close, get_corresponding_reference_file_path
 ):
     """Create an elbow beam for the tests."""
@@ -151,7 +152,7 @@ def test_space_time_elbow(
 @pytest.mark.parametrize("n_nodes", [2, 3])
 @pytest.mark.parametrize("couple_nodes", [False, True])
 @pytest.mark.parametrize("arc_length", [False, True])
-def test_space_time_varying_material_length(
+def test_integration_space_time_varying_material_length(
     n_nodes,
     couple_nodes,
     arc_length,
@@ -218,7 +219,7 @@ def test_space_time_varying_material_length(
     )
 
 
-def test_space_time_named_node_set(
+def test_integration_space_time_named_node_set(
     assert_results_close, get_corresponding_reference_file_path
 ):
     """Create a straight beam and check that named node sets are handled
@@ -249,7 +250,9 @@ def test_space_time_named_node_set(
 
 
 @pytest.mark.performance
-def test_performance_create_mesh_in_space(evaluate_execution_time, cache_data):
+def test_integration_space_time_performance_create_mesh_in_space(
+    evaluate_execution_time, cache_data
+):
     """Test the performance of the mesh creation in space."""
 
     mesh = Mesh()
@@ -274,7 +277,9 @@ def test_performance_create_mesh_in_space(evaluate_execution_time, cache_data):
 
 
 @pytest.mark.performance
-def test_performance_create_mesh_in_time(evaluate_execution_time, cache_data):
+def test_integration_space_time_performance_create_mesh_in_time(
+    evaluate_execution_time, cache_data
+):
     """Test the performance of the mesh creation in time."""
 
     evaluate_execution_time(
