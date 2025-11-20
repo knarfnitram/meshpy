@@ -196,12 +196,17 @@ def test_header_functions_beam_interaction(
 
 
 @pytest.mark.parametrize(
-    ("nox_xml_file_kwarg", "xml_relative_path"),
-    [(None, "xml_test.nox.xml"), ("custom_name.xml", "custom_name.xml")],
+    ("create_nox_file", "nox_xml_file_kwarg", "xml_relative_path"),
+    [
+        (False, None, None),
+        (True, None, "nonlinear_solver_parameters.nox.xml"),
+        (True, "custom_name.xml", "custom_name.xml"),
+    ],
 )
-def test_header_functions_nox_xml(
+def test_header_functions_nonlinear_solver_parameters(
     get_corresponding_reference_file_path,
     assert_results_close,
+    create_nox_file,
     nox_xml_file_kwarg,
     xml_relative_path,
     tmp_path,
@@ -210,19 +215,36 @@ def test_header_functions_nox_xml(
 
     input_file = InputFile()
     set_header_static(
-        input_file, total_time=1.0, n_steps=1, tol_increment=1e-4, tol_residuum=1e-5
+        input_file,
+        total_time=1.0,
+        n_steps=1,
+        tol_increment=1e-4,
+        tol_residuum=1e-5,
+        max_iter=25,
+        create_nox_file=create_nox_file,
     )
     input_file.dump(
-        tmp_path / "xml_test.4C.yaml",
+        tmp_path / "nonlinear_solver_parameters.4C.yaml",
         nox_xml_file=nox_xml_file_kwarg,
+        add_header_default=False,
+        add_header_information=False,
         add_footer_application_script=False,
     )
 
-    # Check the xml path in the input file
-    assert input_file["STRUCT NOX/Status Test"]["XML File"] == xml_relative_path
+    if create_nox_file:
+        # Check the xml path in the input file
+        assert input_file["STRUCT NOX/Status Test"]["XML File"] == xml_relative_path
 
-    # Check the created xml
+        # Check the created xml
+        assert_results_close(
+            get_corresponding_reference_file_path(extension="xml"),
+            tmp_path / xml_relative_path,
+        )
+
     assert_results_close(
-        get_corresponding_reference_file_path(extension="xml"),
-        tmp_path / xml_relative_path,
+        get_corresponding_reference_file_path(
+            additional_identifier=("with_nox" if create_nox_file else "")
+            + ("_custom_name" if nox_xml_file_kwarg else "")
+        ),
+        tmp_path / "nonlinear_solver_parameters.4C.yaml",
     )

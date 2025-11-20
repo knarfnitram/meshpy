@@ -1,0 +1,25 @@
+PROBLEM TYPE:
+  PROBLEMTYPE: "Structure"
+IO:
+  OUTPUT_BIN: false
+  STRUCT_DISP: false
+  STRUCT_STRESS: "no"
+  STRUCT_STRAIN: "no"
+  VERBOSITY: "Standard"
+SOLVER 1:
+  NAME: "Structure_Solver"
+  SOLVER: "Superlu"
+STRUCTURAL DYNAMIC:
+  LINEAR_SOLVER: 1
+  INT_STRATEGY: "Standard"
+  DYNAMICTYPE: "Statics"
+  PREDICT: "TangDis"
+  PRESTRESS: "None"
+  PRESTRESSTIME: 0
+  TIMESTEP: 1.0
+  NUMSTEP: 1
+  MAXTIME: 1.0
+  LOADLIN: false
+  MAXITER: 25
+  TOLRES: 1e-05
+  TOLDISP: 0.0001

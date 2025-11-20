@@ -38,7 +38,7 @@
     <!-- BEGIN: Combo OR - Test 1: "MaxIters" -->
     <ParameterList name="Test 1">
       <Parameter name="Test Type" type="string" value="MaxIters"/>
-      <Parameter name="Maximum Iterations" type="int" value="20"/>
+      <Parameter name="Maximum Iterations" type="int" value="25"/>
     </ParameterList>
     <!--END: "MaxIters" -->
   </ParameterList>

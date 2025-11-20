@@ -288,6 +288,7 @@ def set_header_static(
     write_strain="no",
     prestress="None",
     prestress_time=0,
+    create_nox_file=True,
 ):
     """Set the default parameters for a static structure analysis.
 
@@ -322,28 +323,22 @@ def set_header_static(
         Type of prestressing strategy to be used
     presetrss_time: int
         Prestress Time
+    create_nox_file: bool
+        If the nonlinear solver parameters should be set via a NOX xml file or
+        directly in the input file.
     """
 
-    # Set the parameters for a static analysis.
-    input_file.add(
-        {
-            "PROBLEM TYPE": {
-                "PROBLEMTYPE": "Structure",
-            }
-        }
-    )
+    input_file_parameters = {}
 
-    input_file.add(
-        {
-            "IO": {
-                "OUTPUT_BIN": write_bin,
-                "STRUCT_DISP": False,
-                "STRUCT_STRESS": write_stress,
-                "STRUCT_STRAIN": write_strain,
-                "VERBOSITY": "Standard",
-            }
-        }
-    )
+    # Set the parameters for a static analysis.
+    input_file_parameters["PROBLEM TYPE"] = {"PROBLEMTYPE": "Structure"}
+    input_file_parameters["IO"] = {
+        "OUTPUT_BIN": write_bin,
+        "STRUCT_DISP": False,
+        "STRUCT_STRESS": write_stress,
+        "STRUCT_STRAIN": write_strain,
+        "VERBOSITY": "Standard",
+    }
 
     # Set the time step parameters
     given_time_arguments = sum(
@@ -361,94 +356,90 @@ def set_header_static(
     elif total_time is None:
         total_time = time_step * n_steps
 
-    input_file.add(
-        {
-            "STRUCTURAL DYNAMIC": {
-                "LINEAR_SOLVER": 1,
-                "INT_STRATEGY": "Standard",
-                "DYNAMICTYPE": "Statics",
-                "PREDICT": "TangDis",
-                "PRESTRESS": prestress,
-                "PRESTRESSTIME": prestress_time,
-                "TIMESTEP": time_step,
-                "NUMSTEP": n_steps,
-                "MAXTIME": total_time,
-                "LOADLIN": load_lin,
-            }
-        }
-    )
+    input_file_parameters["STRUCTURAL DYNAMIC"] = {
+        "LINEAR_SOLVER": 1,
+        "INT_STRATEGY": "Standard",
+        "DYNAMICTYPE": "Statics",
+        "PREDICT": "TangDis",
+        "PRESTRESS": prestress,
+        "PRESTRESSTIME": prestress_time,
+        "TIMESTEP": time_step,
+        "NUMSTEP": n_steps,
+        "MAXTIME": total_time,
+        "LOADLIN": load_lin,
+    }
+    input_file_parameters["SOLVER 1"] = {
+        "NAME": "Structure_Solver",
+        "SOLVER": "Superlu",
+    }
 
-    input_file.add(
-        {
-            "SOLVER 1": {
-                "NAME": "Structure_Solver",
-                "SOLVER": "Superlu",
-            }
-        }
-    )
-
-    # Set the contents of the NOX xml file.
-    nox_xml_contents = f"""
-        <ParameterList name="Status Test">
-        <!-- Outer Status Test: This test is an OR combination of the structural convergence and the maximum number of iterations -->
-        <ParameterList name="Outer Status Test">
-          <Parameter name="Test Type"       type="string" value="Combo"/>
-          <Parameter name="Combo Type"      type="string" value="OR" />
-          <!-- Structural convergence is an AND combination of the residuum and step update -->
-          <ParameterList name="Test 0">
-            <Parameter name="Test Type" type="string" value="Combo" />
-            <Parameter name="Combo Type" type="string" value="AND" />
-              <!-- BEGIN: Combo AND - Test 0: "NormF" -->
-              <ParameterList name="Test 0">
-                <Parameter name="Test Type"  type="string" value="NormF" />
-                <!-- NormF - Quantity 0: Check the right-hand-side norm of the structural quantities -->
-                <ParameterList name="Quantity 0">
-                  <Parameter name="Quantity Type"  type="string" value="Structure" />
-                  <Parameter name="Tolerance Type" type="string" value="Absolute" />
-                  <Parameter name="Tolerance"      type="double" value="{tol_residuum}" />
-                  <Parameter name="Norm Type"      type="string" value="Two Norm" />
-                  <Parameter name="Scale Type"     type="string" value="Scaled" />
+    # Set the solver parameters.
+    if create_nox_file:
+        # Set the contents of the NOX xml file.
+        nox_xml_contents = f"""
+            <ParameterList name="Status Test">
+            <!-- Outer Status Test: This test is an OR combination of the structural convergence and the maximum number of iterations -->
+            <ParameterList name="Outer Status Test">
+            <Parameter name="Test Type"       type="string" value="Combo"/>
+            <Parameter name="Combo Type"      type="string" value="OR" />
+            <!-- Structural convergence is an AND combination of the residuum and step update -->
+            <ParameterList name="Test 0">
+                <Parameter name="Test Type" type="string" value="Combo" />
+                <Parameter name="Combo Type" type="string" value="AND" />
+                <!-- BEGIN: Combo AND - Test 0: "NormF" -->
+                <ParameterList name="Test 0">
+                    <Parameter name="Test Type"  type="string" value="NormF" />
+                    <!-- NormF - Quantity 0: Check the right-hand-side norm of the structural quantities -->
+                    <ParameterList name="Quantity 0">
+                    <Parameter name="Quantity Type"  type="string" value="Structure" />
+                    <Parameter name="Tolerance Type" type="string" value="Absolute" />
+                    <Parameter name="Tolerance"      type="double" value="{tol_residuum}" />
+                    <Parameter name="Norm Type"      type="string" value="Two Norm" />
+                    <Parameter name="Scale Type"     type="string" value="Scaled" />
+                    </ParameterList>
                 </ParameterList>
-              </ParameterList>
-              <!-- END: Combo AND - Test 0: "NormF" -->
-              <!-- BEGIN: Combo AND - Test 1: "NormWRMS" -->
-              <ParameterList name="Test 1">
-                <Parameter name="Test Type"        type="string" value="NormUpdate" />
-                <!-- NormWRMS - Quantity 0: Check the increment of the structural displacements -->
-                <ParameterList name="Quantity 0">
-                  <Parameter name="Quantity Type"  type="string" value="Structure" />
-                  <Parameter name="Tolerance Type" type="string" value="Absolute" />
-                  <Parameter name="Tolerance"      type="double" value="{tol_increment}" />
-                  <Parameter name="Norm Type"      type="string" value="Two Norm" />
-                  <Parameter name="Scale Type"     type="string" value="Scaled" />
+                <!-- END: Combo AND - Test 0: "NormF" -->
+                <!-- BEGIN: Combo AND - Test 1: "NormWRMS" -->
+                <ParameterList name="Test 1">
+                    <Parameter name="Test Type"        type="string" value="NormUpdate" />
+                    <!-- NormWRMS - Quantity 0: Check the increment of the structural displacements -->
+                    <ParameterList name="Quantity 0">
+                    <Parameter name="Quantity Type"  type="string" value="Structure" />
+                    <Parameter name="Tolerance Type" type="string" value="Absolute" />
+                    <Parameter name="Tolerance"      type="double" value="{tol_increment}" />
+                    <Parameter name="Norm Type"      type="string" value="Two Norm" />
+                    <Parameter name="Scale Type"     type="string" value="Scaled" />
+                    </ParameterList>
                 </ParameterList>
-              </ParameterList>
-              <!-- END: Combo AND - Test 1: "NormWRMS" -->
+                <!-- END: Combo AND - Test 1: "NormWRMS" -->
+                </ParameterList>
+                <!-- END: Combo 0 - Test 0: "Combo" -->
+            <!-- BEGIN: Combo OR - Test 1: "MaxIters" -->
+            <ParameterList name="Test 1">
+                <Parameter name="Test Type"          type="string" value="MaxIters" />
+                <Parameter name="Maximum Iterations" type="int"    value="{max_iter}" />
+            </ParameterList> <!--END: "MaxIters" -->
             </ParameterList>
-            <!-- END: Combo 0 - Test 0: "Combo" -->
-          <!-- BEGIN: Combo OR - Test 1: "MaxIters" -->
-          <ParameterList name="Test 1">
-            <Parameter name="Test Type"          type="string" value="MaxIters" />
-            <Parameter name="Maximum Iterations" type="int"    value="{max_iter}" />
-          </ParameterList> <!--END: "MaxIters" -->
-        </ParameterList>
-        </ParameterList>
-        """
+            </ParameterList>
+            """
 
-    input_file.add(
-        {
-            "STRUCT NOX/Printing": {
-                "Error": True,
-                "Inner Iteration": False,
-                "Details": True,
-                "Linear Solver Details": True,
-                "Test Details": True,
-            }
+        input_file_parameters["STRUCT NOX/Printing"] = {
+            "Error": True,
+            "Inner Iteration": False,
+            "Details": True,
+            "Linear Solver Details": True,
+            "Test Details": True,
         }
-    )
 
-    # Set the xml content in the input file.
-    input_file.nox_xml_contents = nox_xml_contents
+        # Set the xml content in the input file.
+        input_file.nox_xml_contents = nox_xml_contents
+
+    else:
+        input_file_parameters["STRUCTURAL DYNAMIC"]["MAXITER"] = max_iter
+        input_file_parameters["STRUCTURAL DYNAMIC"]["TOLRES"] = tol_residuum
+        input_file_parameters["STRUCTURAL DYNAMIC"]["TOLDISP"] = tol_increment
+
+    input_file.add(input_file_parameters)
 
 
 def set_binning_strategy_section(
