@@ -19,7 +19,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-"""This script is used to test the creation of Abaqus input files."""
+"""This script is used to test general functionality of the BeamMe Abaqus
+module with end-to-end integration tests."""
 
 import numpy as np
 import pytest
@@ -42,7 +43,7 @@ PYTEST_ABAQUS_NORMAL_DEFINITION_PARAMETRIZE = [
 
 
 @pytest.mark.parametrize(*PYTEST_ABAQUS_NORMAL_DEFINITION_PARAMETRIZE)
-def test_abaqus_helix(
+def test_integration_abaqus_helix(
     normal_definition,
     additional_identifier,
     assert_results_close,
@@ -92,7 +93,7 @@ def test_abaqus_helix(
 
 
 @pytest.mark.parametrize(*PYTEST_ABAQUS_NORMAL_DEFINITION_PARAMETRIZE)
-def test_abaqus_frame(
+def test_integration_abaqus_frame(
     normal_definition,
     additional_identifier,
     assert_results_close,
