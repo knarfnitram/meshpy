@@ -1,4 +1,4 @@
-name: setup_cubit
+name: cubit_setup
 description: Setup a Cubit installation for testing
 inputs:
   cubit_download_url:
@@ -13,12 +13,12 @@ inputs:
 outputs:
   cubit_root:
     description: "Path to the Cubit installation"
-    value: ${{ steps.setup-cubit.outputs.cubit_root }}
+    value: ${{ steps.cubit-setup.outputs.cubit_root }}
 runs:
   using: composite
   steps:
     - name: Download and unpack Cubit
-      id: setup-cubit
+      id: cubit-setup
       shell: bash
       run: |
         # Check if secrets are available
@@ -28,7 +28,7 @@ runs:
         fi
         # We need these packages for cubit to work
         sudo apt update
-        sudo apt install -y libglu1-mesa ffmpeg libsm6 libxext6
+        sudo apt install -y libglu1-mesa libegl1
         # Download cubit and extract it
         cd ${GITHUB_WORKSPACE}
         wget -q ${{ inputs.cubit_download_url }}

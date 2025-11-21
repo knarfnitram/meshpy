@@ -38,9 +38,8 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref || github.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
       - name: Setup cubit
-        if: false # TODO: Fix after cubit issues are solved
         id: cubit
-        uses: ./.github/actions/setup_cubit
+        uses: ./.github/actions/cubit_setup
         with:
           cubit_download_url: ${{ env.CUBIT_DOWNLOAD_URL }}
           cubit_email: ${{ secrets.CUBIT_EMAIL }}
@@ -54,7 +53,12 @@ jobs:
         with:
           source-command: "source python-workflow-venv/bin/activate"
           install-command: "-e .[cubitpy,dev,fourc]"
-          additional-pytest-flags: "--4C --ArborX --cov-fail-under=93" # TODO: Fix after cubit issues are solved, add --CubitPy
+          additional-pytest-flags: "--4C --ArborX --CubitPy --cov-fail-under=93"
+          cubit-root: ${{ steps.cubit.outputs.cubit_root }}
+      - name: Free cubit license
+        if: ${{ always() }}
+        uses: ./.github/actions/cubit_finalize
+        with:
           cubit-root: ${{ steps.cubit.outputs.cubit_root }}
       - name: Upload test results on failure
         if: failure()
@@ -66,7 +70,6 @@ jobs:
         uses: ./.github/actions/coverage
 
   beamme-performance-testing:
-    if: false # TODO: Fix after cubit issues are solved
     name: performance tests
     continue-on-error: true
     runs-on: ubuntu-latest
@@ -89,7 +92,7 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
       - name: Setup cubit
         id: cubit
-        uses: ./.github/actions/setup_cubit
+        uses: ./.github/actions/cubit_setup
         with:
           cubit_download_url: ${{ env.CUBIT_DOWNLOAD_URL }}
           cubit_email: ${{ secrets.CUBIT_EMAIL }}
@@ -102,6 +105,11 @@ jobs:
           install-command: ".[cubitpy,dev,fourc]"
           source-command: "source python-workflow-venv/bin/activate"
           additional-pytest-flags: "--performance-tests --exclude-standard-tests -s --no-cov"
+          cubit-root: ${{ steps.cubit.outputs.cubit_root }}
+      - name: Free cubit license
+        if: ${{ always() }}
+        uses: ./.github/actions/cubit_finalize
+        with:
           cubit-root: ${{ steps.cubit.outputs.cubit_root }}
       - name: Upload test results on failure
         if: failure()
