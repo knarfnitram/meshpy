@@ -24,7 +24,7 @@
 from beamme.four_c.dbc_monitor import read_dbc_monitor_file
 
 
-def test_dbc_monitor_read_dbc_monitor_file(
+def test_beamme_four_c_dbc_monitor_read_dbc_monitor_file(
     assert_results_close, get_corresponding_reference_file_path
 ):
     """Test that a dbc monitor file can be read correctly."""

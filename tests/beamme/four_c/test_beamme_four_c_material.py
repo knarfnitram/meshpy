@@ -19,12 +19,12 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-"""This file tests materials for 4C."""
+"""This file unit tests materials for 4C."""
 
 from beamme.four_c.material import MaterialReissner
 
 
-def test_material_reissner(assert_results_close):
+def test_beamme_four_c_material_reissner(assert_results_close):
     """Test Reissner material."""
 
     mat = MaterialReissner(
@@ -57,7 +57,7 @@ def test_material_reissner(assert_results_close):
     assert_results_close(mat.dump_to_list(), mat_expected)
 
 
-def test_material_reissner_by_modes(assert_results_close):
+def test_beamme_four_c_material_reissner_by_modes(assert_results_close):
     """Test Reissner material by modes with scaling factors."""
 
     mat = MaterialReissner(

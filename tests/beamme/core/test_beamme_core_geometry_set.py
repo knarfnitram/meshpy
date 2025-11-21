@@ -19,7 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-"""This script is used to test the functionality of the geometry sets."""
+"""This script is used to unittest the functionality of the geometry sets."""
 
 from typing import Callable
 
@@ -69,7 +69,7 @@ def assert_geometry_set_add_operator() -> Callable:
         (Beam, []),
     ],
 )
-def test_core_geometry_set_add_operator(
+def test_beamme_core_geometry_set_add_operator(
     mesh_object, mesh_object_args, assert_geometry_set_add_operator
 ):
     """Test that geometry sets can be added to each other.
@@ -93,7 +93,7 @@ def test_core_geometry_set_add_operator(
 
 
 @pytest.mark.parametrize("geometry_type", [bme.geo.point, bme.geo.line])
-def test_core_geometry_set_nodes_add_operator(
+def test_beamme_core_geometry_set_nodes_add_operator(
     geometry_type, assert_geometry_set_add_operator
 ):
     """Test that node based geometry sets can be added to each other."""

@@ -19,7 +19,10 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-"""Unit tests beam elements for 4C."""
+"""Unit tests beam elements for 4C.
+
+TODO: Split these tests into actual unit tests for beam and material.
+"""
 
 import warnings
 
@@ -54,7 +57,9 @@ from beamme.mesh_creation_functions.beam_line import create_beam_mesh_line
 from beamme.utils.nodes import get_single_node
 
 
-def test_reissner_beam(assert_results_close, get_corresponding_reference_file_path):
+def test_integration_four_c_element_beam_reissner_beam(
+    assert_results_close, get_corresponding_reference_file_path
+):
     """Test that the input file for all types of Reissner beams is generated
     correctly."""
 
@@ -83,7 +88,9 @@ def test_reissner_beam(assert_results_close, get_corresponding_reference_file_pa
     assert_results_close(get_corresponding_reference_file_path(), mesh)
 
 
-def test_kirchhoff_beam(assert_results_close, get_corresponding_reference_file_path):
+def test_integration_four_c_element_beam_kirchhoff_beam(
+    assert_results_close, get_corresponding_reference_file_path
+):
     """Test that the input file for all types of Kirchhoff beams is generated
     correctly."""
 
@@ -143,7 +150,9 @@ def test_kirchhoff_beam(assert_results_close, get_corresponding_reference_file_p
     assert_results_close(get_corresponding_reference_file_path(), mesh)
 
 
-def test_euler_bernoulli(assert_results_close, get_corresponding_reference_file_path):
+def test_integration_four_c_element_beam_euler_bernoulli(
+    assert_results_close, get_corresponding_reference_file_path
+):
     """Recreate the 4C test case beam3eb_static_endmoment_quartercircle.4C.yaml
     This tests the implementation for Euler Bernoulli beams."""
 

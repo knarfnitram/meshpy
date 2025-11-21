@@ -19,7 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-"""This script is used to test the functionality of the couplings."""
+"""This script is used to unittest the functionality of the couplings."""
 
 from beamme.core.conf import bme
 from beamme.core.coupling import coupling_factory
@@ -27,7 +27,7 @@ from beamme.core.geometry_set import GeometrySet
 from beamme.core.node import Node
 
 
-def test_coupling_factory():
+def test_beamme_core_coupling_factory():
     """Test that the coupling factory can be used with the desired inputs."""
 
     nodes = [Node([0, 0, 0]) for i in range(4)]

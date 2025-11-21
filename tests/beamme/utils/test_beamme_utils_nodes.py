@@ -19,7 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-"""This script is used to test all utils functions for nodes."""
+"""This script is used to unit test functions for nodes."""
 
 import numpy as np
 
@@ -27,11 +27,7 @@ from beamme.core.node import Node
 from beamme.utils.nodes import adjust_close_nodes
 
 
-def test_adjusting_of_nodes(
-    get_default_test_beam_material,
-    assert_results_close,
-    get_corresponding_reference_file_path,
-):
+def test_beamme_utils_nodes_adjusting_of_nodes(assert_results_close):
     """Test the mesh function adjust_close_nodes."""
 
     coordinates = np.array(

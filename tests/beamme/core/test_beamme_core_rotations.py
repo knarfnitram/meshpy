@@ -19,7 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-"""This script is used to test the functionality of the Rotation class."""
+"""This script is used to unittest the functionality of the Rotation class."""
 
 import numpy as np
 import pytest
@@ -52,7 +52,7 @@ def get_rotation_matrix(axis, alpha):
     return rot3D
 
 
-def test_cartesian_rotations(assert_results_close):
+def test_beamme_core_rotations_cartesian_rotations(assert_results_close):
     """Create a rotation in all 3 directions.
 
     And compare with the rotation matrix.
@@ -75,7 +75,7 @@ def test_cartesian_rotations(assert_results_close):
         assert_results_close(rot3D, rotation_matrix.get_rotation_matrix())
 
 
-def test_euler_angles(assert_results_close):
+def test_beamme_core_rotations_euler_angles(assert_results_close):
     """Create a rotation with Euler angles and compare to known results."""
 
     # Euler angles.
@@ -118,7 +118,7 @@ def test_euler_angles(assert_results_close):
     )
 
 
-def test_negative_angles():
+def test_beamme_core_rotations_negative_angles():
     """Check if a rotation is created correctly if a negative angle or a large
     angle is given."""
 
@@ -134,7 +134,7 @@ def test_negative_angles():
     assert Rotation.from_quaternion(q) == Rotation.from_quaternion(-q)
 
 
-def test_inverse_rotation():
+def test_beamme_core_rotations_inverse_rotation():
     """Test the inv() function for rotations."""
 
     # Define test rotation.
@@ -150,7 +150,7 @@ def test_inverse_rotation():
     (rot * rot.inv()).get_rotation_vector()
 
 
-def test_rotation_vector(assert_results_close):
+def test_beamme_core_rotations_rotation_vector(assert_results_close):
     """Test if the rotation vector functions give a correct result."""
 
     # Calculate rotation vector and quaternion.
@@ -172,7 +172,7 @@ def test_rotation_vector(assert_results_close):
     assert_results_close(rotation_vector, rotation_from_vec.get_rotation_vector())
 
 
-def test_rotation_operator_overload(assert_results_close):
+def test_beamme_core_rotations_rotation_operator_overload(assert_results_close):
     """Test if the operator overloading gives a correct result."""
 
     # Calculate rotation and vector.
@@ -196,7 +196,7 @@ def test_rotation_operator_overload(assert_results_close):
         [[0, 1, 0], [0, 0, 1]],
     ],
 )
-def test_from_rotation_matrix(vectors, assert_results_close):
+def test_beamme_core_rotations_from_rotation_matrix(vectors, assert_results_close):
     """Test if the correct quaternions are generated from a rotation matrix.
 
     The from_rotation_matrix function has different branches, the input
@@ -211,7 +211,7 @@ def test_from_rotation_matrix(vectors, assert_results_close):
     assert_results_close(t2, t2_rot)
 
 
-def test_from_basis(assert_results_close):
+def test_beamme_core_rotations_from_basis(assert_results_close):
     """Test the from_basis function for general input values."""
 
     t1 = [1, 2, 3]
@@ -236,7 +236,7 @@ def test_from_basis(assert_results_close):
         Rotation().from_basis([1, 2, 3], [0, 0, 0])
 
 
-def test_transformation_matrix(assert_results_close):
+def test_beamme_core_rotations_transformation_matrix(assert_results_close):
     """Test that the transformation matrix is computed correctly."""
 
     rotation_vector_large = [1.0, 2.0, np.pi / 5.0]
@@ -278,7 +278,7 @@ def test_transformation_matrix(assert_results_close):
     assert_results_close(rotation_small.get_transformation_matrix_inv(), np.identity(3))
 
 
-def test_smallest_rotation_triad(assert_results_close):
+def test_beamme_core_rotations_smallest_rotation_triad(assert_results_close):
     """Test that the smallest rotation triad is calculated correctly."""
 
     # Get the triad obtained by a smallest rotation from an arbitrary triad
@@ -296,7 +296,7 @@ def test_smallest_rotation_triad(assert_results_close):
     assert_results_close(rot_smallest.q, rot_smallest_ref)
 
 
-def test_error_accumulation_multiplication(assert_results_close):
+def test_beamme_core_rotations_error_accumulation_multiplication(assert_results_close):
     """Test that error accumulation of successive multiplications of rotations
     does not affect the results."""
 
@@ -317,7 +317,9 @@ def test_error_accumulation_multiplication(assert_results_close):
     assert_results_close(q_ref, rotation.q)
 
 
-def test_error_accumulation_smallest_rotation(assert_results_close):
+def test_beamme_core_rotations_error_accumulation_smallest_rotation(
+    assert_results_close,
+):
     """Test that error accumulation of successive smallest rotation mappings
     does not affect the results.
 
@@ -342,7 +344,7 @@ def test_error_accumulation_smallest_rotation(assert_results_close):
     assert_results_close(q_ref, rotation_new.q)
 
 
-def test_rotations_rotation_vector_series(assert_results_close):
+def test_beamme_core_rotations_rotations_rotation_vector_series(assert_results_close):
     """Test the function get_rotation_vector_series."""
 
     director = np.array([1, 2, 3])
