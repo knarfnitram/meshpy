@@ -19,7 +19,10 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-"""Unit tests beam elements for 4C."""
+"""Unit tests beam elements for 4C.
+
+TODO: Split these tests into actual unit tests for beam and material.
+"""
 
 import warnings
 
