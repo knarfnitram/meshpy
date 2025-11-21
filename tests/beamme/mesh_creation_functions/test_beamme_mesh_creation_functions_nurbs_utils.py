@@ -43,7 +43,9 @@ class MockSpline:
         self.control_points = np.array(control_points)
 
 
-def test_nurbs_utils_translate_splinepy_2d(assert_results_close):
+def test_beamme_mesh_creation_functions_nurbs_utils_translate_splinepy_2d(
+    assert_results_close,
+):
     """Test translation of a 2D splinepy object."""
     spline = MockSpline([[0.0, 0.0], [1.0, 1.0]])
     translation = [2.0, -1.0]
@@ -52,7 +54,9 @@ def test_nurbs_utils_translate_splinepy_2d(assert_results_close):
     assert_results_close(spline.control_points, expected)
 
 
-def test_nurbs_utils_translate_splinepy_3d(assert_results_close):
+def test_beamme_mesh_creation_functions_nurbs_utils_translate_splinepy_3d(
+    assert_results_close,
+):
     """Test translation of a 3D splinepy object."""
     spline = MockSpline([[0.0, 0.0, 0.0], [1.0, 1.0, 1.0]])
     translation = [1.0, 2.0, 3.0]
@@ -61,7 +65,7 @@ def test_nurbs_utils_translate_splinepy_3d(assert_results_close):
     assert_results_close(spline.control_points, expected)
 
 
-def test_nurbs_utils_translate_invalid_dimension():
+def test_beamme_mesh_creation_functions_nurbs_utils_translate_invalid_dimension():
     """Test that translation with a vector of incorrect dimension raises
     error."""
     spline = MockSpline([[0.0, 0.0]])
@@ -69,7 +73,9 @@ def test_nurbs_utils_translate_invalid_dimension():
         translate_splinepy(spline, [1.0, 2.0, 3.0])
 
 
-def test_nurbs_utils_rotate_splinepy_2d(assert_results_close):
+def test_beamme_mesh_creation_functions_nurbs_utils_rotate_splinepy_2d(
+    assert_results_close,
+):
     """Test rotation of a 2D splinepy object."""
     points = [[1.0, 0.0], [0.0, 1.0]]
     spline = MockSpline(points)
@@ -79,7 +85,7 @@ def test_nurbs_utils_rotate_splinepy_2d(assert_results_close):
     assert_results_close(spline.control_points, expected)
 
 
-def test_nurbs_utils_rotate_splinepy_invalid_2d_rotation():
+def test_beamme_mesh_creation_functions_nurbs_utils_rotate_splinepy_invalid_2d_rotation():
     """Test that a 2D splinepy object can only be rotated by a rotation around
     the z-axis."""
     spline = MockSpline([[1.0, 0.0]])
@@ -89,7 +95,9 @@ def test_nurbs_utils_rotate_splinepy_invalid_2d_rotation():
 
 
 @pytest.mark.parametrize("origin", [None, [1.0, 2.0, 3.0]])
-def test_nurbs_utils_rotate_splinepy_3d_origin(origin, assert_results_close):
+def test_beamme_mesh_creation_functions_nurbs_utils_rotate_splinepy_3d_origin(
+    origin, assert_results_close
+):
     """Test rotation of a 3D splinepy object with and without given origin
     argument."""
     points = np.array([[1.0, 2.0, 3.0], [2.0, 3.0, 4.0]])
@@ -107,7 +115,7 @@ def test_nurbs_utils_rotate_splinepy_3d_origin(origin, assert_results_close):
     assert_results_close(spline.control_points, expected)
 
 
-def test_nurbs_utils_ensure_3d_splinepy_object_already_3d():
+def test_beamme_mesh_creation_functions_nurbs_utils_ensure_3d_splinepy_object_already_3d():
     """Ensure that a 3D splinepy object is left unchanged."""
     original_points = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
     spline = MockSpline(original_points)
@@ -117,7 +125,9 @@ def test_nurbs_utils_ensure_3d_splinepy_object_already_3d():
     assert spline.control_points is spline_cp_initial
 
 
-def test_nurbs_utils_ensure_3d_splinepy_object_from_1d(assert_results_close):
+def test_beamme_mesh_creation_functions_nurbs_utils_ensure_3d_splinepy_object_from_1d(
+    assert_results_close,
+):
     """Ensure that a 1D splinepy object is converted to 3D by adding y=0 and
     z=0."""
     original_points = np.array([[1.0], [3.0]])
@@ -127,7 +137,9 @@ def test_nurbs_utils_ensure_3d_splinepy_object_from_1d(assert_results_close):
     assert_results_close(spline.control_points, expected)
 
 
-def test_nurbs_utils_ensure_3d_splinepy_object_from_2d(assert_results_close):
+def test_beamme_mesh_creation_functions_nurbs_utils_ensure_3d_splinepy_object_from_2d(
+    assert_results_close,
+):
     """Ensure that a 2D splinepy object is converted to 3D by adding z=0."""
     original_points = np.array([[1.0, 2.0], [3.0, 4.0]])
     spline = MockSpline(original_points)
@@ -136,7 +148,7 @@ def test_nurbs_utils_ensure_3d_splinepy_object_from_2d(assert_results_close):
     assert_results_close(spline.control_points, expected)
 
 
-def test_nurbs_utils_ensure_3d_splinepy_object_invalid_dimension():
+def test_beamme_mesh_creation_functions_nurbs_utils_ensure_3d_splinepy_object_invalid_dimension():
     """Ensure that an invalid spline dimension raises ValueError."""
     spline = MockSpline(np.zeros((2, 4)))  # 4D control points
     with pytest.raises(ValueError, match="Splinepy object must be 1D, 2D or 3D"):

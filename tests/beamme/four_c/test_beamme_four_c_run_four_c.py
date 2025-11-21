@@ -41,7 +41,7 @@ def create_simulation_dir(tmp_path):
     return simulation_dir, simulation_sub_dir, test_file
 
 
-def test_run_four_c_clean_simulation_directory_create_directory(tmp_path):
+def test_beamme_four_c_run_four_c_clean_simulation_directory_create_directory(tmp_path):
     """Test that clean_simulation_directory creates a directory."""
     simulation_dir = tmp_path / "new_dir"
     assert not simulation_dir.exists()
@@ -51,7 +51,7 @@ def test_run_four_c_clean_simulation_directory_create_directory(tmp_path):
 
 
 @pytest.mark.parametrize("prompt", (False, True))
-def test_run_four_c_clean_simulation_directory_clear_existing_directory(
+def test_beamme_four_c_run_four_c_clean_simulation_directory_clear_existing_directory(
     prompt, create_simulation_dir
 ):
     """Test that clean_simulation_directory cleans an existing directory."""
@@ -67,7 +67,9 @@ def test_run_four_c_clean_simulation_directory_clear_existing_directory(
     assert not any(simulation_dir.iterdir())
 
 
-def test_run_four_c_clean_simulation_directory_prompt_no(create_simulation_dir):
+def test_beamme_four_c_run_four_c_clean_simulation_directory_prompt_no(
+    create_simulation_dir,
+):
     """Test that clean_simulation_directory NO prompt works."""
     simulation_dir, simulation_sub_dir, test_file = create_simulation_dir
 
