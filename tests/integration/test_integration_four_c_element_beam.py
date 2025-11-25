@@ -98,7 +98,7 @@ def test_integration_four_c_element_beam_reissner_beam(
     assert_results_close(
         get_corresponding_reference_file_path(
             additional_identifier=(
-                f"n_line{n_nodes}" + (f"_hermite" if is_hermite else "")
+                f"line{n_nodes}" + (f"_hermite" if is_hermite else "")
             ),
         ),
         mesh,
