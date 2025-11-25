@@ -144,8 +144,18 @@ INPUT_FILE_MAPPINGS["geometry_sets_geometry_to_entry_name"] = {
     _bme.geo.surface: "DSURFACE",
     _bme.geo.volume: "DVOL",
 }
-INPUT_FILE_MAPPINGS["n_nodes_to_cell_type"] = {2: "LINE2", 3: "LINE3"}
-INPUT_FILE_MAPPINGS["n_nodes_to_node_ordering"] = {2: [0, 1], 3: [0, 2, 1]}
+INPUT_FILE_MAPPINGS["n_nodes_to_cell_type"] = {
+    2: "LINE2",
+    3: "LINE3",
+    4: "LINE4",
+    5: "LINE5",
+}
+INPUT_FILE_MAPPINGS["n_nodes_to_node_ordering"] = {
+    2: [0, 1],
+    3: [0, 2, 1],
+    4: [0, 2, 3, 1],
+    5: [0, 2, 3, 4, 1],
+}
 INPUT_FILE_MAPPINGS["nurbs_type_to_default_four_c_type"] = {
     _NURBSSurface: "WALLNURBS",
     _NURBSVolume: "SOLID",
