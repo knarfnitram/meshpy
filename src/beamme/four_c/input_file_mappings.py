@@ -153,8 +153,8 @@ INPUT_FILE_MAPPINGS["n_nodes_to_cell_type"] = {
 INPUT_FILE_MAPPINGS["n_nodes_to_node_ordering"] = {
     2: [0, 1],
     3: [0, 2, 1],
-    4: [0, 2, 3, 1],
-    5: [0, 2, 3, 4, 1],
+    4: [0, 3, 1, 2],
+    5: [0, 4, 1, 2, 3],
 }
 INPUT_FILE_MAPPINGS["nurbs_type_to_default_four_c_type"] = {
     _NURBSSurface: "WALLNURBS",
