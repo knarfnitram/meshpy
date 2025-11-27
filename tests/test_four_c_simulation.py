@@ -718,6 +718,9 @@ def test_four_c_simulation_dbc_monitor_to_input(
     # Create and run the initial simulation.
     initial_input_file, initial_mesh, mesh_beam_set = create_cantilever_model(n_steps=2)
 
+    # write restart
+    initial_input_file["STRUCTURAL DYNAMIC"]["RESTARTEVERY"] = 1
+
     initial_mesh.add(
         BoundaryCondition(
             mesh_beam_set["start"],
@@ -771,6 +774,9 @@ def test_four_c_simulation_dbc_monitor_to_input(
     restart_input_file, restart_mesh, mesh_beam_set = create_cantilever_model(
         n_steps=21
     )
+
+    # write restart
+    restart_input_file["STRUCTURAL DYNAMIC"]["RESTARTEVERY"] = 1
 
     restart_mesh.add(
         BoundaryCondition(
