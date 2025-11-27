@@ -22,6 +22,7 @@
 """This script is used to simulate create 4C input files."""
 
 import os
+import re
 
 import numpy as np
 import pytest
@@ -142,7 +143,7 @@ def run_four_c_test(
 
 @pytest.mark.parametrize(*PYTEST_4C_SIMULATION_PARAMETRIZE)
 @pytest.mark.parametrize("full_import", [False, True])
-def test_four_c_simulation_honeycomb_sphere(
+def test_integration_four_c_simulation_honeycomb_sphere(
     enforce_four_c,
     full_import,
     tmp_path,
@@ -286,7 +287,7 @@ def test_four_c_simulation_honeycomb_sphere(
 
 @pytest.mark.parametrize(*PYTEST_4C_SIMULATION_PARAMETRIZE)
 @pytest.mark.parametrize("full_import", [False, True])
-def test_four_c_simulation_beam_and_solid_tube(
+def test_integration_four_c_simulation_beam_and_solid_tube(
     enforce_four_c,
     full_import,
     tmp_path,
@@ -393,7 +394,7 @@ def test_four_c_simulation_beam_and_solid_tube(
 
 
 @pytest.mark.parametrize(*PYTEST_4C_SIMULATION_PARAMETRIZE)
-def test_four_c_simulation_honeycomb_variants(
+def test_integration_four_c_simulation_honeycomb_variants(
     enforce_four_c,
     assert_results_close,
     get_corresponding_reference_file_path,
@@ -467,7 +468,10 @@ def test_four_c_simulation_honeycomb_variants(
     # This does not work, because we would overwrite the entire section.
     with pytest.raises(
         ValueError,
-        match="Section(s) STRUCTURAL DYNAMIC are defined in both InputFile objects. In order to join the InputFile objects remove the section(s) in one of them.",
+        match=re.escape(
+            "Section(s) STRUCTURAL DYNAMIC are defined in both InputFile objects. "
+            "In order to join the InputFile objects remove the section(s) in one of them."
+        ),
     ):
         input_file.add({"STRUCTURAL DYNAMIC": {"NUMSTEP": "something"}})
 
@@ -558,7 +562,7 @@ def test_four_c_simulation_honeycomb_variants(
 
 
 @pytest.mark.parametrize(*PYTEST_4C_SIMULATION_PARAMETRIZE)
-def test_four_c_simulation_rotated_beam_axis(
+def test_integration_four_c_simulation_rotated_beam_axis(
     enforce_four_c,
     tmp_path,
     assert_results_close,
@@ -688,11 +692,11 @@ def test_four_c_simulation_rotated_beam_axis(
 @pytest.mark.parametrize(
     "initial_run_name",
     [
-        "test_cantilever_w_dbc_monitor_to_input",
-        "test_cantilever_w_dbc_monitor_to_input_all_values",
+        "test_integration_four_c_simulation_dbc_monitor_to_input",
+        "test_integration_four_c_simulation_dbc_monitor_to_input_all_values",
     ],
 )
-def test_four_c_simulation_dbc_monitor_to_input(
+def test_integration_four_c_simulation_dbc_monitor_to_input(
     enforce_four_c,
     initial_run_name,
     tmp_path,
@@ -842,7 +846,7 @@ def test_four_c_simulation_dbc_monitor_to_input(
 
 
 @pytest.mark.parametrize(*PYTEST_4C_SIMULATION_PARAMETRIZE)
-def test_four_c_simulation_dirichlet_boundary_to_neumann_boundary_with_all_values(
+def test_integration_four_c_simulation_dirichlet_boundary_to_neumann_boundary_with_all_values(
     enforce_four_c,
     tmp_path,
     assert_results_close,
@@ -1005,7 +1009,9 @@ def test_four_c_simulation_dirichlet_boundary_to_neumann_boundary_with_all_value
 
 
 @pytest.mark.fourc
-def test_four_c_simulation_cantilever_convergence(tmp_path, assert_results_close):
+def test_integration_four_c_simulation_cantilever_convergence(
+    tmp_path, assert_results_close
+):
     """Create multiple simulations of a cantilever beam.
 
     This is a legacy test that used to test the simulation manager.
@@ -1079,7 +1085,7 @@ def test_four_c_simulation_cantilever_convergence(tmp_path, assert_results_close
 
 
 @pytest.mark.parametrize(*PYTEST_4C_SIMULATION_PARAMETRIZE)
-def test_four_c_simulation_beam_to_beam_contact_example(
+def test_integration_four_c_simulation_beam_to_beam_contact_example(
     enforce_four_c,
     tmp_path,
     assert_results_close,
@@ -1220,7 +1226,7 @@ def test_four_c_simulation_beam_to_beam_contact_example(
 
 
 @pytest.mark.parametrize(*PYTEST_4C_SIMULATION_PARAMETRIZE)
-def test_four_c_simulation_locsys(
+def test_integration_four_c_simulation_locsys(
     tmp_path,
     enforce_four_c,
     assert_results_close,

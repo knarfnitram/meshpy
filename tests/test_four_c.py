@@ -171,7 +171,7 @@ def test_four_c_material_numbering(
     assert_results_close(get_corresponding_reference_file_path(), input_file)
 
 
-def test_four_c_simulation_beam_potential_helix(
+def test_four_c_beam_potential_helix(
     get_default_test_beam_material,
     assert_results_close,
     get_corresponding_reference_file_path,
