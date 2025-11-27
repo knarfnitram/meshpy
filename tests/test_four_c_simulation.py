@@ -465,12 +465,11 @@ def test_four_c_simulation_honeycomb_variants(
     input_file["STRUCTURAL DYNAMIC"]["NUMSTEP"] = 1
 
     # This does not work, because we would overwrite the entire section.
-    with pytest.raises(ValueError) as error:
+    with pytest.raises(
+        ValueError,
+        match="Section(s) STRUCTURAL DYNAMIC are defined in both InputFile objects. In order to join the InputFile objects remove the section(s) in one of them.",
+    ):
         input_file.add({"STRUCTURAL DYNAMIC": {"NUMSTEP": "something"}})
-
-    assert str(error.value) == (
-        "Section(s) STRUCTURAL DYNAMIC are defined in both InputFile objects. In order to join the InputFile objects remove the section(s) in one of them."
-    )
 
     # Create four meshes with different types of honeycomb structure.
     mesh = Mesh()
@@ -1006,9 +1005,7 @@ def test_four_c_simulation_dirichlet_boundary_to_neumann_boundary_with_all_value
 
 
 @pytest.mark.fourc
-def test_four_c_simulation_cantilever_convergence(
-    tmp_path,
-):
+def test_four_c_simulation_cantilever_convergence(tmp_path, assert_results_close):
     """Create multiple simulations of a cantilever beam.
 
     This is a legacy test that used to test the simulation manager.
@@ -1078,8 +1075,7 @@ def test_four_c_simulation_cantilever_convergence(
         "1": 0.33453718896204,
         "ref": 0.335085590674607,
     }
-    for key in results_ref.keys():
-        assert abs(results[key] - results_ref[key]) < 1e-12
+    assert_results_close(results_ref, results)
 
 
 @pytest.mark.parametrize(*PYTEST_4C_SIMULATION_PARAMETRIZE)
