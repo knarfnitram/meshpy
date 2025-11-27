@@ -36,9 +36,8 @@ from beamme.core.mesh import Mesh
 from beamme.core.rotation import Rotation
 from beamme.four_c.element_beam import (
     Beam3eb,
-    Beam3rHerm2Line3,
-    Beam3rLine2Line2,
     get_four_c_kirchhoff_beam,
+    get_four_c_reissner_beam,
 )
 from beamme.four_c.four_c_types import (
     BeamKirchhoffConstraintType,
@@ -57,8 +56,18 @@ from beamme.mesh_creation_functions.beam_line import create_beam_mesh_line
 from beamme.utils.nodes import get_single_node
 
 
+@pytest.mark.parametrize(
+    ("n_nodes", "is_hermite"),
+    (
+        (2, False),
+        (3, False),
+        (4, False),
+        (5, False),
+        (3, True),
+    ),
+)
 def test_integration_four_c_element_beam_reissner_beam(
-    assert_results_close, get_corresponding_reference_file_path
+    n_nodes, is_hermite, assert_results_close, get_corresponding_reference_file_path
 ):
     """Test that the input file for all types of Reissner beams is generated
     correctly."""
@@ -71,21 +80,29 @@ def test_integration_four_c_element_beam_reissner_beam(
         radius=1.0, youngs_modulus=1.0, nu=0.3, density=1.0, interaction_radius=2.0
     )
 
-    # Create a beam arc with the different Reissner beam types.
-    for i, beam_type in enumerate([Beam3rHerm2Line3, Beam3rLine2Line2]):
-        create_beam_mesh_arc_segment_via_rotation(
-            mesh,
-            beam_type,
-            material,
-            [0.0, 0.0, i],
-            Rotation([0.0, 0.0, 1.0], np.pi / 2.0),
-            2.0,
-            np.pi / 2.0,
-            n_el=2,
-        )
+    beam_type = get_four_c_reissner_beam(
+        n_nodes=n_nodes, is_hermite_centerline=is_hermite
+    )
+    create_beam_mesh_arc_segment_via_rotation(
+        mesh,
+        beam_type,
+        material,
+        [0.0, 0.0, 0.0],
+        Rotation([0.0, 0.0, 1.0], np.pi / 2.0),
+        2.0,
+        np.pi / 2.0,
+        n_el=2,
+    )
 
     # Compare with the reference solution.
-    assert_results_close(get_corresponding_reference_file_path(), mesh)
+    assert_results_close(
+        get_corresponding_reference_file_path(
+            additional_identifier=(
+                f"line{n_nodes}" + (f"_hermite" if is_hermite else "")
+            ),
+        ),
+        mesh,
+    )
 
 
 def test_integration_four_c_element_beam_kirchhoff_beam(
