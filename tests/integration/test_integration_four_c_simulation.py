@@ -802,14 +802,17 @@ def test_integration_four_c_simulation_dbc_monitor_to_input(
     )
     restart_mesh.add(function_nbc)
 
-    if initial_run_name == "test_cantilever_w_dbc_monitor_to_input":
+    if initial_run_name == "test_integration_four_c_simulation_dbc_monitor_to_input":
         dbc_monitor_to_mesh(
             restart_mesh,
             tmp_path / initial_run_name / f"{initial_run_name}-102_monitor_dbc.yaml",
             n_dof=9,
             function=function_nbc,
         )
-    elif initial_run_name == "test_cantilever_w_dbc_monitor_to_input_all_values":
+    elif (
+        initial_run_name
+        == "test_integration_four_c_simulation_dbc_monitor_to_input_all_values"
+    ):
         dbc_monitor_to_mesh_all_values(
             restart_mesh,
             tmp_path / initial_run_name / f"{initial_run_name}-102_monitor_dbc.yaml",
