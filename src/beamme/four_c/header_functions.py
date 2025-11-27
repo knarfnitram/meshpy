@@ -283,6 +283,7 @@ def set_header_static(
     max_iter: int = 20,
     tol_residuum: float = 1e-8,
     tol_increment: float = 1e-10,
+    restart_every: int = 1,
     load_lin: bool = False,
     write_bin: bool = False,
     write_stress: str = "no",
@@ -315,6 +316,8 @@ def set_header_static(
             If the load_lin option should be set.
         write_bin:
             If binary output should be written.
+        restart_every:
+            Frequency for writing restart output.
         write_stress:
             If and which stress output to write
         write_strain:
@@ -367,6 +370,7 @@ def set_header_static(
         "NUMSTEP": n_steps,
         "MAXTIME": total_time,
         "LOADLIN": load_lin,
+        "RESTARTEVERY": restart_every,
     }
     input_file_parameters["SOLVER 1"] = {
         "NAME": "Structure_Solver",
