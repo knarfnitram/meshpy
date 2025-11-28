@@ -22,6 +22,7 @@
 """This script is used to simulate create 4C input files."""
 
 import os
+import re
 
 import numpy as np
 import pytest
@@ -142,7 +143,7 @@ def run_four_c_test(
 
 @pytest.mark.parametrize(*PYTEST_4C_SIMULATION_PARAMETRIZE)
 @pytest.mark.parametrize("full_import", [False, True])
-def test_four_c_simulation_honeycomb_sphere(
+def test_integration_four_c_simulation_honeycomb_sphere(
     enforce_four_c,
     full_import,
     tmp_path,
@@ -286,7 +287,7 @@ def test_four_c_simulation_honeycomb_sphere(
 
 @pytest.mark.parametrize(*PYTEST_4C_SIMULATION_PARAMETRIZE)
 @pytest.mark.parametrize("full_import", [False, True])
-def test_four_c_simulation_beam_and_solid_tube(
+def test_integration_four_c_simulation_beam_and_solid_tube(
     enforce_four_c,
     full_import,
     tmp_path,
@@ -393,7 +394,7 @@ def test_four_c_simulation_beam_and_solid_tube(
 
 
 @pytest.mark.parametrize(*PYTEST_4C_SIMULATION_PARAMETRIZE)
-def test_four_c_simulation_honeycomb_variants(
+def test_integration_four_c_simulation_honeycomb_variants(
     enforce_four_c,
     assert_results_close,
     get_corresponding_reference_file_path,
@@ -465,12 +466,14 @@ def test_four_c_simulation_honeycomb_variants(
     input_file["STRUCTURAL DYNAMIC"]["NUMSTEP"] = 1
 
     # This does not work, because we would overwrite the entire section.
-    with pytest.raises(ValueError) as error:
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            "Section(s) STRUCTURAL DYNAMIC are defined in both InputFile objects. "
+            "In order to join the InputFile objects remove the section(s) in one of them."
+        ),
+    ):
         input_file.add({"STRUCTURAL DYNAMIC": {"NUMSTEP": "something"}})
-
-    assert str(error.value) == (
-        "Section(s) STRUCTURAL DYNAMIC are defined in both InputFile objects. In order to join the InputFile objects remove the section(s) in one of them."
-    )
 
     # Create four meshes with different types of honeycomb structure.
     mesh = Mesh()
@@ -559,7 +562,7 @@ def test_four_c_simulation_honeycomb_variants(
 
 
 @pytest.mark.parametrize(*PYTEST_4C_SIMULATION_PARAMETRIZE)
-def test_four_c_simulation_rotated_beam_axis(
+def test_integration_four_c_simulation_rotated_beam_axis(
     enforce_four_c,
     tmp_path,
     assert_results_close,
@@ -689,11 +692,11 @@ def test_four_c_simulation_rotated_beam_axis(
 @pytest.mark.parametrize(
     "initial_run_name",
     [
-        "test_cantilever_w_dbc_monitor_to_input",
-        "test_cantilever_w_dbc_monitor_to_input_all_values",
+        "test_integration_four_c_simulation_dbc_monitor_to_input",
+        "test_integration_four_c_simulation_dbc_monitor_to_input_all_values",
     ],
 )
-def test_four_c_simulation_dbc_monitor_to_input(
+def test_integration_four_c_simulation_dbc_monitor_to_input(
     enforce_four_c,
     initial_run_name,
     tmp_path,
@@ -799,14 +802,17 @@ def test_four_c_simulation_dbc_monitor_to_input(
     )
     restart_mesh.add(function_nbc)
 
-    if initial_run_name == "test_cantilever_w_dbc_monitor_to_input":
+    if initial_run_name == "test_integration_four_c_simulation_dbc_monitor_to_input":
         dbc_monitor_to_mesh(
             restart_mesh,
             tmp_path / initial_run_name / f"{initial_run_name}-102_monitor_dbc.yaml",
             n_dof=9,
             function=function_nbc,
         )
-    elif initial_run_name == "test_cantilever_w_dbc_monitor_to_input_all_values":
+    elif (
+        initial_run_name
+        == "test_integration_four_c_simulation_dbc_monitor_to_input_all_values"
+    ):
         dbc_monitor_to_mesh_all_values(
             restart_mesh,
             tmp_path / initial_run_name / f"{initial_run_name}-102_monitor_dbc.yaml",
@@ -843,7 +849,7 @@ def test_four_c_simulation_dbc_monitor_to_input(
 
 
 @pytest.mark.parametrize(*PYTEST_4C_SIMULATION_PARAMETRIZE)
-def test_four_c_simulation_dirichlet_boundary_to_neumann_boundary_with_all_values(
+def test_integration_four_c_simulation_dirichlet_boundary_to_neumann_boundary_with_all_values(
     enforce_four_c,
     tmp_path,
     assert_results_close,
@@ -1006,8 +1012,8 @@ def test_four_c_simulation_dirichlet_boundary_to_neumann_boundary_with_all_value
 
 
 @pytest.mark.fourc
-def test_four_c_simulation_cantilever_convergence(
-    tmp_path,
+def test_integration_four_c_simulation_cantilever_convergence(
+    tmp_path, assert_results_close
 ):
     """Create multiple simulations of a cantilever beam.
 
@@ -1078,12 +1084,11 @@ def test_four_c_simulation_cantilever_convergence(
         "1": 0.33453718896204,
         "ref": 0.335085590674607,
     }
-    for key in results_ref.keys():
-        assert abs(results[key] - results_ref[key]) < 1e-12
+    assert_results_close(results_ref, results)
 
 
 @pytest.mark.parametrize(*PYTEST_4C_SIMULATION_PARAMETRIZE)
-def test_four_c_simulation_beam_to_beam_contact_example(
+def test_integration_four_c_simulation_beam_to_beam_contact_example(
     enforce_four_c,
     tmp_path,
     assert_results_close,
@@ -1224,7 +1229,7 @@ def test_four_c_simulation_beam_to_beam_contact_example(
 
 
 @pytest.mark.parametrize(*PYTEST_4C_SIMULATION_PARAMETRIZE)
-def test_four_c_simulation_locsys(
+def test_integration_four_c_simulation_locsys(
     tmp_path,
     enforce_four_c,
     assert_results_close,
