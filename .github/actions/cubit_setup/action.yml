@@ -13,7 +13,11 @@ inputs:
   cubit_activation_timeout:
     description: Timeout to try cubit activation in seconds
     required: false
-    default: "300"
+    default: "900"
+  cubit_activation_delay_between_retries:
+    description: Delay between retries to try cubit activation in seconds
+    required: false
+    default: "10"
 outputs:
   cubit_root:
     description: "Path to the Cubit installation"
@@ -43,25 +47,19 @@ runs:
         echo "cubit_root=$CUBIT_ROOT" >> "$GITHUB_OUTPUT"
         # Activate cubit. Retry login until success or timeout.
         timeout="${{ inputs.cubit_activation_timeout }}"
+        delay="${{ inputs.cubit_activation_delay_between_retries }}"
         start=$(date +%s)
-        while true; do
-          $CUBIT_ROOT/bin/rlm_activate --login ${{ inputs.cubit_email }} ${{ inputs.cubit_password }}
-          status=$?
-          # TODO: Remove debug output when stable
-          echo "Cubit activation exit status: ${status}"
-
-          if [ $status -eq 0 ]; then
-            echo "Cubit activation succeeded."
-            break
-          fi
-
+        until $CUBIT_ROOT/bin/rlm_activate --login "${{ inputs.cubit_email }}" "${{ inputs.cubit_password }}"; do
           now=$(date +%s)
           elapsed=$(( now - start ))
-          if [ $elapsed -ge $timeout ]; then
+          if [ "$elapsed" -ge "$timeout" ]; then
             echo "Cubit activation timeout reached after $elapsed seconds."
-            break
+            exit 1
           fi
 
+          echo "Cubit activation failed after ${elapsed} seconds. Threshold is ${timeout} seconds. Retrying..."
+
           # Delay between retries.
-          sleep 5
+          sleep $delay
         done
+        echo "Cubit activation succeeded."
