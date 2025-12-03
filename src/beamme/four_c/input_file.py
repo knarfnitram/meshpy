@@ -22,15 +22,19 @@
 """This module defines the classes that are used to create an input file for
 4C."""
 
+from __future__ import annotations as _annotations
+
 import os as _os
 from datetime import datetime as _datetime
 from pathlib import Path as _Path
+from typing import Any as _Any
 from typing import Callable as _Callable
 from typing import Dict as _Dict
 from typing import List as _List
 
 from fourcipp.fourc_input import FourCInput as _FourCInput
 from fourcipp.fourc_input import sort_by_section_names as _sort_by_section_names
+from fourcipp.utils.not_set import NOT_SET as _NOT_SET
 
 from beamme.core.conf import INPUT_FILE_HEADER as _INPUT_FILE_HEADER
 from beamme.core.conf import bme as _bme
@@ -78,23 +82,101 @@ def get_geometry_set_indices_from_section(
     return geometry_set_dict
 
 
-class InputFile(_FourCInput):
+class InputFile:
     """An item that represents a complete 4C input file."""
 
-    def __init__(self, sections=None):
+    def __init__(self):
         """Initialize the input file."""
 
-        super().__init__(sections=sections)
+        self.fourc_input = _FourCInput()
 
         # Contents of NOX xml file.
         self.nox_xml_contents = ""
 
         # Register converters to directly convert non-primitive types
         # to native Python types via the FourCIPP type converter.
-        self.type_converter.register_numpy_types()
-        self.type_converter.register_type(
+        self.fourc_input.type_converter.register_numpy_types()
+        self.fourc_input.type_converter.register_type(
             (_Function, _Material, _Node), lambda converter, obj: obj.i_global + 1
         )
+
+    def __contains__(self, key: str) -> bool:
+        """Contains function.
+
+        Allows to use the `in` operator.
+
+        Args:
+            key: Section name to check if it is set
+
+        Returns:
+            True if section is set
+        """
+
+        return key in self.fourc_input
+
+    def __setitem__(self, key: str, value: _Any) -> None:
+        """Set section.
+
+        Args:
+            key: Section name
+            value: Section entry
+        """
+
+        self.fourc_input[key] = value
+
+    def __getitem__(self, key: str) -> _Any:
+        """Get section of input file.
+
+        Allows to use the indexing operator.
+
+        Args:
+            key: Section name to get
+
+        Returns:
+            The section content
+        """
+
+        return self.fourc_input[key]
+
+    @classmethod
+    def from_4C_yaml(
+        cls, input_file_path: str | _Path, header_only: bool = False
+    ) -> InputFile:
+        """Load 4C yaml file.
+
+        Args:
+            input_file_path: Path to yaml file
+            header_only: Only extract header, i.e., all sections except the legacy ones
+
+        Returns:
+            Initialised object
+        """
+
+        obj = cls()
+        obj.fourc_input = _FourCInput.from_4C_yaml(input_file_path, header_only)
+        return obj
+
+    @property
+    def sections(self) -> dict:
+        """All the set sections.
+
+        Returns:
+            dict: Set sections
+        """
+
+        return self.fourc_input.sections
+
+    def pop(self, key: str, default_value: _Any = _NOT_SET) -> _Any:
+        """Pop section of input file.
+
+        Args:
+            key: Section name to pop
+
+        Returns:
+            The section content
+        """
+
+        return self.fourc_input.pop(key, default_value)
 
     def add(self, object_to_add, **kwargs):
         """Add a mesh or a dictionary to the input file.
@@ -108,7 +190,7 @@ class InputFile(_FourCInput):
             self.add_mesh_to_input_file(mesh=object_to_add, **kwargs)
 
         else:
-            super().combine_sections(object_to_add)
+            self.fourc_input.combine_sections(object_to_add)
 
     def dump(
         self,
@@ -169,7 +251,7 @@ class InputFile(_FourCInput):
         if add_header_information:
             self.add({"TITLE": self._get_header()})
 
-        super().dump(
+        self.fourc_input.dump(
             input_file_path=input_file_path,
             validate=validate,
             validate_sections_only=validate_sections_only,

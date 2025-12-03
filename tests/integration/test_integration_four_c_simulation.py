@@ -469,8 +469,8 @@ def test_integration_four_c_simulation_honeycomb_variants(
     with pytest.raises(
         ValueError,
         match=re.escape(
-            "Section(s) STRUCTURAL DYNAMIC are defined in both InputFile objects. "
-            "In order to join the InputFile objects remove the section(s) in one of them."
+            "Section(s) STRUCTURAL DYNAMIC are defined in both FourCInput objects. "
+            "In order to join the FourCInput objects remove the section(s) in one of them."
         ),
     ):
         input_file.add({"STRUCTURAL DYNAMIC": {"NUMSTEP": "something"}})
