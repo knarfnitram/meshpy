@@ -219,12 +219,6 @@ def set_beam_to_solid_meshtying(
     ):
         input_file.add({"BEAM INTERACTION": {"REPARTITIONSTRATEGY": "everydt"}})
 
-    if (
-        "BEAM CONTACT" not in input_file
-        or input_file["BEAM CONTACT"].get("MODELEVALUATOR") != "Standard"
-    ):
-        input_file.add({"BEAM CONTACT": {"MODELEVALUATOR": "Standard"}})
-
     set_binning_strategy_section(
         input_file,
         **binning_parameters,
@@ -527,7 +521,7 @@ def set_beam_contact_runtime_output(
 
     input_file.add(
         {
-            "BEAM CONTACT/RUNTIME VTK OUTPUT": {
+            "BEAM INTERACTION/BEAM TO BEAM CONTACT/RUNTIME VTK OUTPUT": {
                 "VTK_OUTPUT_BEAM_CONTACT": True,
                 "EVERY_ITERATION": every_iteration,
                 "INTERVAL_STEPS": 1,
@@ -603,16 +597,6 @@ def set_beam_contact_section(
     input_file.add(
         {
             "BEAM INTERACTION/BEAM TO BEAM CONTACT": {
-                "STRATEGY": interaction_strategy,
-            }
-        }
-    )
-
-    input_file.add(
-        {
-            "BEAM CONTACT": {
-                "MODELEVALUATOR": "standard",
-                "BEAMS_STRATEGY": "penalty",
                 "BEAMS_BTBPENALTYPARAM": btb_penalty,
                 "BEAMS_BTBLINEPENALTYPARAM": btb_line_penalty,
                 "BEAMS_SEGCON": True,
@@ -626,7 +610,6 @@ def set_beam_contact_section(
                 "BEAMS_PENREGPARAM_G0": penalty_regularization_g0,
                 "BEAMS_PENREGPARAM_F0": penalty_regularization_f0,
                 "BEAMS_PENREGPARAM_C0": penalty_regularization_c0,
-                "BEAMS_MAXDELTADISSCALEFAC": -1.0,
             }
         }
     )
