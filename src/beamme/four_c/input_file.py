@@ -29,7 +29,6 @@ from datetime import datetime as _datetime
 from pathlib import Path as _Path
 from typing import Any as _Any
 from typing import Callable as _Callable
-from typing import Dict as _Dict
 from typing import List as _List
 
 from fourcipp.fourc_input import FourCInput as _FourCInput
@@ -56,30 +55,6 @@ from beamme.utils.environment import get_git_data as _get_git_data
 
 if _cubitpy_is_available():
     import cubitpy as _cubitpy
-
-
-def get_geometry_set_indices_from_section(
-    section_list: _List, *, append_node_ids: bool = True
-) -> _Dict:
-    """Return a dictionary with the geometry set ID as keys and the node IDs as
-    values.
-
-    Args:
-        section_list: A list with the legacy strings for the geometry pair
-        append_node_ids: If the node IDs shall be appended, or only the
-            dict with the keys should be returned.
-    """
-
-    geometry_set_dict: _Dict[int, _List[int]] = {}
-    for entry in section_list:
-        id_geometry_set = entry["d_id"]
-        index_node = entry["node_id"] - 1
-        if id_geometry_set not in geometry_set_dict:
-            geometry_set_dict[id_geometry_set] = []
-        if append_node_ids:
-            geometry_set_dict[id_geometry_set].append(index_node)
-
-    return geometry_set_dict
 
 
 class InputFile:
@@ -275,201 +250,159 @@ class InputFile:
                 with open(input_file_path, "w") as input_file:
                     input_file.writelines(lines)
 
-    def add_mesh_to_input_file(self, mesh: _Mesh):
+    def add_mesh_to_input_file(self, mesh: _Mesh) -> None:
         """Add a mesh to the input file.
 
         Args:
             mesh: The mesh to be added to the input file.
         """
 
-        # Perform some checks on the mesh.
         if _bme.check_overlapping_elements:
             mesh.check_overlapping_elements()
 
-        def _get_global_start_geometry_set(dictionary):
-            """Get the indices for the first "real" BeamMe geometry sets."""
-
-            start_indices_geometry_set = {}
+        # Compute geometry-set starting indices
+        start_indices_geometry_set = {
+            geometry_type: max(
+                (entry["d_id"] for entry in self.sections.get(section_name, [])),
+                default=0,
+            )
             for geometry_type, section_name in _INPUT_FILE_MAPPINGS[
                 "geometry_sets_geometry_to_condition_name"
-            ].items():
-                max_geometry_set_id = 0
-                if section_name in dictionary:
-                    section_list = dictionary[section_name]
-                    if len(section_list) > 0:
-                        geometry_set_dict = get_geometry_set_indices_from_section(
-                            section_list, append_node_ids=False
-                        )
-                        max_geometry_set_id = max(geometry_set_dict.keys())
-                start_indices_geometry_set[geometry_type] = max_geometry_set_id
-            return start_indices_geometry_set
+            ].items()
+        }
 
-        def _get_global_start_node():
-            """Get the index for the first "real" BeamMe node."""
+        # Determine global start indices
+        start_index_nodes = len(self.sections.get("NODE COORDS", []))
 
-            return len(self.sections.get("NODE COORDS", []))
+        start_index_elements = sum(
+            len(self.sections.get(section, []))
+            for section in ("FLUID ELEMENTS", "STRUCTURE ELEMENTS")
+        )
 
-        def _get_global_start_element():
-            """Get the index for the first "real" BeamMe element."""
+        start_index_functions = max(
+            (
+                int(section.split("FUNCT")[-1])
+                for section in self.sections
+                if section.startswith("FUNCT")
+            ),
+            default=0,
+        )
 
-            return sum(
-                len(self.sections.get(section, []))
-                for section in ["FLUID ELEMENTS", "STRUCTURE ELEMENTS"]
-            )
+        start_index_materials = max(
+            (material["MAT"] for material in self.sections.get("MATERIALS", [])),
+            default=0,
+        )  # materials imported from YAML may have arbitrary numbering
 
-        def _get_global_start_material():
-            """Get the index for the first "real" BeamMe material.
-
-            We have to account for materials imported from yaml files
-            that have arbitrary numbering.
-            """
-
-            # Get the maximum material index in materials imported from a yaml file
-            max_material_id = 0
-            section_name = "MATERIALS"
-            if section_name in self.sections:
-                for material in self.sections[section_name]:
-                    max_material_id = max(max_material_id, material["MAT"])
-            return max_material_id
-
-        def _get_global_start_function():
-            """Get the index for the first "real" BeamMe function."""
-
-            max_function_id = 0
-            for section_name in self.sections.keys():
-                if section_name.startswith("FUNCT"):
-                    max_function_id = max(
-                        max_function_id, int(section_name.split("FUNCT")[-1])
-                    )
-            return max_function_id
-
-        def _set_i_global(data_list, *, start_index=0):
-            """Set i_global in every item of data_list."""
-
-            # A check is performed that every entry in data_list is unique.
-            if len(data_list) != len(set(data_list)):
-                raise ValueError("Elements in data_list are not unique!")
-
-            # Set the values for i_global.
-            for i, item in enumerate(data_list):
-                item.i_global = i + start_index
-
-        def _set_i_global_elements(element_list, *, start_index=0):
-            """Set i_global in every item of element_list."""
-
-            # A check is performed that every entry in element_list is unique.
-            if len(element_list) != len(set(element_list)):
-                raise ValueError("Elements in element_list are not unique!")
-
-            # Set the values for i_global.
-            i = start_index
-            i_nurbs_patch = 0
-            for item in element_list:
-                # As a NURBS patch can be defined with more elements, an offset is applied to the
-                # rest of the items
-                item.i_global = i
-                if isinstance(item, _NURBSPatch):
-                    item.i_nurbs_patch = i_nurbs_patch
-                    offset = item.get_number_of_elements()
-                    i += offset
-                    i_nurbs_patch += 1
-                else:
-                    i += 1
-
-        def _dump_mesh_items(section_name, data_list):
-            """Output a section name and apply either the default dump or the
-            specialized the dump_to_list for each list item."""
-
-            # Do not write section if no content is available
-            if len(data_list) == 0:
-                return
-
-            list = []
-
-            for item in data_list:
-                _dump_item_to_list(list, item)
-
-            # If section already exists, retrieve from input file and
-            # add newly. We always need to go through fourcipp to convert
-            # the data types correctly.
-            if section_name in self.sections:
-                existing_entries = self.pop(section_name)
-                existing_entries.extend(list)
-                list = existing_entries
-
-            self.add({section_name: list})
-
-        # Add sets from couplings and boundary conditions to a temp container.
+        # Add sets from couplings and boundary conditions to a temp container
         mesh.unlink_nodes()
-        start_indices_geometry_set = _get_global_start_geometry_set(self.sections)
         mesh_sets = mesh.get_unique_geometry_sets(
             geometry_set_start_indices=start_indices_geometry_set
         )
 
-        # Assign global indices to all entries.
-        start_index_nodes = _get_global_start_node()
-        _set_i_global(mesh.nodes, start_index=start_index_nodes)
+        # Assign global indices
+        #   Nodes
+        if len(mesh.nodes) != len(set(mesh.nodes)):
+            raise ValueError("Nodes are not unique!")
+        for i, node in enumerate(mesh.nodes, start=start_index_nodes):
+            node.i_global = i
 
-        start_index_elements = _get_global_start_element()
-        _set_i_global_elements(mesh.elements, start_index=start_index_elements)
+        #   Elements
+        if len(mesh.elements) != len(set(mesh.elements)):
+            raise ValueError("Elements are not unique!")
+        i = start_index_elements
+        nurbs_count = 0
 
-        start_index_materials = _get_global_start_material()
-        _set_i_global(mesh.materials, start_index=start_index_materials)
+        for element in mesh.elements:
+            element.i_global = i
+            if isinstance(element, _NURBSPatch):
+                element.i_nurbs_patch = nurbs_count
+                i += element.get_number_of_elements()
+                nurbs_count += 1
+                continue
+            i += 1
 
-        start_index_functions = _get_global_start_function()
-        _set_i_global(mesh.functions, start_index=start_index_functions)
+        #   Materials
+        if len(mesh.materials) != len(set(mesh.materials)):
+            raise ValueError("Materials are not unique!")
+        for i, material in enumerate(mesh.materials, start=start_index_materials):
+            material.i_global = i
 
-        # Add material data to the input file.
-        _dump_mesh_items("MATERIALS", mesh.materials)
+        #   Functions
+        if len(mesh.functions) != len(set(mesh.functions)):
+            raise ValueError("Functions are not unique!")
+        for i, function in enumerate(mesh.functions, start=start_index_functions):
+            function.i_global = i
 
-        # Add the functions.
+        # Dump mesh to input file
+        def _dump(section_name: str, items: _List) -> None:
+            """Dump list of items to a section in the input file.
+
+            Args:
+                section_name: Name of the section
+                items: List of items to be dumped
+            """
+            if not items:  # do not write empty sections
+                return
+            dumped: list[_Any] = []
+            for item in items:
+                _dump_item_to_list(dumped, item)
+
+            # Go through FourCIPP to convert to native types
+            # TODO this can be simplified/removed by using an internal type converter
+            if section_name in self.sections:
+                existing = self.pop(section_name)
+                existing.extend(dumped)
+                dumped = existing
+
+            self.add({section_name: dumped})
+
+        #   Materials
+        _dump("MATERIALS", mesh.materials)
+
+        #   Functions
         for function in mesh.functions:
             self.add({f"FUNCT{function.i_global + 1}": function.data})
 
-        # If there are couplings in the mesh, set the link between the nodes
-        # and elements, so the couplings can decide which DOFs they couple,
-        # depending on the type of the connected beam element.
-        def get_number_of_coupling_conditions(key):
-            """Return the number of coupling conditions in the mesh."""
-            if (key, _bme.geo.point) in mesh.boundary_conditions.keys():
-                return len(mesh.boundary_conditions[key, _bme.geo.point])
-            else:
-                return 0
-
-        if (
-            get_number_of_coupling_conditions(_bme.bc.point_coupling)
-            + get_number_of_coupling_conditions(_bme.bc.point_coupling_penalty)
-            > 0
+        #   Couplings
+        #     If there are couplings in the mesh, set the link between the nodes
+        #     and elements, so the couplings can decide which DOFs they couple,
+        #     depending on the type of the connected beam element.
+        if any(
+            mesh.boundary_conditions.get((key, _bme.geo.point), [])
+            for key in (_bme.bc.point_coupling, _bme.bc.point_coupling_penalty)
         ):
             mesh.set_node_links()
 
-        # Add the boundary conditions.
-        for (bc_key, geom_key), bc_list in mesh.boundary_conditions.items():
-            if len(bc_list) > 0:
-                section_name = (
+        #   Boundary conditions
+        for (bc_key, geometry_key), bc_list in mesh.boundary_conditions.items():
+            if bc_list:
+                section = (
                     bc_key
                     if isinstance(bc_key, str)
-                    else _INPUT_FILE_MAPPINGS["boundary_conditions"][(bc_key, geom_key)]
+                    else _INPUT_FILE_MAPPINGS["boundary_conditions"][
+                        (bc_key, geometry_key)
+                    ]
                 )
-                _dump_mesh_items(section_name, bc_list)
+                _dump(section, bc_list)
 
-        # Add additional element sections, e.g., for NURBS knot vectors.
+        #   Additional element sections (NURBS etc.)
         for element in mesh.elements:
             _dump_item_to_section(self, element)
 
-        # Add the geometry sets.
-        for geom_key, item in mesh_sets.items():
-            if len(item) > 0:
-                _dump_mesh_items(
-                    _INPUT_FILE_MAPPINGS["geometry_sets_geometry_to_condition_name"][
-                        geom_key
-                    ],
-                    item,
-                )
+        #   Geometry sets
+        for geometry_key, items in mesh_sets.items():
+            _dump(
+                _INPUT_FILE_MAPPINGS["geometry_sets_geometry_to_condition_name"][
+                    geometry_key
+                ],
+                items,
+            )
 
-        # Add the nodes and elements.
-        _dump_mesh_items("NODE COORDS", mesh.nodes)
-        _dump_mesh_items("STRUCTURE ELEMENTS", mesh.elements)
+        #   Nodes
+        _dump("NODE COORDS", mesh.nodes)
+        #   Elements
+        _dump("STRUCTURE ELEMENTS", mesh.elements)
+
         # TODO: reset all links and counters set in this method.
 
     def _get_header(self) -> dict:
