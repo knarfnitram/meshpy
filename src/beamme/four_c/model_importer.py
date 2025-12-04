@@ -66,7 +66,8 @@ def import_cubitpy_model(
         converted to a BeamMe mesh are removed from the input file object.
     """
 
-    input_file = _InputFile(sections=_get_input_file_with_mesh(cubit).sections)
+    input_file = _InputFile()
+    input_file.add(_get_input_file_with_mesh(cubit).sections)
 
     if convert_input_to_mesh:
         return _extract_mesh_sections(input_file)
