@@ -158,7 +158,7 @@ def convert_to_primitive_type(
         return obj
 
     if isinstance(obj, Path):
-        if obj.suffix == ".xml":
+        if obj.suffix == ".xml" or obj.suffix == ".pvd":
             return xmltodict.parse(obj.read_text(encoding="utf-8"))
 
         elif obj.suffix == ".json":

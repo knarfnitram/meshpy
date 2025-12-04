@@ -22,8 +22,10 @@
 """Define a Cosserat curve object that can be used to describe warping of
 curve-like objects."""
 
+from pathlib import Path as _Path
 from typing import Optional as _Optional
 from typing import Tuple as _Tuple
+from xml.etree import ElementTree as _ET  # nosec B405
 
 import numpy as _np
 import pyvista as _pv
@@ -314,6 +316,12 @@ class CosseratCurve(object):
         If the points are outside of the valid interval, a linear extrapolation will be
         performed for the displacements and the rotations will be held constant.
 
+        This function also allows to scale the curvature along the curve, allowing for a
+        "natural" unwrapping of general curves in 3D. We achieve this by scaling the
+        "final" curvature along the beam and then evaluating the curve that follows this
+        curvature (this would actually require to solve an ODE, but we avoid this by
+        using a piecewise constant approximation).
+
         Args
         ----
         points_on_arc_length: list(float)
@@ -322,9 +330,10 @@ class CosseratCurve(object):
             Factor to scale the curvature along the curve.
                 factor == 1
                     Use the default positions and the triads obtained via a smallest rotation mapping
-                factor < 1
+                0 <factor < 1
                     Integrate (piecewise constant as evaluated with get_relative_distance_and_rotations)
-                    the scaled curvature of the curve to obtain a intuitive wrapping
+                    the scaled curvature of the curve to obtain a intuitive wrapping. (factor=0 gives
+                    a straight line)
         """
 
         # Get the points that are within the arc length of the given curve.
@@ -466,21 +475,29 @@ class CosseratCurve(object):
 
         return _optimize.newton(f, t0, fprime=fp)
 
-    def get_pyvista_polyline(self) -> _pv.PolyData:
+    def get_pyvista_polyline(self, *, factor: float = 1.0) -> _pv.PolyData:
         """Create a pyvista (vtk) representation of the curve with the
-        evaluated triad basis vectors."""
+        evaluated triad basis vectors.
+
+        Args:
+            factor: Factor to scale the curvature along the curve (see
+                `get_centerline_positions_and_rotations` for details).
+
+        Returns:
+            A pyvista PolyData object representing the curve.
+        """
+
+        positions, rotations = self.get_centerline_positions_and_rotations(
+            self.point_arc_length, factor=factor
+        )
 
         poly_line = _pv.PolyData()
-        poly_line.points = self.coordinates
+        poly_line.points = positions
         cell = _np.arange(0, self.n_points, dtype=int)
         cell = _np.insert(cell, 0, self.n_points)
         poly_line.lines = cell
 
-        rotation_matrices = _np.zeros((len(self.quaternions), 3, 3))
-        for i_quaternion, q in enumerate(self.quaternions):
-            R = _quaternion.as_rotation_matrix(q)
-            rotation_matrices[i_quaternion] = R
-
+        rotation_matrices = _quaternion.as_rotation_matrix(rotations)
         for i_dir in range(3):
             poly_line.point_data.set_array(
                 rotation_matrices[:, :, i_dir], f"base_vector_{i_dir + 1}"
@@ -491,3 +508,61 @@ class CosseratCurve(object):
     def write_vtk(self, path) -> None:
         """Save a vtk representation of the curve."""
         self.get_pyvista_polyline().save(path)
+
+    def write_pvd_series(
+        self,
+        pvd_path: _Path | str,
+        *,
+        factors: list[float] | None = None,
+        n_steps: int | None = None,
+        binary: bool = True,
+    ) -> None:
+        """Save a pvd series representing the curve at different states.
+
+        Args:
+            pvd_path: Path where to save the pvd file.
+            factors: List of factors to scale the curvature along the curve. Mutually exclusive with 'n_steps'.
+            n_steps: Number of steps to create a uniform series of factors. Mutually exclusive with 'factors'.
+            binary: If True, save the vtk files in binary format.
+        """
+
+        pvd_path = _Path(pvd_path)
+        if pvd_path.suffix != ".pvd":
+            raise ValueError(
+                f"The output path must have a .pvd suffix, got {pvd_path.suffix}"
+            )
+
+        if factors is not None and n_steps is not None:
+            raise ValueError(
+                "The keyword arguments 'factors' and 'n_steps' are mutually exclusive."
+            )
+        if factors is None and n_steps is None:
+            raise ValueError(
+                "One of the keyword arguments 'factors' or 'n_steps' must be provided."
+            )
+        if factors is None:
+            factors = _np.linspace(0.0, 1.0, num=n_steps)
+
+        pvd_file = _ET.Element("VTKFile", type="Collection", version="0.1")
+        collection = _ET.SubElement(pvd_file, "Collection")
+        width = max(1, len(str(len(factors) - 1)))
+        for i_step, factor in enumerate(factors):
+            # TODO: Check if we can use vtp here instead of vtu. Currently this does
+            # not work with how we compare files in testing. Since vtu and vtp are
+            # basically the same in this case, this solution is fine at the moment.
+            factor_file = pvd_path.parent / f"{pvd_path.stem}.{i_step:0{width}d}.vtu"
+            _pv.UnstructuredGrid(self.get_pyvista_polyline(factor=factor)).save(
+                factor_file, binary=binary
+            )
+            _ET.SubElement(
+                collection,
+                "DataSet",
+                timestep=str(factor),
+                group="",
+                part="0",
+                file=str(factor_file.relative_to(pvd_path.parent)),
+            )
+
+        tree = _ET.ElementTree(pvd_file)
+        _ET.indent(tree, space="  ", level=0)
+        tree.write(pvd_path, encoding="utf-8", xml_declaration=True)

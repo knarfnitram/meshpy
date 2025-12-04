@@ -23,7 +23,7 @@
 
 import os
 from pathlib import Path
-from typing import Callable, Dict, Optional
+from typing import Callable, Dict
 
 import pytest
 from _pytest.config import Config
@@ -173,8 +173,9 @@ def get_corresponding_reference_file_path(
     """
 
     def _get_corresponding_reference_file_path(
-        reference_file_base_name: Optional[str] = None,
-        additional_identifier: Optional[str] = None,
+        reference_file_base_name: str | None = None,
+        additional_identifier: str | None = None,
+        additional_identifier_separator: str = "_",
         extension: str = "4C.yaml",
     ) -> Path:
         """Get path to corresponding reference file for each test. Also check
@@ -185,6 +186,8 @@ def get_corresponding_reference_file_path(
             reference_file_base_name: Basename of reference file, if none is
                 provided the current test name is utilized
             additional_identifier: Additional identifier for reference file, by default none
+            additional_identifier_separator: Separator between base name and
+                additional identifier.
             extension: Extension of reference file, by default ".4C.yaml"
 
         Returns:
@@ -194,7 +197,9 @@ def get_corresponding_reference_file_path(
         corresponding_reference_file = reference_file_base_name or current_test_name
 
         if additional_identifier:
-            corresponding_reference_file += f"_{additional_identifier}"
+            corresponding_reference_file += (
+                f"{additional_identifier_separator}{additional_identifier}"
+            )
 
         corresponding_reference_file += "." + extension
 
