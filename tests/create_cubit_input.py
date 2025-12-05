@@ -19,8 +19,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-"""This script creates solid input files with CubitPy which are then used in
-testing."""
+"""This script contains functionality to create solid input files (or plain
+cubit instances) with CubitPy which are then used in testing."""
 
 from beamme.four_c.input_file import InputFile
 from beamme.four_c.model_importer import import_cubitpy_model
