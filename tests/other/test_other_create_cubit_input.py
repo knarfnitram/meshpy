@@ -27,12 +27,11 @@ from tests.create_cubit_input import (
     create_block,
     create_solid_shell_meshes,
     create_tube,
-    create_tube_tutorial,
 )
 
 
 @pytest.mark.cubitpy
-def test_create_cubit_input_tube(
+def test_other_create_cubit_input_tube(
     tmp_path,
     get_corresponding_reference_file_path,
     assert_results_close,
@@ -45,27 +44,7 @@ def test_create_cubit_input_tube(
 
 
 @pytest.mark.cubitpy
-def test_create_cubit_input_tutorial(
-    tmp_path,
-    reference_file_directory,
-    assert_results_close,
-):
-    """Test the creation of the solid input file for the tutorial."""
-
-    # Create the tube for the tutorial.
-    result_path = tmp_path / "tutorial.4C.yaml"
-    create_tube_tutorial(result_path)
-
-    tutorial_path = (
-        reference_file_directory.parents[1]
-        / "tutorial"
-        / "4C_input_solid_tutorial.4C.yaml"
-    )
-    assert_results_close(tutorial_path, result_path)
-
-
-@pytest.mark.cubitpy
-def test_create_cubit_input_block(
+def test_other_create_cubit_input_block(
     tmp_path,
     get_corresponding_reference_file_path,
     assert_results_close,
@@ -78,7 +57,7 @@ def test_create_cubit_input_block(
 
 
 @pytest.mark.cubitpy
-def test_create_cubit_input_solid_shell(
+def test_other_create_cubit_input_solid_shell(
     tmp_path,
     get_corresponding_reference_file_path,
     assert_results_close,

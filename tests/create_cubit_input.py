@@ -19,8 +19,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-"""This script creates solid input files with CubitPy which are then used in
-testing."""
+"""This script contains functionality to create solid input files (or plain
+cubit instances) with CubitPy which are then used in testing."""
 
 from beamme.four_c.input_file import InputFile
 from beamme.four_c.model_importer import import_cubitpy_model
@@ -168,63 +168,6 @@ def create_tube(file_path):
 
     # Export mesh.
     create_tube_cubit().dump(file_path)
-
-
-def create_tube_tutorial(file_path):
-    """Create the solid tube for the tutorial."""
-
-    # Initialize cubit.
-    cubit, cylinder = create_tube_cubit_mesh(0.05, 3.0, 6, 10)
-
-    # Put the tube in the correct position.
-    cubit.cmd("rotate volume 1 angle -90 about X include_merged")
-    cubit.move(cylinder, [0, 1.5, 1.5])
-
-    # Mesh the geometry.
-    cylinder.volumes()[0].mesh()
-
-    # Set boundary conditions.
-    cubit.add_node_set(
-        cylinder.surfaces()[1],
-        name="fix",
-        bc_type=cupy.bc_type.dirichlet,
-        bc_description={
-            "NUMDOF": 3,
-            "ONOFF": [1, 1, 1],
-            "VAL": [0, 0, 0],
-            "FUNCT": [0, 0, 0],
-        },
-    )
-    cubit.add_node_set(
-        cylinder.surfaces()[2],
-        name="dirichlet_controlled",
-        bc_type=cupy.bc_type.dirichlet,
-        bc_description={
-            "NUMDOF": 3,
-            "ONOFF": [1, 0, 0],
-            "VAL": [0.5, 0, 0],
-            "FUNCT": [1, 0, 0],
-        },
-    )
-
-    # Set header.
-    cubit.fourc_input.combine_sections(
-        {
-            "MATERIALS": [
-                {
-                    "MAT": 1,
-                    "MAT_Struct_StVenantKirchhoff": {
-                        "YOUNG": 1.0,
-                        "NUE": 0.0,
-                        "DENS": 0.0,
-                    },
-                }
-            ]
-        }
-    )
-
-    # Export mesh.
-    cubit.dump(file_path)
 
 
 def create_block_cubit():
