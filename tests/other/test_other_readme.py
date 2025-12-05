@@ -72,7 +72,7 @@ def test_readme_auto(extract_code_snippets):
         exec(code, {})
 
 
-def test_readme_getting_started(
+def test_other_readme_getting_started(
     extract_code_snippets,
     get_corresponding_reference_file_path,
     assert_results_close,

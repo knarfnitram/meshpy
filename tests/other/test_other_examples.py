@@ -19,19 +19,37 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-"""This script is used to test the BeamMe logo function."""
-
-import sys
-from pathlib import Path
+"""This script is used to test the examples."""
 
 import pytest
-
-# Manually add the utils directory to the python path to prevent initializing it as a module
-sys.path.insert(0, str(Path(__file__).parent.parent / "utils"))
-from logo import create_beamme_logo
+from testbook import testbook
 
 
-@pytest.mark.cubitpy
-def test_logo(tmp_path):
-    """Simply test that the logo function does not throw an error."""
-    create_beamme_logo(tmp_path, create_cubit=True)
+@pytest.mark.parametrize(
+    "notebook_path",
+    [
+        "examples/example_1_finite_rotations.ipynb",
+        "examples/example_2_core_mesh_generation_functions.ipynb",
+    ],
+)
+def test_other_examples_notebooks(notebook_path):
+    """Parameterized test case for multiple Jupyter notebooks.
+
+    The notebook is run and it is checked that it runs through without
+    any errors/assertions.
+    """
+
+    with testbook(notebook_path) as tb:
+        # we do not define the examples as modules, therefore we need to add the
+        # examples folder to the current sys path so examples/utils can be imported
+        # within the notebooks correctly
+        tb.inject(
+            """
+            import sys
+            import os
+            sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "examples")))
+            """
+        )
+
+        # execute the notebook
+        tb.execute()
