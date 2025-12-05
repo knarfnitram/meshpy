@@ -172,6 +172,67 @@ def test_cosserat_curve_vtk_representation(
     assert_results_close(reference_path, result_path)
 
 
+@pytest.mark.parametrize(
+    ("factors", "n_steps", "reference_name"),
+    [([0.1, 0.7], None, "factors"), (None, 3, "steps")],
+)
+def test_cosserat_curve_pvd_series(
+    factors,
+    n_steps,
+    reference_name,
+    tmp_path,
+    get_corresponding_reference_file_path,
+    assert_results_close,
+):
+    """Test the pvd series representation of the Cosserat curve."""
+
+    reference_path = get_corresponding_reference_file_path(
+        additional_identifier=reference_name, extension="pvd"
+    )
+    result_path = tmp_path / reference_path.name
+
+    curve = load_cosserat_curve_from_file(get_corresponding_reference_file_path)
+    curve.write_pvd_series(result_path, factors=factors, n_steps=n_steps)
+
+    assert_results_close(reference_path, result_path)
+    for i_step in range(len(factors) if factors is not None else n_steps):
+        step_reference_path = get_corresponding_reference_file_path(
+            additional_identifier=reference_name + "." + str(i_step),
+            extension="vtu",
+        )
+        step_result_path = tmp_path / step_reference_path.name
+        assert_results_close(step_reference_path, step_result_path)
+
+
+def test_cosserat_curve_pvd_series_arguments(
+    get_corresponding_reference_file_path, assert_results_close
+):
+    """Test the that arguments are correctly processed in the pvd series
+    representation of the Cosserat curve."""
+
+    curve = load_cosserat_curve_from_file(get_corresponding_reference_file_path)
+
+    pvd_name = "temp.pvd"
+
+    # Check that errors are raised for invalid argument combinations
+    with pytest.raises(
+        ValueError, match="The output path must have a .pvd suffix, got .vtu"
+    ):
+        curve.write_pvd_series("temp.vtu")
+
+    with pytest.raises(
+        ValueError,
+        match="The keyword arguments 'factors' and 'n_steps' are mutually exclusive.",
+    ):
+        curve.write_pvd_series(pvd_name, factors=[0.0, 1.0], n_steps=2)
+
+    with pytest.raises(
+        ValueError,
+        match="One of the keyword arguments 'factors' or 'n_steps' must be provided.",
+    ):
+        curve.write_pvd_series(pvd_name)
+
+
 def test_cosserat_curve_project_point(
     get_corresponding_reference_file_path, assert_results_close
 ):
