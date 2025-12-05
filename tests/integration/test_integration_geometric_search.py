@@ -88,7 +88,9 @@ def assert_unique_id_coordinates(
 
 
 @pytest.mark.parametrize(*PYTEST_GEOMETRIC_SEARCH_PARAMETRIZE)
-def test_find_close_points_between_bins(algorithm, assert_results_close):
+def test_integration_geometric_search_find_close_points_between_bins(
+    algorithm, assert_results_close
+):
     """Test if the find_close_points function returns the expected results.
 
     The points are chosen such that for n_bins = [4, 4, 4], some points
@@ -346,7 +348,9 @@ def test_find_close_points_between_bins(algorithm, assert_results_close):
 
 
 @pytest.mark.parametrize(*PYTEST_GEOMETRIC_SEARCH_PARAMETRIZE)
-def test_find_close_points_binning_flat(algorithm, assert_results_close):
+def test_integration_geometric_search_find_close_points_binning_flat(
+    algorithm, assert_results_close
+):
     """Test case for coupling of points, when the nodes are all on a plane.
 
     This is challenging for a binning based approach. However, this test
@@ -445,7 +449,9 @@ def test_find_close_points_binning_flat(algorithm, assert_results_close):
 
 
 @pytest.mark.parametrize(*PYTEST_GEOMETRIC_SEARCH_PARAMETRIZE)
-def test_find_close_points_single_dimension(algorithm, assert_results_close):
+def test_integration_geometric_search_find_close_points_single_dimension(
+    algorithm, assert_results_close
+):
     """Test that the find_close_points function works properly with a 1D
     dimensional array (internally a n x 1 array is required)"""
 
@@ -481,7 +487,9 @@ def test_find_close_points_single_dimension(algorithm, assert_results_close):
 
 
 @pytest.mark.parametrize(*PYTEST_GEOMETRIC_SEARCH_PARAMETRIZE)
-def test_find_close_points_multi_dimension(algorithm, assert_results_close):
+def test_integration_geometric_search_find_close_points_multi_dimension(
+    algorithm, assert_results_close
+):
     """Test that the find_close_points function also works properly with
     multidimensional points."""
 
@@ -539,7 +547,9 @@ def test_find_close_points_multi_dimension(algorithm, assert_results_close):
 
 
 @pytest.mark.parametrize(*PYTEST_GEOMETRIC_SEARCH_PARAMETRIZE)
-def test_find_close_points_tolerance_precision(algorithm, assert_results_close):
+def test_integration_geometric_search_find_close_points_tolerance_precision(
+    algorithm, assert_results_close
+):
     """Test that the find_close_points tolerance works with a precision of at
     least 12."""
 
@@ -555,7 +565,7 @@ def test_find_close_points_tolerance_precision(algorithm, assert_results_close):
 
 
 @pytest.mark.performance
-def test_performance_find_close_points_brute_force_cython(
+def test_integration_geometric_search_find_close_points_performance_brute_force_cython(
     evaluate_execution_time,
 ):
     """Test the performance of finding close points using brute force Cython
