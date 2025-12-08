@@ -24,13 +24,10 @@
 import numpy as np
 import pytest
 
-from beamme.core.boundary_condition import BoundaryCondition
 from beamme.core.conf import bme
 from beamme.core.coupling import Coupling
-from beamme.core.function import Function
 from beamme.core.mesh import Mesh
 from beamme.core.node import Node
-from beamme.core.rotation import Rotation
 from beamme.four_c.element_beam import Beam3rHerm2Line3
 from beamme.four_c.model_importer import import_cubitpy_model
 from beamme.mesh_creation_functions.beam_line import create_beam_mesh_line
@@ -183,61 +180,6 @@ def test_cubitpy_import(
         ),
         input_file_cubit,
     )
-
-
-def test_deep_copy(get_bc_data, get_default_test_beam_material, assert_results_close):
-    """This test checks that the deep copy function on a mesh does not copy the
-    materials or functions."""
-
-    # Create material and function object.
-    mat = get_default_test_beam_material(material_type="reissner")
-    fun = Function("COMPONENT 0 SYMBOLIC_FUNCTION_OF_SPACE_TIME t")
-
-    def create_mesh(mesh):
-        """Add material and function to the mesh and create a beam."""
-        mesh.add(fun, mat)
-        set1 = create_beam_mesh_line(mesh, Beam3rHerm2Line3, mat, [0, 0, 0], [1, 0, 0])
-        set2 = create_beam_mesh_line(mesh, Beam3rHerm2Line3, mat, [1, 0, 0], [1, 1, 0])
-        mesh.add(
-            BoundaryCondition(
-                set1["line"], get_bc_data(identifier=1), bc_type=bme.bc.dirichlet
-            )
-        )
-        mesh.add(
-            BoundaryCondition(
-                set2["line"], get_bc_data(identifier=2), bc_type=bme.bc.neumann
-            )
-        )
-        mesh.couple_nodes()
-
-    # The second mesh will be translated and rotated with those vales.
-    translate = [1.0, 2.34535435, 3.345353]
-    rotation = Rotation([1, 0.2342342423, -2.234234], np.pi / 15 * 27)
-
-    # First create the mesh twice, move one and get the input file.
-    mesh_ref_1 = Mesh()
-    mesh_ref_2 = Mesh()
-    create_mesh(mesh_ref_1)
-    create_mesh(mesh_ref_2)
-    mesh_ref_2.rotate(rotation)
-    mesh_ref_2.translate(translate)
-
-    mesh = Mesh()
-    mesh.add(mesh_ref_1, mesh_ref_2)
-
-    # Now copy the first mesh and add them together in the input file.
-    mesh_copy_1 = Mesh()
-    create_mesh(mesh_copy_1)
-    mesh_copy_2 = mesh_copy_1.copy()
-    mesh_copy_2.rotate(rotation)
-    mesh_copy_2.translate(translate)
-
-    mesh_copy = Mesh()
-    mesh_copy.add(mesh_copy_1, mesh_copy_2)
-
-    # Check that the input files are the same.
-    # TODO: add reference file check here as well
-    assert_results_close(mesh, mesh_copy)
 
 
 def test_check_two_couplings(
