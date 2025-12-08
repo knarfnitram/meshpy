@@ -175,7 +175,9 @@ def create_beam_mesh(n_x, n_y, n_z, n_el):
 
 
 @pytest.mark.performance
-def test_performance_cubitpy_create_solid(evaluate_execution_time, shared_tmp_path):
+def test_integration_performance_cubitpy_create_solid(
+    evaluate_execution_time, shared_tmp_path
+):
     """Test the performance of creating a solid block using CubitPy.
 
     The version of Cubit we use in testing only allows for 50,000, so we
@@ -199,7 +201,9 @@ def test_performance_cubitpy_create_solid(evaluate_execution_time, shared_tmp_pa
 
 
 @pytest.mark.performance
-def test_performance_double_solid_block(evaluate_execution_time, shared_tmp_path):
+def test_integration_performance_double_solid_block(
+    evaluate_execution_time, shared_tmp_path
+):
     """The version of Cubit we use in testing only allows for 50,000 elements,
     our goal is 100,000 so we double the block with 50,000 elements here."""
 
@@ -232,7 +236,7 @@ def test_performance_double_solid_block(evaluate_execution_time, shared_tmp_path
     ],
 )
 @pytest.mark.performance
-def test_performance_load_solid(
+def test_integration_performance_load_solid(
     evaluate_execution_time, shared_tmp_path, log_name, full_import, expected_time
 ):
     """Test the performance of loading a solid mesh."""
@@ -249,7 +253,7 @@ def test_performance_load_solid(
 
 
 @pytest.mark.performance
-def test_performance_create_beams(evaluate_execution_time, cache_data):
+def test_integration_performance_create_beams(evaluate_execution_time, cache_data):
     """Test the performance of creating a large beam mesh."""
 
     # store mesh in cache for upcoming tests
@@ -267,7 +271,7 @@ def test_performance_create_beams(evaluate_execution_time, cache_data):
 
 
 @pytest.mark.performance
-def test_performance_rotate(evaluate_execution_time, cache_data):
+def test_integration_performance_rotate(evaluate_execution_time, cache_data):
     """Test the performance of rotating a large beam mesh."""
 
     evaluate_execution_time(
@@ -279,7 +283,7 @@ def test_performance_rotate(evaluate_execution_time, cache_data):
 
 
 @pytest.mark.performance
-def test_performance_translate(evaluate_execution_time, cache_data):
+def test_integration_performance_translate(evaluate_execution_time, cache_data):
     """Test the performance of translating a large beam mesh."""
 
     evaluate_execution_time(
@@ -291,7 +295,7 @@ def test_performance_translate(evaluate_execution_time, cache_data):
 
 
 @pytest.mark.performance
-def test_performance_reflect(evaluate_execution_time, cache_data):
+def test_integration_performance_reflect(evaluate_execution_time, cache_data):
     """Test the performance of reflecting a large beam mesh."""
 
     evaluate_execution_time(
@@ -303,7 +307,9 @@ def test_performance_reflect(evaluate_execution_time, cache_data):
 
 
 @pytest.mark.performance
-def test_performance_mespy_wrap_around_cylinder(evaluate_execution_time, cache_data):
+def test_integration_performance_mespy_wrap_around_cylinder(
+    evaluate_execution_time, cache_data
+):
     """Test the performance of wrapping a large beam mesh around a cylinder."""
 
     evaluate_execution_time(
@@ -315,7 +321,7 @@ def test_performance_mespy_wrap_around_cylinder(evaluate_execution_time, cache_d
 
 
 @pytest.mark.performance
-def test_performance_wrap_around_cylinder_without_check(
+def test_integration_performance_wrap_around_cylinder_without_check(
     evaluate_execution_time, cache_data
 ):
     """Test the performance of wrapping a large beam mesh around a cylinder
@@ -330,7 +336,7 @@ def test_performance_wrap_around_cylinder_without_check(
 
 
 @pytest.mark.performance
-def test_performance_find_close_nodes(evaluate_execution_time, cache_data):
+def test_integration_performance_find_close_nodes(evaluate_execution_time, cache_data):
     """Test the performance of finding close nodes in a large beam mesh."""
 
     evaluate_execution_time(
@@ -342,7 +348,9 @@ def test_performance_find_close_nodes(evaluate_execution_time, cache_data):
 
 
 @pytest.mark.performance
-def test_performance_add_mesh_to_input_file(evaluate_execution_time, cache_data):
+def test_integration_performance_add_mesh_to_input_file(
+    evaluate_execution_time, cache_data
+):
     """Test the performance of adding a mesh to an input file."""
 
     input_file = InputFile()
@@ -358,7 +366,7 @@ def test_performance_add_mesh_to_input_file(evaluate_execution_time, cache_data)
 
 
 @pytest.mark.performance
-def test_performance_dump_input_file(
+def test_integration_performance_dump_input_file(
     evaluate_execution_time,
     cache_data,
     tmp_path,
@@ -377,7 +385,9 @@ def test_performance_dump_input_file(
 
 
 @pytest.mark.performance
-def test_performance_write_vtk(evaluate_execution_time, tmp_path, cache_data):
+def test_integration_performance_write_vtk(
+    evaluate_execution_time, tmp_path, cache_data
+):
     """Test the performance of writing a beam mesh to VTK format."""
 
     # use a smaller mesh for testing vtk output performance
@@ -396,7 +406,9 @@ def test_performance_write_vtk(evaluate_execution_time, tmp_path, cache_data):
 
 
 @pytest.mark.performance
-def test_performance_write_vtk_smooth(evaluate_execution_time, tmp_path, cache_data):
+def test_integration_performance_write_vtk_smooth(
+    evaluate_execution_time, tmp_path, cache_data
+):
     """Test the performance of writing a beam mesh to VTK format with more
     segments."""
 

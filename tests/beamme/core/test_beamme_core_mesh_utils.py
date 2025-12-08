@@ -19,7 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-"""This script is used to test the functionality of the input file utils."""
+"""This script is used to test the functionality of the core mesh utils."""
 
 from beamme.core.element_beam import Beam2
 from beamme.core.material import MaterialBeamBase
@@ -28,7 +28,7 @@ from beamme.core.mesh_utils import get_coupled_nodes_to_master_map
 from beamme.mesh_creation_functions.beam_line import create_beam_mesh_line
 
 
-def test_input_file_utils_get_coupled_nodes_to_master_map():
+def test_beamme_core_mesh_utils_get_coupled_nodes_to_master_map():
     """Test the get_coupled_nodes_to_master_map function."""
 
     beam_class = Beam2

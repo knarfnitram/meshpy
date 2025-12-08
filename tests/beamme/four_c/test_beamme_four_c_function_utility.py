@@ -28,7 +28,9 @@ from beamme.four_c.function_utility import (
 )
 
 
-def test_linear_interpolation_function(assert_results_close):
+def test_beamme_four_c_function_utility_linear_interpolation_function(
+    assert_results_close,
+):
     """Test that linear interpolation functions are created correctly."""
 
     t = [1.5, 2.5, 3.5, 10.0]

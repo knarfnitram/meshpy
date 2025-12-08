@@ -19,7 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-"""This script is used to test the header functions."""
+"""This script is used to test the header functions for 4C."""
 
 import pytest
 
@@ -35,7 +35,7 @@ from beamme.four_c.header_functions import (
 from beamme.four_c.input_file import InputFile
 
 
-def test_header_functions_static(
+def test_integration_four_c_header_functions_static(
     get_corresponding_reference_file_path,
     assert_results_close,
 ):
@@ -79,7 +79,7 @@ def test_header_functions_static(
         ("no_time_step", None, 17, 2.1),
     ],
 )
-def test_header_functions_static_time(
+def test_integration_four_c_header_functions_static_time(
     get_corresponding_reference_file_path,
     assert_results_close,
     additional_identifier,
@@ -103,7 +103,7 @@ def test_header_functions_static_time(
     )
 
 
-def test_header_functions_static_prestress(
+def test_integration_four_c_header_functions_static_prestress(
     get_corresponding_reference_file_path,
     assert_results_close,
 ):
@@ -145,7 +145,7 @@ def test_header_functions_static_prestress(
     assert_results_close(get_corresponding_reference_file_path(), input_file)
 
 
-def test_header_functions_stress_output(
+def test_integration_four_c_header_functions_stress_output(
     get_corresponding_reference_file_path,
     assert_results_close,
 ):
@@ -170,7 +170,7 @@ def test_header_functions_stress_output(
     assert_results_close(get_corresponding_reference_file_path(), input_file)
 
 
-def test_header_functions_beam_interaction(
+def test_integration_four_c_header_functions_beam_interaction(
     get_corresponding_reference_file_path, assert_results_close
 ):
     """Test the beam-to-beam contact header function with default parameter."""
@@ -203,7 +203,7 @@ def test_header_functions_beam_interaction(
         (True, "custom_name.xml", "custom_name.xml"),
     ],
 )
-def test_header_functions_nonlinear_solver_parameters(
+def test_integration_four_c_header_functions_nonlinear_solver_parameters(
     get_corresponding_reference_file_path,
     assert_results_close,
     create_nox_file,
