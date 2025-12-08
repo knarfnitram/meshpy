@@ -70,40 +70,6 @@ from beamme.mesh_creation_functions.nurbs_generic import add_splinepy_nurbs_to_m
 from tests.create_cubit_input import create_tube_cubit
 
 
-def test_unique_ordering_of_get_all_nodes_for_line_condition(
-    get_bc_data,
-    get_default_test_beam_material,
-    assert_results_close,
-    get_corresponding_reference_file_path,
-):
-    """This test ensures that the ordering of the nodes returned from the
-    function get_all_nodes is unique for line sets."""
-
-    # set up a beam mesh with material
-    mesh = Mesh()
-    mat = get_default_test_beam_material(material_type="reissner")
-    beam_set = create_beam_mesh_line(
-        mesh, Beam3rHerm2Line3, mat, [0, 0, 0], [2, 0, 0], n_el=10
-    )
-
-    # apply different Dirichlet conditions to all nodes within this condition
-    for i, node in enumerate(beam_set["line"].get_all_nodes()):
-        # add different condition value for each node
-        mesh.add(
-            BoundaryCondition(
-                GeometrySet(node),
-                get_bc_data(identifier=node.coordinates[0]),
-                bc_type=bme.bc.dirichlet,
-            )
-        )
-
-    # Check the input file
-    assert_results_close(
-        get_corresponding_reference_file_path(),
-        mesh,
-    )
-
-
 def test_reissner_elasto_plastic(assert_results_close):
     """Test the elasto plastic Reissner beam material."""
 

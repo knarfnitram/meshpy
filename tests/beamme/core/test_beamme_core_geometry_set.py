@@ -26,11 +26,12 @@ from typing import Callable
 import pytest
 
 from beamme.core.conf import bme
-from beamme.core.element_beam import Beam
+from beamme.core.element_beam import Beam, Beam3
 from beamme.core.geometry_set import GeometrySet, GeometrySetNodes
 from beamme.core.mesh import Mesh
 from beamme.core.node import Node, NodeCosserat
 from beamme.core.rotation import Rotation
+from beamme.mesh_creation_functions.beam_line import create_beam_mesh_line
 
 
 @pytest.fixture()
@@ -151,3 +152,22 @@ def test_beamme_core_geometry_set_add():
         assert len(nodes) == result_dict["len"]
         for i_node, node_index in enumerate(result_dict["indices"]):
             assert nodes[i_node] is mesh.nodes[node_index]
+
+
+def test_beamme_core_geometry_set_unique_ordering_of_get_all_nodes_for_line_condition(
+    get_default_test_beam_material,
+):
+    """This test ensures that the ordering of the nodes returned from the
+    function get_all_nodes is unique for line sets."""
+
+    # set up a beam mesh with material
+    mesh = Mesh()
+    mat = get_default_test_beam_material(material_type="base")
+    beam_set = create_beam_mesh_line(mesh, Beam3, mat, [0, 0, 0], [2, 0, 0], n_el=10)
+
+    # check the nodes in the line set
+    nodes_set = beam_set["line"].get_all_nodes()
+    assert len(nodes_set) == 21
+    mesh_node_indices = range(21)
+    for i_node_set, i_node_mesh in enumerate(mesh_node_indices):
+        assert nodes_set[i_node_set] is mesh.nodes[i_node_mesh]
