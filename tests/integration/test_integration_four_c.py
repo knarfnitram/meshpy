@@ -22,15 +22,29 @@
 """This script is used to test general functionality of the 4C module with end-
 to-end integration tests."""
 
+import numpy as np
+import splinepy
+
 from beamme.core.boundary_condition import BoundaryCondition
 from beamme.core.conf import bme
+from beamme.core.function import Function
+from beamme.core.geometry_set import GeometrySetNodes
 from beamme.core.mesh import Mesh
+from beamme.core.rotation import Rotation
 from beamme.four_c.element_beam import (
     Beam3rHerm2Line3,
     get_four_c_reissner_beam,
 )
+from beamme.four_c.header_functions import (
+    add_result_description,
+    set_beam_to_solid_meshtying,
+    set_header_static,
+    set_runtime_output,
+)
+from beamme.four_c.input_file import InputFile
 from beamme.four_c.model_importer import import_four_c_model
 from beamme.mesh_creation_functions.beam_line import create_beam_mesh_line
+from beamme.mesh_creation_functions.nurbs_generic import add_splinepy_nurbs_to_mesh
 
 
 def test_integration_four_c_point_coupling_indirect(
@@ -116,4 +130,206 @@ def test_integration_four_c_surface_to_surface_contact_import(
     input_file.add(mesh)
 
     # Compare with the reference file.
+    assert_results_close(get_corresponding_reference_file_path(), input_file)
+
+
+def test_integration_four_c_nurbs_import(
+    get_default_test_beam_material,
+    get_default_test_solid_material,
+    assert_results_close,
+    get_corresponding_reference_file_path,
+    tmp_path,
+):
+    """Test if the import of a NURBS mesh works as expected.
+
+    We first create the NURBS structure, dump it to disk and then read it again.
+    Then we add the beam and beam-to-volume stuff.
+
+    This script generates the 4C test case:
+    beam3r_herm2line3_static_beam_to_solid_volume_meshtying_nurbs27_mortar_penalty_line4
+
+    TODO: This test case basically covers that we can import NURBS from
+    existing import files. However, this test case also contains a fully
+    working 4C test case. So this case should be moved to the 4C tests and
+    we should add a very basic unit test case if we can import NURBS.
+    """
+
+    # Create a third of the NURBS hollow cylinder
+    base = splinepy.helpme.create.disk(
+        outer_radius=0.3, inner_radius=0.2, angle=120, n_knot_spans=1
+    )
+    extruded = base.create.extruded(extrusion_vector=[0, 0, 1])
+    extruded.elevate_degrees([0, 2])
+
+    # Add NURBS to mesh (3 times to get the full cylinder)
+    mesh = Mesh()
+    mat = get_default_test_solid_material(material_type="st_venant_kirchhoff")
+    element_description = {"KINEM": "nonlinear"}
+
+    volume_set = GeometrySetNodes(geometry_type=bme.geo.volume)
+    fix_set = GeometrySetNodes(geometry_type=bme.geo.surface)
+    for i in range(3):
+        patch_set = add_splinepy_nurbs_to_mesh(
+            mesh, extruded, material=mat, data=element_description
+        )
+        volume_set = volume_set + patch_set["vol"]
+        fix_set = fix_set + patch_set["surf_w_min"]
+        mesh.add(patch_set)
+        mesh.rotate(Rotation([0, 0, 1], np.pi * 2.0 / 3.0))
+
+    mesh.add(
+        BoundaryCondition(
+            fix_set,
+            data={
+                "NUMDOF": 3,
+                "ONOFF": [1, 1, 1],
+                "VAL": [0, 0, 0],
+                "FUNCT": [0, 0, 0],
+            },
+            bc_type=bme.bc.dirichlet,
+        )
+    )
+    mesh.add(
+        BoundaryCondition(
+            volume_set,
+            data={"COUPLING_ID": 1},
+            bc_type=bme.bc.beam_to_solid_volume_meshtying,
+        )
+    )
+
+    # We need this because we get "double" CP from the splinepy object.
+    mesh.couple_nodes(reuse_matching_nodes=True)
+    # We need this to math the "old" result description
+    mesh.rotate(Rotation([0, 0, 1], np.pi * 0.5))
+    nurbs_input_file = InputFile()
+    nurbs_input_file.add(mesh)
+    nurbs_path = tmp_path / "nurbs_mesh.4C.yaml"
+    nurbs_input_file.dump(
+        nurbs_path,
+        validate=False,
+        add_header_default=False,
+        add_header_information=False,
+        add_footer_application_script=False,
+    )
+
+    # Create mesh and load solid file.
+    input_file, mesh = import_four_c_model(input_file_path=nurbs_path)
+
+    set_header_static(
+        input_file,
+        time_step=0.5,
+        n_steps=2,
+        tol_residuum=1e-14,
+        tol_increment=1e-8,
+    )
+    set_beam_to_solid_meshtying(
+        input_file,
+        bme.bc.beam_to_solid_volume_meshtying,
+        contact_discretization="mortar",
+        mortar_shape="line4",
+        penalty_parameter=1000,
+        n_gauss_points=6,
+        segmentation=True,
+        binning_parameters={
+            "binning_bounding_box": [-3, -3, -1, 3, 3, 5],
+            "binning_cutoff_radius": 1,
+        },
+    )
+    set_runtime_output(input_file)
+    input_file["PROBLEM TYPE"]["SHAPEFCT"] = "Nurbs"
+    input_file["IO"]["OUTPUT_BIN"] = True
+    input_file["IO"]["STRUCT_DISP"] = True
+    input_file["IO"]["VERBOSITY"] = "Standard"
+
+    fun = Function([{"SYMBOLIC_FUNCTION_OF_TIME": "t"}])
+    mesh.add(fun)
+
+    # Create the beam material.
+    material = get_default_test_beam_material(material_type="reissner")
+
+    # Create the beams.
+    set_1 = create_beam_mesh_line(
+        mesh, Beam3rHerm2Line3, material, [0, 0, 0.95], [1, 0, 0.95], n_el=2
+    )
+    set_2 = create_beam_mesh_line(
+        mesh,
+        Beam3rHerm2Line3,
+        material,
+        [-0.25, -0.3, 0.85],
+        [-0.25, 0.5, 0.85],
+        n_el=2,
+    )
+
+    # Add boundary conditions on the beams.
+    mesh.add(
+        BoundaryCondition(
+            set_1["start"],
+            {
+                "NUMDOF": 9,
+                "ONOFF": [0, 0, 0, 1, 1, 1, 0, 0, 0],
+                "VAL": [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                "FUNCT": [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            },
+            bc_type=bme.bc.dirichlet,
+        )
+    )
+    mesh.add(
+        BoundaryCondition(
+            set_1["end"],
+            {
+                "NUMDOF": 9,
+                "ONOFF": [0, 1, 0, 0, 0, 0, 0, 0, 0],
+                "VAL": [0, 0.02, 0, 0, 0, 0, 0, 0, 0],
+                "FUNCT": [0, fun, 0, 0, 0, 0, 0, 0, 0],
+            },
+            bc_type=bme.bc.neumann,
+        )
+    )
+    mesh.add(
+        BoundaryCondition(
+            set_2["start"],
+            {
+                "NUMDOF": 9,
+                "ONOFF": [0, 0, 0, 1, 1, 1, 0, 0, 0],
+                "VAL": [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                "FUNCT": [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            },
+            bc_type=bme.bc.dirichlet,
+        )
+    )
+    mesh.add(
+        BoundaryCondition(
+            set_2["end"],
+            {
+                "NUMDOF": 9,
+                "ONOFF": [1, 0, 0, 0, 0, 0, 0, 0, 0],
+                "VAL": [-0.06, 0, 0, 0, 0, 0, 0, 0, 0],
+                "FUNCT": [fun, 0, 0, 0, 0, 0, 0, 0, 0],
+            },
+            bc_type=bme.bc.neumann,
+        )
+    )
+    mesh.add(
+        BoundaryCondition(
+            set_1["line"] + set_2["line"],
+            {"COUPLING_ID": 1},
+            bc_type=bme.bc.beam_to_solid_volume_meshtying,
+        )
+    )
+
+    # Add result checks.
+    displacements = [
+        [
+            -5.14451531199392575e-01,
+            -1.05846397823837826e-01,
+            -1.77822866488512921e-01,
+        ]
+    ]
+    nodes = [64]
+    add_result_description(input_file, displacements, nodes)
+
+    # Add the mesh to the input file
+    input_file.add(mesh)
+
+    # Compare with the reference solution.
     assert_results_close(get_corresponding_reference_file_path(), input_file)
