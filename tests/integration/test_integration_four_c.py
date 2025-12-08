@@ -27,7 +27,9 @@ from beamme.core.conf import bme
 from beamme.core.mesh import Mesh
 from beamme.four_c.element_beam import (
     Beam3rHerm2Line3,
+    get_four_c_reissner_beam,
 )
+from beamme.four_c.model_importer import import_four_c_model
 from beamme.mesh_creation_functions.beam_line import create_beam_mesh_line
 
 
@@ -64,3 +66,35 @@ def test_integration_four_c_point_coupling_indirect(
         )
 
     assert_results_close(get_corresponding_reference_file_path(), mesh)
+
+
+def test_integration_four_c_fluid_element_section(
+    get_default_test_beam_material,
+    assert_results_close,
+    get_corresponding_reference_file_path,
+):
+    """Add beam elements to an input file containing fluid elements."""
+
+    input_file, _ = import_four_c_model(
+        input_file_path=get_corresponding_reference_file_path(
+            additional_identifier="import"
+        )
+    )
+
+    beam_mesh = Mesh()
+    material = get_default_test_beam_material(material_type="reissner")
+    beam_mesh.add(material)
+
+    create_beam_mesh_line(
+        beam_mesh,
+        get_four_c_reissner_beam(n_nodes=2, is_hermite_centerline=False),
+        material,
+        [0, -0.5, 0],
+        [0, 0.2, 0],
+        n_el=5,
+    )
+
+    input_file.add(beam_mesh)
+
+    # Check the output.
+    assert_results_close(get_corresponding_reference_file_path(), input_file)

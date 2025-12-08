@@ -28,7 +28,9 @@ import pytest
 from beamme.core.conf import bme
 from beamme.core.element_beam import Beam
 from beamme.core.geometry_set import GeometrySet, GeometrySetNodes
-from beamme.core.node import Node
+from beamme.core.mesh import Mesh
+from beamme.core.node import Node, NodeCosserat
+from beamme.core.rotation import Rotation
 
 
 @pytest.fixture()
@@ -107,3 +109,45 @@ def test_beamme_core_geometry_set_nodes_add_operator(
     assert_geometry_set_add_operator(
         mesh_objects, combined_geometry, set_1.get_all_nodes(), set_2.get_all_nodes()
     )
+
+
+def test_beamme_core_geometry_set_add():
+    """Test functionality of the GeometrySet add method."""
+
+    mesh = Mesh()
+    for i in range(6):
+        mesh.add(NodeCosserat([i, 2 * i, 3 * i], Rotation()))
+
+    set_1 = GeometrySetNodes(
+        bme.geo.point, [mesh.nodes[0], mesh.nodes[1], mesh.nodes[2]]
+    )
+    set_2 = GeometrySetNodes(
+        bme.geo.point, [mesh.nodes[2], mesh.nodes[3], mesh.nodes[4]]
+    )
+    set_12 = GeometrySetNodes(bme.geo.point)
+    set_12.add(set_1)
+    set_12.add(set_2)
+    set_3 = GeometrySet(set_1.get_points())
+
+    mesh.add(set_1, set_2, set_12, set_3)
+
+    # Check the resulting sets
+    unique_sets = mesh.get_unique_geometry_sets()
+    for key, value in unique_sets.items():
+        if key is bme.geo.point:
+            assert len(value) == 4
+        else:
+            assert len(value) == 0
+
+    results = [
+        {"len": 3, "indices": [0, 1, 2]},
+        {"len": 3, "indices": [2, 3, 4]},
+        {"len": 5, "indices": [0, 1, 2, 3, 4]},
+        {"len": 3, "indices": [0, 1, 2]},
+    ]
+    for i_set, result_dict in enumerate(results):
+        point_set = unique_sets[bme.geo.point][i_set]
+        nodes = point_set.get_all_nodes()
+        assert len(nodes) == result_dict["len"]
+        for i_node, node_index in enumerate(result_dict["indices"]):
+            assert nodes[i_node] is mesh.nodes[node_index]

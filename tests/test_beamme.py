@@ -42,10 +42,7 @@ from beamme.core.mesh import Mesh
 from beamme.core.node import Node, NodeCosserat
 from beamme.core.rotation import Rotation
 from beamme.core.vtk_writer import VTKWriter
-from beamme.four_c.element_beam import (
-    Beam3rHerm2Line3,
-    get_four_c_reissner_beam,
-)
+from beamme.four_c.element_beam import Beam3rHerm2Line3
 from beamme.four_c.header_functions import (
     add_result_description,
     set_beam_to_solid_meshtying,
@@ -71,101 +68,6 @@ from beamme.mesh_creation_functions.beam_parametric_curve import (
 )
 from beamme.mesh_creation_functions.nurbs_generic import add_splinepy_nurbs_to_mesh
 from tests.create_cubit_input import create_tube_cubit
-
-
-def test_fluid_element_section(
-    get_default_test_beam_material,
-    assert_results_close,
-    get_corresponding_reference_file_path,
-):
-    """Add beam elements to an input file containing fluid elements."""
-
-    input_file, _ = import_four_c_model(
-        input_file_path=get_corresponding_reference_file_path(
-            additional_identifier="import"
-        )
-    )
-
-    beam_mesh = Mesh()
-    material = get_default_test_beam_material(material_type="reissner")
-    beam_mesh.add(material)
-
-    create_beam_mesh_line(
-        beam_mesh,
-        get_four_c_reissner_beam(n_nodes=2, is_hermite_centerline=False),
-        material,
-        [0, -0.5, 0],
-        [0, 0.2, 0],
-        n_el=5,
-    )
-
-    input_file.add(beam_mesh)
-
-    # Check the output.
-    assert_results_close(get_corresponding_reference_file_path(), input_file)
-
-
-def test_wrap_cylinder_not_on_same_plane(
-    get_default_test_beam_material,
-    assert_results_close,
-    get_corresponding_reference_file_path,
-):
-    """Create a helix that is itself wrapped around a cylinder."""
-
-    # Ignore the warnings from wrap around cylinder.
-    warnings.filterwarnings("ignore")
-
-    # Create the mesh.
-    mesh = Mesh()
-    mat = get_default_test_beam_material(material_type="reissner")
-
-    # Create the line and bend it to a helix.
-    create_beam_mesh_line(
-        mesh,
-        Beam3rHerm2Line3,
-        mat,
-        [0.2, 0, 0],
-        [0.2, 5 * 0.2 * 2 * np.pi, 4],
-        n_el=20,
-    )
-    mesh.wrap_around_cylinder()
-
-    # Move the helix so its axis is in the y direction and goes through
-    # (2 0 0). The helix is also moved by a lot in y-direction, this only
-    # affects the angle phi when wrapping around a cylinder, not the shape
-    # of the beam.
-    mesh.rotate(Rotation([1, 0, 0], -0.5 * np.pi))
-    mesh.translate([2, 666.666, 0])
-
-    # Wrap the helix again.
-    mesh.wrap_around_cylinder(radius=2.0)
-
-    # Check the output.
-    assert_results_close(get_corresponding_reference_file_path(), mesh)
-
-
-def test_geometry_sets(assert_results_close, get_corresponding_reference_file_path):
-    """Test functionality of the GeometrySet objects."""
-
-    mesh = Mesh()
-    for i in range(6):
-        mesh.add(NodeCosserat([i, 2 * i, 3 * i], Rotation()))
-
-    set_1 = GeometrySetNodes(
-        bme.geo.point, [mesh.nodes[0], mesh.nodes[1], mesh.nodes[2]]
-    )
-    set_2 = GeometrySetNodes(
-        bme.geo.point, [mesh.nodes[2], mesh.nodes[3], mesh.nodes[4]]
-    )
-    set_12 = GeometrySetNodes(bme.geo.point)
-    set_12.add(set_1)
-    set_12.add(set_2)
-    set_3 = GeometrySet(set_1.get_points())
-
-    mesh.add(set_1, set_2, set_12, set_3)
-
-    # Check the output.
-    assert_results_close(get_corresponding_reference_file_path(), mesh)
 
 
 def test_unique_ordering_of_get_all_nodes_for_line_condition(
