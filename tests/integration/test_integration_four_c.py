@@ -98,3 +98,22 @@ def test_integration_four_c_fluid_element_section(
 
     # Check the output.
     assert_results_close(get_corresponding_reference_file_path(), input_file)
+
+
+def test_integration_four_c_surface_to_surface_contact_import(
+    assert_results_close, get_corresponding_reference_file_path
+):
+    """Test that surface-to-surface contact problems can be imported as
+    expected."""
+
+    input_file, mesh = import_four_c_model(
+        input_file_path=get_corresponding_reference_file_path(
+            additional_identifier="solid_mesh"
+        ),
+        convert_input_to_mesh=True,
+    )
+
+    input_file.add(mesh)
+
+    # Compare with the reference file.
+    assert_results_close(get_corresponding_reference_file_path(), input_file)
