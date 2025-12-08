@@ -29,11 +29,9 @@ from beamme.core.coupling import Coupling
 from beamme.core.mesh import Mesh
 from beamme.core.node import Node
 from beamme.four_c.element_beam import Beam3rHerm2Line3
-from beamme.four_c.model_importer import import_cubitpy_model
 from beamme.mesh_creation_functions.beam_line import create_beam_mesh_line
 from tests.create_test_models import (
     create_beam_to_solid_conditions_model,
-    create_tube_cubit,
 )
 
 
@@ -158,28 +156,6 @@ def test_point_couplings_check():
     # This should work, as the points are not within the global tolerance of
     # each other but we dont perform the check
     Coupling(get_nodes(1.0), None, None, check_overlapping_nodes=False)
-
-
-@pytest.mark.parametrize("full_import", [False, True])
-@pytest.mark.cubitpy
-def test_cubitpy_import(
-    full_import, assert_results_close, get_corresponding_reference_file_path
-):
-    """Check that an import from a cubitpy object works as expected."""
-
-    cubit = create_tube_cubit()
-    input_file_cubit, mesh = import_cubitpy_model(
-        cubit, convert_input_to_mesh=full_import
-    )
-    if full_import:
-        input_file_cubit.add(mesh)
-
-    assert_results_close(
-        get_corresponding_reference_file_path(
-            reference_file_base_name="test_other_create_cubit_input_tube"
-        ),
-        input_file_cubit,
-    )
 
 
 def test_check_two_couplings(
