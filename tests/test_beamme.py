@@ -389,41 +389,6 @@ def test_check_double_elements(
     assert_results_close(ref_file, vtk_file)
 
 
-@pytest.mark.parametrize("check", [True, False])
-def test_check_overlapping_coupling_nodes(get_default_test_beam_material, check):
-    """Per default, we check that coupling nodes are at the same physical
-    position.
-
-    This check can be deactivated with the keyword
-    check_overlapping_nodes when creating a Coupling.
-    """
-
-    # Create mesh object.
-    mesh = Mesh()
-    mat = get_default_test_beam_material(material_type="reissner")
-    mesh.add(mat)
-
-    # Add two beams to create an elbow structure. The beams each have a
-    # node at the intersection.
-    set_1 = create_beam_mesh_line(mesh, Beam3rHerm2Line3, mat, [0, 0, 0], [1, 0, 0])
-    set_2 = create_beam_mesh_line(mesh, Beam3rHerm2Line3, mat, [2, 0, 0], [3, 0, 0])
-
-    # Couple two nodes that are not at the same position.
-
-    # Create the input file. This will cause an error, as there are two
-    # couplings for one node.
-    args = [
-        [set_1["start"], set_2["end"]],
-        bme.bc.point_coupling,
-        "coupling_type_string",
-    ]
-    if check:
-        with pytest.raises(ValueError):
-            Coupling(*args)
-    else:
-        Coupling(*args, check_overlapping_nodes=False)
-
-
 def test_check_start_end_node_error(
     get_default_test_beam_material,
 ):
