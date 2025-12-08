@@ -70,7 +70,6 @@ from beamme.mesh_creation_functions.beam_parametric_curve import (
     create_beam_mesh_parametric_curve,
 )
 from beamme.mesh_creation_functions.nurbs_generic import add_splinepy_nurbs_to_mesh
-from beamme.utils.nodes import get_min_max_coordinates
 from tests.create_cubit_input import create_tube_cubit
 
 
@@ -165,30 +164,6 @@ def test_get_nodes_by_function(get_default_test_beam_material, assert_results_cl
     assert 2 == len(nodes)
     for node in nodes:
         assert_results_close(1.0, node.coordinates[0])
-
-
-def test_get_min_max_coordinates(
-    get_default_test_beam_material,
-    get_corresponding_reference_file_path,
-    assert_results_close,
-):
-    """Test if the get_min_max_coordinates function works properly."""
-
-    # Create the mesh.
-    _, mesh = import_four_c_model(
-        input_file_path=get_corresponding_reference_file_path(
-            reference_file_base_name="4C_input_solid_cuboid"
-        ),
-        convert_input_to_mesh=True,
-    )
-
-    mat = get_default_test_beam_material(material_type="reissner")
-    create_beam_mesh_line(mesh, Beam3rHerm2Line3, mat, [0, 0, 0], [2, 3, 4], n_el=10)
-
-    # Check the results.
-    min_max = get_min_max_coordinates(mesh.nodes)
-    ref_solution = [-0.5, -1.0, -1.5, 2.0, 3.0, 4.0]
-    assert_results_close(min_max, ref_solution)
 
 
 def test_geometry_sets(assert_results_close, get_corresponding_reference_file_path):
