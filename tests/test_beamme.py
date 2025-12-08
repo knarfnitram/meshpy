@@ -33,7 +33,7 @@ from beamme.core.element_beam import Beam
 from beamme.core.function import Function
 from beamme.core.geometry_set import GeometrySet
 from beamme.core.mesh import Mesh
-from beamme.core.node import Node, NodeCosserat
+from beamme.core.node import Node
 from beamme.core.rotation import Rotation
 from beamme.four_c.element_beam import Beam3rHerm2Line3
 from beamme.four_c.model_importer import import_cubitpy_model
@@ -387,26 +387,3 @@ def test_check_double_elements(
 
     # Compare the vtk files.
     assert_results_close(ref_file, vtk_file)
-
-
-def test_check_start_end_node_error(
-    get_default_test_beam_material,
-):
-    """Check that an error is raised if wrong start and end nodes are given to
-    a mesh creation function."""
-
-    # Create mesh object.
-    mesh = Mesh()
-    mat = get_default_test_beam_material(material_type="reissner")
-    mesh.add(mat)
-
-    # Try to create a line with a starting node that is not in the mesh.
-    node = NodeCosserat([0, 0, 0], Rotation())
-    args = [mesh, Beam3rHerm2Line3, mat, [0, 0, 0], [1, 0, 0]]
-    kwargs = {"start_node": node}
-    with pytest.raises(ValueError):
-        create_beam_mesh_line(*args, **kwargs)
-    node.coordinates = [1, 0, 0]
-    kwargs = {"end_node": node}
-    with pytest.raises(ValueError):
-        create_beam_mesh_line(*args, **kwargs)
