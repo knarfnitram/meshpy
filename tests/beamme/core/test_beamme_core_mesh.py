@@ -1,0 +1,52 @@
+# The MIT License (MIT)
+#
+# Copyright (c) 2018-2025 BeamMe Authors
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+"""This script is used to test the functionality of the core mesh."""
+
+import numpy as np
+
+from beamme.core.element_beam import Beam3
+from beamme.core.mesh import Mesh
+from beamme.mesh_creation_functions.beam_line import create_beam_mesh_line
+
+
+def test_beamme_core_mesh_get_nodes_by_function(
+    get_default_test_beam_material, assert_results_close
+):
+    """Check if the get_nodes_by_function method of Mesh works properly."""
+
+    def get_nodes_at_x(node, x_value):
+        """True for all coordinates at a certain x value."""
+        if np.abs(node.coordinates[0] - x_value) < 1e-10:
+            return True
+        else:
+            return False
+
+    mat = get_default_test_beam_material(material_type="base")
+
+    mesh = Mesh()
+    create_beam_mesh_line(mesh, Beam3, mat, [0, 0, 0], [5, 0, 0], n_el=5)
+    create_beam_mesh_line(mesh, Beam3, mat, [0, 1, 0], [10, 1, 0], n_el=10)
+
+    nodes = mesh.get_nodes_by_function(get_nodes_at_x, 1.0)
+    assert 2 == len(nodes)
+    for node in nodes:
+        assert_results_close(1.0, node.coordinates[0])

@@ -144,28 +144,6 @@ def test_wrap_cylinder_not_on_same_plane(
     assert_results_close(get_corresponding_reference_file_path(), mesh)
 
 
-def test_get_nodes_by_function(get_default_test_beam_material, assert_results_close):
-    """Check if the get_nodes_by_function method of Mesh works properly."""
-
-    def get_nodes_at_x(node, x_value):
-        """True for all coordinates at a certain x value."""
-        if np.abs(node.coordinates[0] - x_value) < 1e-10:
-            return True
-        else:
-            return False
-
-    mat = get_default_test_beam_material(material_type="reissner")
-
-    mesh = Mesh()
-    create_beam_mesh_line(mesh, Beam3rHerm2Line3, mat, [0, 0, 0], [5, 0, 0], n_el=5)
-    create_beam_mesh_line(mesh, Beam3rHerm2Line3, mat, [0, 1, 0], [10, 1, 0], n_el=10)
-
-    nodes = mesh.get_nodes_by_function(get_nodes_at_x, 1.0)
-    assert 2 == len(nodes)
-    for node in nodes:
-        assert_results_close(1.0, node.coordinates[0])
-
-
 def test_geometry_sets(assert_results_close, get_corresponding_reference_file_path):
     """Test functionality of the GeometrySet objects."""
 
