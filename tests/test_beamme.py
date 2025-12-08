@@ -51,8 +51,6 @@ from beamme.four_c.header_functions import (
 )
 from beamme.four_c.input_file import InputFile
 from beamme.four_c.material import (
-    MaterialKirchhoff,
-    MaterialReissnerElastoplastic,
     MaterialStVenantKirchhoff,
 )
 from beamme.four_c.model_importer import import_cubitpy_model, import_four_c_model
@@ -68,129 +66,6 @@ from beamme.mesh_creation_functions.beam_parametric_curve import (
 )
 from beamme.mesh_creation_functions.nurbs_generic import add_splinepy_nurbs_to_mesh
 from tests.create_cubit_input import create_tube_cubit
-
-
-def test_reissner_elasto_plastic(assert_results_close):
-    """Test the elasto plastic Reissner beam material."""
-
-    kwargs = {
-        "radius": 0.1,
-        "nu": 1.0,
-        "density": 1.0,
-        "youngs_modulus": 1000,
-        "interaction_radius": 2.0,
-        "shear_correction": 5.0 / 6.0,
-        "yield_moment": 2.3,
-        "isohardening_modulus_moment": 4.5,
-        "torsion_plasticity": False,
-    }
-
-    ref_dict = {
-        "MAT": 69,
-        "MAT_BeamReissnerElastPlastic": {
-            "YOUNG": 1000,
-            "POISSONRATIO": 1.0,
-            "DENS": 1.0,
-            "CROSSAREA": 0.031415926535897934,
-            "SHEARCORR": 0.8333333333333334,
-            "MOMINPOL": 0.00015707963267948968,
-            "MOMIN2": 7.853981633974484e-05,
-            "MOMIN3": 7.853981633974484e-05,
-            "INTERACTIONRADIUS": 2.0,
-            "YIELDM": 2.3,
-            "ISOHARDM": 4.5,
-            "TORSIONPLAST": False,
-        },
-    }
-
-    mat = MaterialReissnerElastoplastic(**kwargs)
-    mat.i_global = 68
-
-    assert_results_close(mat.dump_to_list(), ref_dict)
-
-    ref_dict["MAT_BeamReissnerElastPlastic"]["TORSIONPLAST"] = True
-    kwargs["torsion_plasticity"] = True
-    mat = MaterialReissnerElastoplastic(**kwargs)
-    mat.i_global = 68
-    assert_results_close(mat.dump_to_list(), ref_dict)
-
-
-def test_kirchhoff_material(assert_results_close):
-    """Test the Kirchhoff Love beam material."""
-
-    def set_stiff(material):
-        """Set the material properties for the beam material."""
-        material.area = 2.0
-        material.mom2 = 3.0
-        material.mom3 = 4.0
-        material.polar = 5.0
-
-    material = MaterialKirchhoff(
-        youngs_modulus=1000, radius=1.0, nu=1.0, density=1.0, is_fad=True
-    )
-    material.i_global = 26
-    set_stiff(material)
-    assert_results_close(
-        material.dump_to_list(),
-        {
-            "MAT": 27,
-            "MAT_BeamKirchhoffElastHyper": {
-                "YOUNG": 1000,
-                "SHEARMOD": 250.0,
-                "DENS": 1.0,
-                "CROSSAREA": 2.0,
-                "MOMINPOL": 5.0,
-                "MOMIN2": 3.0,
-                "MOMIN3": 4.0,
-                "FAD": True,
-            },
-        },
-    )
-
-    material = MaterialKirchhoff(
-        youngs_modulus=1000, radius=1.0, nu=1.0, density=1.0, is_fad=False
-    )
-    material.i_global = 26
-    set_stiff(material)
-    assert_results_close(
-        material.dump_to_list(),
-        {
-            "MAT": 27,
-            "MAT_BeamKirchhoffElastHyper": {
-                "YOUNG": 1000,
-                "SHEARMOD": 250.0,
-                "DENS": 1.0,
-                "CROSSAREA": 2.0,
-                "MOMINPOL": 5.0,
-                "MOMIN2": 3.0,
-                "MOMIN3": 4.0,
-                "FAD": False,
-            },
-        },
-    )
-
-    material = MaterialKirchhoff(
-        youngs_modulus=1000, radius=1.0, nu=1.0, density=1.0, interaction_radius=1.1
-    )
-    material.i_global = 26
-    set_stiff(material)
-    assert_results_close(
-        material.dump_to_list(),
-        {
-            "MAT": 27,
-            "MAT_BeamKirchhoffElastHyper": {
-                "YOUNG": 1000,
-                "SHEARMOD": 250.0,
-                "DENS": 1.0,
-                "CROSSAREA": 2.0,
-                "MOMINPOL": 5.0,
-                "MOMIN2": 3.0,
-                "MOMIN3": 4.0,
-                "FAD": False,
-                "INTERACTIONRADIUS": 1.1,
-            },
-        },
-    )
 
 
 def test_close_beam(
