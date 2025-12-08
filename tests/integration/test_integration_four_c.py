@@ -333,3 +333,25 @@ def test_integration_four_c_nurbs_import(
 
     # Compare with the reference solution.
     assert_results_close(get_corresponding_reference_file_path(), input_file)
+
+
+def test_integration_four_c_user_defined_boundary_condition(
+    get_bc_data,
+    get_default_test_beam_material,
+    assert_results_close,
+    get_corresponding_reference_file_path,
+):
+    """Check if a user-defined boundary condition can be added."""
+
+    mesh = Mesh()
+
+    mat = get_default_test_beam_material(material_type="reissner")
+    sets = create_beam_mesh_line(mesh, Beam3rHerm2Line3, mat, [0, 0, 0], [1, 2, 3])
+    mesh.add(
+        BoundaryCondition(
+            sets["line"], get_bc_data(), bc_type="DESIGN VOL ALE DIRICH CONDITIONS"
+        )
+    )
+
+    # Compare the output of the mesh.
+    assert_results_close(get_corresponding_reference_file_path(), mesh)
