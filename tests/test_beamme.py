@@ -21,8 +21,6 @@
 # THE SOFTWARE.
 """This script is used to test the functionality of the core modules."""
 
-import warnings
-
 import numpy as np
 import pytest
 
@@ -344,46 +342,3 @@ def test_check_multiple_node_penalty_coupling(
         get_corresponding_reference_file_path(additional_identifier=reuse_nodes[0]),
         mesh,
     )
-
-
-def test_check_double_elements(
-    get_default_test_beam_material,
-    assert_results_close,
-    get_corresponding_reference_file_path,
-    tmp_path,
-):
-    """Check if there are overlapping elements in a mesh."""
-
-    # Create mesh object.
-    mesh = Mesh()
-    mat = get_default_test_beam_material(material_type="reissner")
-    mesh.add(mat)
-
-    # Add two beams to create an elbow structure. The beams each have a
-    # node at the intersection.
-    create_beam_mesh_line(mesh, Beam3rHerm2Line3, mat, [0, 0, 0], [2, 0, 0], n_el=2)
-    create_beam_mesh_line(mesh, Beam3rHerm2Line3, mat, [0, 0, 0], [1, 0, 0])
-
-    # Rotate the mesh with an arbitrary rotation.
-    mesh.rotate(Rotation([1, 2, 3.24313], 2.2323423), [1, 3, -2.23232323])
-
-    # The elements in the created mesh are overlapping, check that an error
-    # is thrown.
-    with pytest.raises(ValueError):
-        mesh.check_overlapping_elements()
-
-    # Check if the overlapping elements are written to the vtk output.
-    warnings.filterwarnings("ignore")
-    ref_file = get_corresponding_reference_file_path(
-        additional_identifier="beam", extension="vtu"
-    )
-    vtk_file = tmp_path / ref_file.name
-    mesh.write_vtk(
-        output_name="test_check_double_elements",
-        output_directory=tmp_path,
-        binary=False,
-        overlapping_elements=True,
-    )
-
-    # Compare the vtk files.
-    assert_results_close(ref_file, vtk_file)

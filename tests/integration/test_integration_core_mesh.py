@@ -31,6 +31,7 @@ import numpy as np
 import pytest
 
 from beamme.core.conf import bme
+from beamme.core.element_beam import Beam3
 from beamme.core.mesh import Mesh
 from beamme.core.node import NodeCosserat
 from beamme.core.rotation import Rotation
@@ -356,6 +357,46 @@ def test_integration_core_mesh_deep_copy_with_geometry_sets(
     mesh.add(beam_set_copy)
     bme.check_overlapping_elements = False
     assert_results_close(get_corresponding_reference_file_path(), mesh)
+
+
+def test_integration_core_mesh_check_double_elements(
+    get_default_test_beam_material,
+    assert_results_close,
+    get_corresponding_reference_file_path,
+    tmp_path,
+):
+    """Test the check for overlapping elements in a mesh."""
+
+    # Create mesh object.
+    mesh = Mesh()
+    mat = get_default_test_beam_material()
+    mesh.add(mat)
+
+    # Add two beams to create an elbow structure. The beams each have a
+    # node at the intersection.
+    create_beam_mesh_line(mesh, Beam3, mat, [0, 0, 0], [2, 0, 0], n_el=2)
+    create_beam_mesh_line(mesh, Beam3, mat, [0, 0, 0], [1, 0, 0])
+
+    # Rotate the mesh with an arbitrary rotation.
+    mesh.rotate(Rotation([1, 2, 3.24313], 2.2323423), [1, 3, -2.23232323])
+
+    # The elements in the created mesh are overlapping, check that an error
+    # is thrown.
+    with pytest.raises(ValueError):
+        mesh.check_overlapping_elements()
+
+    # Check if the overlapping elements are written to the vtk output.
+    warnings.filterwarnings("ignore")
+    ref_file = get_corresponding_reference_file_path(
+        additional_identifier="beam", extension="vtu"
+    )
+    vtk_file = tmp_path / "test_beam.vtu"
+    mesh.write_vtk(
+        output_name="test", output_directory=tmp_path, overlapping_elements=True
+    )
+
+    # Compare the vtk files.
+    assert_results_close(ref_file, vtk_file)
 
 
 def test_integration_core_mesh_display_pyvista(
