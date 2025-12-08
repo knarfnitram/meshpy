@@ -171,3 +171,28 @@ def test_beamme_core_geometry_set_unique_ordering_of_get_all_nodes_for_line_cond
     mesh_node_indices = range(21)
     for i_node_set, i_node_mesh in enumerate(mesh_node_indices):
         assert nodes_set[i_node_set] is mesh.nodes[i_node_mesh]
+
+
+def test_beamme_core_geometry_set_get_geometry_objects(get_default_test_beam_material):
+    """Test if the geometry set returns the objects(elements) in the correct
+    order."""
+
+    # Initialize material and mesh
+    mat = get_default_test_beam_material(material_type="base")
+    mesh = Mesh()
+
+    # number of elements
+    n_el = 5
+
+    # Create a simple beam.
+    geometry = create_beam_mesh_line(mesh, Beam3, mat, [0, 0, 0], [2, 0, 0], n_el=n_el)
+
+    # Get all elements from the geometry set.
+    elements_of_geometry = geometry["line"].get_geometry_objects()
+
+    # Check number of elements.
+    assert len(elements_of_geometry) == n_el
+
+    # Check if the order of the elements from the geometry set is the same as for the mesh.
+    for i_element, element in enumerate(elements_of_geometry):
+        assert element == mesh.elements[i_element]
