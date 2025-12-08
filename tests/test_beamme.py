@@ -41,9 +41,6 @@ from beamme.core.node import Node, NodeCosserat
 from beamme.core.rotation import Rotation
 from beamme.core.vtk_writer import VTKWriter
 from beamme.four_c.element_beam import Beam3rHerm2Line3
-from beamme.four_c.material import (
-    MaterialStVenantKirchhoff,
-)
 from beamme.four_c.model_importer import import_cubitpy_model, import_four_c_model
 from beamme.mesh_creation_functions.applications.beam_honeycomb import (
     create_beam_mesh_honeycomb,
@@ -136,28 +133,6 @@ def test_beam_to_solid_conditions(
         ),
         input_file,
     )
-
-
-def test_stvenantkirchhoff_solid(
-    assert_results_close, get_corresponding_reference_file_path
-):
-    """Test that the input file for a solid with St.
-
-    Venant Kirchhoff material properties is generated correctly
-    """
-
-    # Create materials
-    material_1 = MaterialStVenantKirchhoff(youngs_modulus=157, nu=0.17, density=6.1e-7)
-
-    material_2 = MaterialStVenantKirchhoff(youngs_modulus=370, nu=0.20, density=5.2e-7)
-
-    # Create mesh
-    mesh = Mesh()
-    mesh.add(material_1)
-    mesh.add(material_2)
-
-    # Compare with the reference file
-    assert_results_close(get_corresponding_reference_file_path(), mesh)
 
 
 @pytest.mark.parametrize(

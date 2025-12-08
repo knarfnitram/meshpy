@@ -25,6 +25,7 @@ from beamme.four_c.material import (
     MaterialKirchhoff,
     MaterialReissner,
     MaterialReissnerElastoplastic,
+    MaterialStVenantKirchhoff,
 )
 
 
@@ -219,6 +220,24 @@ def test_beamme_four_c_material_kirchhoff_material(assert_results_close):
                 "MOMIN3": 4.0,
                 "FAD": False,
                 "INTERACTIONRADIUS": 1.1,
+            },
+        },
+    )
+
+
+def test_beamme_four_c_material_stvenantkirchhoff_solid(assert_results_close):
+    """Test that the solid with St_Venant Kirchhoff material."""
+
+    material = MaterialStVenantKirchhoff(youngs_modulus=157, nu=0.17, density=6.1e-7)
+    material.i_global = 3
+    assert_results_close(
+        material.dump_to_list(),
+        {
+            "MAT": 4,
+            "MAT_Struct_StVenantKirchhoff": {
+                "YOUNG": 157,
+                "NUE": 0.17,
+                "DENS": 6.1e-07,
             },
         },
     )
