@@ -36,55 +36,12 @@ from beamme.core.mesh import Mesh
 from beamme.core.node import Node, NodeCosserat
 from beamme.core.rotation import Rotation
 from beamme.four_c.element_beam import Beam3rHerm2Line3
-from beamme.four_c.model_importer import import_cubitpy_model, import_four_c_model
+from beamme.four_c.model_importer import import_cubitpy_model
 from beamme.mesh_creation_functions.beam_line import create_beam_mesh_line
-from tests.create_cubit_input import create_tube_cubit
-
-
-def create_beam_to_solid_conditions_model(
-    get_default_test_beam_material,
-    get_corresponding_reference_file_path,
-    full_import: bool,
-):
-    """Create the input file for the beam-to-solid input conditions tests."""
-
-    # Create input file
-    input_file, mesh = import_four_c_model(
-        input_file_path=get_corresponding_reference_file_path(
-            reference_file_base_name="test_other_create_cubit_input_block"
-        ),
-        convert_input_to_mesh=full_import,
-    )
-
-    # Add beams to the model
-    mesh_beams = Mesh()
-    material = get_default_test_beam_material(material_type="reissner")
-    create_beam_mesh_line(
-        mesh_beams, Beam3rHerm2Line3, material, [0, 0, 0], [0, 0, 1], n_el=3
-    )
-    create_beam_mesh_line(
-        mesh_beams, Beam3rHerm2Line3, material, [0, 0.5, 0], [0, 0.5, 1], n_el=3
-    )
-
-    # Set beam-to-solid coupling conditions.
-    line_set = GeometrySet(mesh_beams.elements)
-    mesh_beams.add(
-        BoundaryCondition(
-            line_set,
-            bc_type=bme.bc.beam_to_solid_volume_meshtying,
-            data={"COUPLING_ID": 1},
-        )
-    )
-    mesh_beams.add(
-        BoundaryCondition(
-            line_set,
-            bc_type=bme.bc.beam_to_solid_surface_meshtying,
-            data={"COUPLING_ID": 2},
-        )
-    )
-    mesh.add(mesh_beams)
-
-    return input_file, mesh
+from tests.create_test_models import (
+    create_beam_to_solid_conditions_model,
+    create_tube_cubit,
+)
 
 
 # TODO: Standardize test parameterization for (full_import, additional_identifier).
@@ -510,20 +467,3 @@ def test_userdefined_boundary_condition(
 
     # Compare the output of the mesh.
     assert_results_close(get_corresponding_reference_file_path(), mesh)
-
-
-def test_display_pyvista(
-    get_default_test_beam_material, get_corresponding_reference_file_path
-):
-    """Test that the display in pyvista function does not lead to errors.
-
-    TODO: Add a check for the created visualziation
-    """
-
-    _, mesh = create_beam_to_solid_conditions_model(
-        get_default_test_beam_material,
-        get_corresponding_reference_file_path,
-        full_import=True,
-    )
-
-    mesh.display_pyvista(resolution=3)

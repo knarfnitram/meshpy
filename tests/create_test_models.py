@@ -22,8 +22,14 @@
 """This script contains functionality to create solid input files (or plain
 cubit instances) with CubitPy which are then used in testing."""
 
+from beamme.core.boundary_condition import BoundaryCondition
+from beamme.core.conf import bme
+from beamme.core.geometry_set import GeometrySet
+from beamme.core.mesh import Mesh
+from beamme.four_c.element_beam import Beam3rHerm2Line3
 from beamme.four_c.input_file import InputFile
-from beamme.four_c.model_importer import import_cubitpy_model
+from beamme.four_c.model_importer import import_cubitpy_model, import_four_c_model
+from beamme.mesh_creation_functions.beam_line import create_beam_mesh_line
 from beamme.utils.environment import cubitpy_is_available
 
 if cubitpy_is_available():
@@ -291,3 +297,49 @@ def create_solid_shell_meshes(file_path_blocks, file_path_dome):
         }
     ]
     cubit.dump(file_path_dome)
+
+
+def create_beam_to_solid_conditions_model(
+    get_default_test_beam_material,
+    get_corresponding_reference_file_path,
+    full_import: bool,
+):
+    """Create the input file for the beam-to-solid input conditions tests."""
+
+    # Create input file
+    input_file, mesh = import_four_c_model(
+        input_file_path=get_corresponding_reference_file_path(
+            reference_file_base_name="test_other_create_cubit_input_block"
+        ),
+        convert_input_to_mesh=full_import,
+    )
+
+    # Add beams to the model
+    mesh_beams = Mesh()
+    material = get_default_test_beam_material(material_type="reissner")
+    create_beam_mesh_line(
+        mesh_beams, Beam3rHerm2Line3, material, [0, 0, 0], [0, 0, 1], n_el=3
+    )
+    create_beam_mesh_line(
+        mesh_beams, Beam3rHerm2Line3, material, [0, 0.5, 0], [0, 0.5, 1], n_el=3
+    )
+
+    # Set beam-to-solid coupling conditions.
+    line_set = GeometrySet(mesh_beams.elements)
+    mesh_beams.add(
+        BoundaryCondition(
+            line_set,
+            bc_type=bme.bc.beam_to_solid_volume_meshtying,
+            data={"COUPLING_ID": 1},
+        )
+    )
+    mesh_beams.add(
+        BoundaryCondition(
+            line_set,
+            bc_type=bme.bc.beam_to_solid_surface_meshtying,
+            data={"COUPLING_ID": 2},
+        )
+    )
+    mesh.add(mesh_beams)
+
+    return input_file, mesh
