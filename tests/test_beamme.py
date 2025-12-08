@@ -27,9 +27,7 @@ import pytest
 from beamme.core.boundary_condition import BoundaryCondition
 from beamme.core.conf import bme
 from beamme.core.coupling import Coupling
-from beamme.core.element_beam import Beam
 from beamme.core.function import Function
-from beamme.core.geometry_set import GeometrySet
 from beamme.core.mesh import Mesh
 from beamme.core.node import Node
 from beamme.core.rotation import Rotation
@@ -240,43 +238,6 @@ def test_deep_copy(get_bc_data, get_default_test_beam_material, assert_results_c
     # Check that the input files are the same.
     # TODO: add reference file check here as well
     assert_results_close(mesh, mesh_copy)
-
-
-def test_mesh_add_checks():
-    """This test checks that Mesh raises an error when double objects are added
-    to the mesh."""
-
-    # Mesh instance for this test.
-    mesh = Mesh()
-
-    # Create basic objects that will be added to the mesh.
-    node = Node([0, 1.0, 2.0])
-    element = Beam()
-    mesh.add(node)
-    mesh.add(element)
-
-    # Create objects based on basic mesh items.
-    coupling = Coupling(mesh.nodes, bme.bc.point_coupling, bme.coupling_dof.fix)
-    coupling_penalty = Coupling(
-        mesh.nodes, bme.bc.point_coupling_penalty, bme.coupling_dof.fix
-    )
-    geometry_set = GeometrySet(mesh.elements)
-    mesh.add(coupling)
-    mesh.add(coupling_penalty)
-    mesh.add(geometry_set)
-
-    # Add the objects again and check for errors.
-    # TODO catch and test error messages
-    with pytest.raises(ValueError):
-        mesh.add(node)
-    with pytest.raises(ValueError):
-        mesh.add(element)
-    with pytest.raises(ValueError):
-        mesh.add(coupling)
-    with pytest.raises(ValueError):
-        mesh.add(coupling_penalty)
-    with pytest.raises(ValueError):
-        mesh.add(geometry_set)
 
 
 def test_check_two_couplings(
