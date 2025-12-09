@@ -24,6 +24,7 @@ with end-to-end integration tests."""
 
 import copy
 import random
+import warnings
 from contextlib import nullcontext
 
 import numpy as np
@@ -288,6 +289,45 @@ def test_integration_core_mesh_transformations_with_solid(
             ),
             input_file,
         )
+
+
+def test_integration_core_mesh_wrap_cylinder_not_on_same_plane(
+    get_default_test_beam_material,
+    assert_results_close,
+    get_corresponding_reference_file_path,
+):
+    """Create a helix that is itself wrapped around a cylinder."""
+
+    # Ignore the warnings from wrap around cylinder.
+    warnings.filterwarnings("ignore")
+
+    # Create the mesh.
+    mesh = Mesh()
+    mat = get_default_test_beam_material(material_type="reissner")
+
+    # Create the line and bend it to a helix.
+    create_beam_mesh_line(
+        mesh,
+        Beam3rHerm2Line3,
+        mat,
+        [0.2, 0, 0],
+        [0.2, 5 * 0.2 * 2 * np.pi, 4],
+        n_el=20,
+    )
+    mesh.wrap_around_cylinder()
+
+    # Move the helix so its axis is in the y direction and goes through
+    # (2 0 0). The helix is also moved by a lot in y-direction, this only
+    # affects the angle phi when wrapping around a cylinder, not the shape
+    # of the beam.
+    mesh.rotate(Rotation([1, 0, 0], -0.5 * np.pi))
+    mesh.translate([2, 666.666, 0])
+
+    # Wrap the helix again.
+    mesh.wrap_around_cylinder(radius=2.0)
+
+    # Check the output.
+    assert_results_close(get_corresponding_reference_file_path(), mesh)
 
 
 def test_integration_core_mesh_deep_copy_with_geometry_sets(

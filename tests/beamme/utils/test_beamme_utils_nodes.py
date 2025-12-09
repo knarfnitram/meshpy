@@ -23,8 +23,13 @@
 
 import numpy as np
 
-from beamme.core.node import Node
-from beamme.utils.nodes import adjust_close_nodes, is_node_on_plane
+from beamme.core.node import Node, NodeCosserat
+from beamme.core.rotation import Rotation
+from beamme.utils.nodes import (
+    adjust_close_nodes,
+    get_min_max_coordinates,
+    is_node_on_plane,
+)
 
 
 def test_beamme_utils_nodes_adjusting_of_nodes(assert_results_close):
@@ -70,3 +75,22 @@ def test_beamme_utils_nodes_is_node_on_plane():
     assert not is_node_on_plane(
         node, normal=[0.0, 0.0, 5.0], point_on_plane=[5.0, 5.0, 1.0]
     )
+
+
+def test_beamme_utils_nodes_get_min_max_coordinates(assert_results_close):
+    """Test if the get_min_max_coordinates function works properly."""
+
+    # Create the mesh.
+    nodes = []
+    nodes.append(Node([0.0, 0.0, 0.0]))
+    nodes.append(Node([0.0, 0.0, -1.5]))
+    nodes.append(Node([-0.5, 1.0, 3.0]))
+    nodes.append(Node([0.5, -1.0, 4.0]))
+    nodes.append(NodeCosserat([0.0, 0.0, 0.0], Rotation()))
+    nodes.append(NodeCosserat([-0.5, 3.0, 4.0], Rotation()))
+    nodes.append(NodeCosserat([2.0, -1.0, 0.0], Rotation()))
+
+    # Check the results.
+    min_max = get_min_max_coordinates(nodes)
+    ref_solution = [-0.5, -1.0, -1.5, 2.0, 3.0, 4.0]
+    assert_results_close(min_max, ref_solution)

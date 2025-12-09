@@ -274,7 +274,7 @@ class Mesh:
         coupling_sets: bool = True,
         link_to_nodes: str = "no_link",
         geometry_set_start_indices: _Optional[_Dict] = None,
-    ):
+    ) -> _GeometrySetContainer:
         """Return a geometry set container that contains geometry sets
         explicitly added to the mesh, as well as sets for boundary conditions.
 

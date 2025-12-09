@@ -26,9 +26,12 @@ from typing import Callable
 import pytest
 
 from beamme.core.conf import bme
-from beamme.core.element_beam import Beam
+from beamme.core.element_beam import Beam, Beam3
 from beamme.core.geometry_set import GeometrySet, GeometrySetNodes
-from beamme.core.node import Node
+from beamme.core.mesh import Mesh
+from beamme.core.node import Node, NodeCosserat
+from beamme.core.rotation import Rotation
+from beamme.mesh_creation_functions.beam_line import create_beam_mesh_line
 
 
 @pytest.fixture()
@@ -107,3 +110,89 @@ def test_beamme_core_geometry_set_nodes_add_operator(
     assert_geometry_set_add_operator(
         mesh_objects, combined_geometry, set_1.get_all_nodes(), set_2.get_all_nodes()
     )
+
+
+def test_beamme_core_geometry_set_add():
+    """Test functionality of the GeometrySet add method."""
+
+    mesh = Mesh()
+    for i in range(6):
+        mesh.add(NodeCosserat([i, 2 * i, 3 * i], Rotation()))
+
+    set_1 = GeometrySetNodes(
+        bme.geo.point, [mesh.nodes[0], mesh.nodes[1], mesh.nodes[2]]
+    )
+    set_2 = GeometrySetNodes(
+        bme.geo.point, [mesh.nodes[2], mesh.nodes[3], mesh.nodes[4]]
+    )
+    set_12 = GeometrySetNodes(bme.geo.point)
+    set_12.add(set_1)
+    set_12.add(set_2)
+    set_3 = GeometrySet(set_1.get_points())
+
+    mesh.add(set_1, set_2, set_12, set_3)
+
+    # Check the resulting sets
+    unique_sets = mesh.get_unique_geometry_sets()
+    for key, value in unique_sets.items():
+        if key is bme.geo.point:
+            assert len(value) == 4
+        else:
+            assert len(value) == 0
+
+    results = [
+        {"len": 3, "indices": [0, 1, 2]},
+        {"len": 3, "indices": [2, 3, 4]},
+        {"len": 5, "indices": [0, 1, 2, 3, 4]},
+        {"len": 3, "indices": [0, 1, 2]},
+    ]
+    for i_set, result_dict in enumerate(results):
+        point_set = unique_sets[bme.geo.point][i_set]
+        nodes = point_set.get_all_nodes()
+        assert len(nodes) == result_dict["len"]
+        for i_node, node_index in enumerate(result_dict["indices"]):
+            assert nodes[i_node] is mesh.nodes[node_index]
+
+
+def test_beamme_core_geometry_set_unique_ordering_of_get_all_nodes_for_line_condition(
+    get_default_test_beam_material,
+):
+    """This test ensures that the ordering of the nodes returned from the
+    function get_all_nodes is unique for line sets."""
+
+    # set up a beam mesh with material
+    mesh = Mesh()
+    mat = get_default_test_beam_material(material_type="base")
+    beam_set = create_beam_mesh_line(mesh, Beam3, mat, [0, 0, 0], [2, 0, 0], n_el=10)
+
+    # check the nodes in the line set
+    nodes_set = beam_set["line"].get_all_nodes()
+    assert len(nodes_set) == 21
+    mesh_node_indices = range(21)
+    for i_node_set, i_node_mesh in enumerate(mesh_node_indices):
+        assert nodes_set[i_node_set] is mesh.nodes[i_node_mesh]
+
+
+def test_beamme_core_geometry_set_get_geometry_objects(get_default_test_beam_material):
+    """Test if the geometry set returns the objects(elements) in the correct
+    order."""
+
+    # Initialize material and mesh
+    mat = get_default_test_beam_material(material_type="base")
+    mesh = Mesh()
+
+    # number of elements
+    n_el = 5
+
+    # Create a simple beam.
+    geometry = create_beam_mesh_line(mesh, Beam3, mat, [0, 0, 0], [2, 0, 0], n_el=n_el)
+
+    # Get all elements from the geometry set.
+    elements_of_geometry = geometry["line"].get_geometry_objects()
+
+    # Check number of elements.
+    assert len(elements_of_geometry) == n_el
+
+    # Check if the order of the elements from the geometry set is the same as for the mesh.
+    for i_element, element in enumerate(elements_of_geometry):
+        assert element == mesh.elements[i_element]

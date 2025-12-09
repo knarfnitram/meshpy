@@ -21,7 +21,12 @@
 # THE SOFTWARE.
 """This file unit tests materials for 4C."""
 
-from beamme.four_c.material import MaterialReissner
+from beamme.four_c.material import (
+    MaterialKirchhoff,
+    MaterialReissner,
+    MaterialReissnerElastoplastic,
+    MaterialStVenantKirchhoff,
+)
 
 
 def test_beamme_four_c_material_reissner(assert_results_close):
@@ -95,3 +100,144 @@ def test_beamme_four_c_material_reissner_by_modes(assert_results_close):
     }
 
     assert_results_close(mat.dump_to_list(), mat_expected)
+
+
+def test_beamme_four_c_material_reissner_elasto_plastic(assert_results_close):
+    """Test the elasto plastic Reissner beam material."""
+
+    kwargs = {
+        "radius": 0.1,
+        "nu": 1.0,
+        "density": 1.0,
+        "youngs_modulus": 1000,
+        "interaction_radius": 2.0,
+        "shear_correction": 5.0 / 6.0,
+        "yield_moment": 2.3,
+        "isohardening_modulus_moment": 4.5,
+        "torsion_plasticity": False,
+    }
+
+    ref_dict = {
+        "MAT": 69,
+        "MAT_BeamReissnerElastPlastic": {
+            "YOUNG": 1000,
+            "POISSONRATIO": 1.0,
+            "DENS": 1.0,
+            "CROSSAREA": 0.031415926535897934,
+            "SHEARCORR": 0.8333333333333334,
+            "MOMINPOL": 0.00015707963267948968,
+            "MOMIN2": 7.853981633974484e-05,
+            "MOMIN3": 7.853981633974484e-05,
+            "INTERACTIONRADIUS": 2.0,
+            "YIELDM": 2.3,
+            "ISOHARDM": 4.5,
+            "TORSIONPLAST": False,
+        },
+    }
+
+    mat = MaterialReissnerElastoplastic(**kwargs)
+    mat.i_global = 68
+
+    assert_results_close(mat.dump_to_list(), ref_dict)
+
+    ref_dict["MAT_BeamReissnerElastPlastic"]["TORSIONPLAST"] = True
+    kwargs["torsion_plasticity"] = True
+    mat = MaterialReissnerElastoplastic(**kwargs)
+    mat.i_global = 68
+    assert_results_close(mat.dump_to_list(), ref_dict)
+
+
+def test_beamme_four_c_material_kirchhoff_material(assert_results_close):
+    """Test the Kirchhoff Love beam material."""
+
+    def set_stiff(material):
+        """Set the material properties for the beam material."""
+        material.area = 2.0
+        material.mom2 = 3.0
+        material.mom3 = 4.0
+        material.polar = 5.0
+
+    material = MaterialKirchhoff(
+        youngs_modulus=1000, radius=1.0, nu=1.0, density=1.0, is_fad=True
+    )
+    material.i_global = 26
+    set_stiff(material)
+    assert_results_close(
+        material.dump_to_list(),
+        {
+            "MAT": 27,
+            "MAT_BeamKirchhoffElastHyper": {
+                "YOUNG": 1000,
+                "SHEARMOD": 250.0,
+                "DENS": 1.0,
+                "CROSSAREA": 2.0,
+                "MOMINPOL": 5.0,
+                "MOMIN2": 3.0,
+                "MOMIN3": 4.0,
+                "FAD": True,
+            },
+        },
+    )
+
+    material = MaterialKirchhoff(
+        youngs_modulus=1000, radius=1.0, nu=1.0, density=1.0, is_fad=False
+    )
+    material.i_global = 26
+    set_stiff(material)
+    assert_results_close(
+        material.dump_to_list(),
+        {
+            "MAT": 27,
+            "MAT_BeamKirchhoffElastHyper": {
+                "YOUNG": 1000,
+                "SHEARMOD": 250.0,
+                "DENS": 1.0,
+                "CROSSAREA": 2.0,
+                "MOMINPOL": 5.0,
+                "MOMIN2": 3.0,
+                "MOMIN3": 4.0,
+                "FAD": False,
+            },
+        },
+    )
+
+    material = MaterialKirchhoff(
+        youngs_modulus=1000, radius=1.0, nu=1.0, density=1.0, interaction_radius=1.1
+    )
+    material.i_global = 26
+    set_stiff(material)
+    assert_results_close(
+        material.dump_to_list(),
+        {
+            "MAT": 27,
+            "MAT_BeamKirchhoffElastHyper": {
+                "YOUNG": 1000,
+                "SHEARMOD": 250.0,
+                "DENS": 1.0,
+                "CROSSAREA": 2.0,
+                "MOMINPOL": 5.0,
+                "MOMIN2": 3.0,
+                "MOMIN3": 4.0,
+                "FAD": False,
+                "INTERACTIONRADIUS": 1.1,
+            },
+        },
+    )
+
+
+def test_beamme_four_c_material_stvenantkirchhoff_solid(assert_results_close):
+    """Test that the solid with St_Venant Kirchhoff material."""
+
+    material = MaterialStVenantKirchhoff(youngs_modulus=157, nu=0.17, density=6.1e-7)
+    material.i_global = 3
+    assert_results_close(
+        material.dump_to_list(),
+        {
+            "MAT": 4,
+            "MAT_Struct_StVenantKirchhoff": {
+                "YOUNG": 157,
+                "NUE": 0.17,
+                "DENS": 6.1e-07,
+            },
+        },
+    )
