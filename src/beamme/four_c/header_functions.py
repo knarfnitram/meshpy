@@ -282,6 +282,7 @@ def set_header_static(
     write_bin: bool = False,
     write_stress: str = "no",
     write_strain: str = "no",
+    predictor: str = "TangDis",
     prestress: str = "None",
     prestress_time: float = 0,
     create_nox_file: bool = True,
@@ -316,6 +317,8 @@ def set_header_static(
             If and which stress output to write
         write_strain:
             If and which strain output to write
+        predictor:
+            Type of predictor to be used
         prestress:
             Type of prestressing strategy to be used
         prestress_time:
@@ -357,7 +360,7 @@ def set_header_static(
         "LINEAR_SOLVER": 1,
         "INT_STRATEGY": "Standard",
         "DYNAMICTYPE": "Statics",
-        "PREDICT": "TangDis",
+        "PREDICT": predictor,
         "PRESTRESS": prestress,
         "PRESTRESSTIME": prestress_time,
         "TIMESTEP": time_step,
