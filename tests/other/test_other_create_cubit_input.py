@@ -23,7 +23,7 @@
 
 import pytest
 
-from tests.create_cubit_input import (
+from tests.create_test_models import (
     create_block,
     create_solid_shell_meshes,
     create_tube,

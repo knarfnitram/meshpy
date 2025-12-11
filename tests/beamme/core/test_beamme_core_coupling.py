@@ -21,10 +21,13 @@
 # THE SOFTWARE.
 """This script is used to unittest the functionality of the couplings."""
 
+import pytest
+
 from beamme.core.conf import bme
-from beamme.core.coupling import coupling_factory
+from beamme.core.coupling import Coupling, coupling_factory
 from beamme.core.geometry_set import GeometrySet
-from beamme.core.node import Node
+from beamme.core.node import Node, NodeCosserat
+from beamme.core.rotation import Rotation
 
 
 def test_beamme_core_coupling_factory():
@@ -64,3 +67,27 @@ def test_beamme_core_coupling_factory():
         assert len(coupling_nodes) == 2
         assert coupling_nodes[0] is reference_geometry_set_nodes[0]
         assert coupling_nodes[1] is reference_geometry_set_nodes[i_coupling + 1]
+
+
+@pytest.mark.parametrize("check_overlapping_nodes", [True, False])
+def test_beamme_core_coupling_check_overlapping_coupling_nodes(check_overlapping_nodes):
+    """Per default, we check that coupling nodes are at the same physical
+    position.
+
+    This check can be deactivated with the keyword
+    check_overlapping_nodes when creating a Coupling.
+    """
+
+    # Create the nodes
+    node_1 = NodeCosserat([0.0, 1.5, 3.0], Rotation())
+    node_2 = NodeCosserat([1.0, 2.5, 4.0], Rotation())
+
+    # Couple two nodes that are not at the same position.
+    # Per default, this will cause an error, as there are two
+    # couplings for one node.
+    args = [[node_1, node_2], bme.bc.point_coupling, "coupling_type_string"]
+    if check_overlapping_nodes:
+        with pytest.raises(ValueError):
+            Coupling(*args)
+    else:
+        Coupling(*args, check_overlapping_nodes=False)

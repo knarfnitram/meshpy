@@ -23,6 +23,7 @@
 to-end integration tests."""
 
 import numpy as np
+import pytest
 import splinepy
 
 from beamme.core.boundary_condition import BoundaryCondition
@@ -333,3 +334,65 @@ def test_integration_four_c_nurbs_import(
 
     # Compare with the reference solution.
     assert_results_close(get_corresponding_reference_file_path(), input_file)
+
+
+def test_integration_four_c_user_defined_boundary_condition(
+    get_bc_data,
+    get_default_test_beam_material,
+    assert_results_close,
+    get_corresponding_reference_file_path,
+):
+    """Check if a user-defined boundary condition can be added."""
+
+    mesh = Mesh()
+
+    mat = get_default_test_beam_material(material_type="reissner")
+    sets = create_beam_mesh_line(mesh, Beam3rHerm2Line3, mat, [0, 0, 0], [1, 2, 3])
+    mesh.add(
+        BoundaryCondition(
+            sets["line"], get_bc_data(), bc_type="DESIGN VOL ALE DIRICH CONDITIONS"
+        )
+    )
+
+    # Compare the output of the mesh.
+    assert_results_close(get_corresponding_reference_file_path(), mesh)
+
+
+@pytest.mark.parametrize("reuse_nodes", [False, True])
+def test_integration_four_c_check_multiple_node_penalty_coupling(
+    get_default_test_beam_material,
+    reuse_nodes,
+    assert_results_close,
+    get_corresponding_reference_file_path,
+):
+    """For point penalty coupling constraints, we add multiple coupling
+    conditions.
+
+    This is checked in this test case. The flag reuse_nodes decides
+    whether equal nodes are unified to a single node.
+    """
+
+    # Create mesh object
+    mesh = Mesh()
+    mat = get_default_test_beam_material(material_type="reissner")
+    mesh.add(mat)
+
+    # Add three beams that have one common point
+    create_beam_mesh_line(mesh, Beam3rHerm2Line3, mat, [0, 0, 0], [1, 0, 0])
+    create_beam_mesh_line(mesh, Beam3rHerm2Line3, mat, [1, 0, 0], [2, 0, 0])
+    create_beam_mesh_line(mesh, Beam3rHerm2Line3, mat, [1, 0, 0], [2, -1, 0])
+
+    mesh.couple_nodes(
+        reuse_matching_nodes=reuse_nodes,
+        coupling_type=bme.bc.point_coupling_penalty,
+        coupling_dof_type={
+            "POSITIONAL_PENALTY_PARAMETER": 10000,
+            "ROTATIONAL_PENALTY_PARAMETER": 0,
+        },
+    )
+    assert_results_close(
+        get_corresponding_reference_file_path(
+            additional_identifier="reuse" if reuse_nodes else ""
+        ),
+        mesh,
+    )

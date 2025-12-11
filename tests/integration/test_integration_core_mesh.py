@@ -30,13 +30,17 @@ from contextlib import nullcontext
 import numpy as np
 import pytest
 
+from beamme.core.boundary_condition import BoundaryCondition
 from beamme.core.conf import bme
+from beamme.core.element_beam import Beam3
+from beamme.core.function import Function
 from beamme.core.mesh import Mesh
 from beamme.core.node import NodeCosserat
 from beamme.core.rotation import Rotation
 from beamme.four_c.element_beam import Beam3rHerm2Line3
 from beamme.four_c.model_importer import import_four_c_model
 from beamme.mesh_creation_functions.beam_line import create_beam_mesh_line
+from tests.create_test_models import create_beam_to_solid_conditions_model
 
 
 def create_test_mesh(get_default_test_beam_material):
@@ -330,6 +334,66 @@ def test_integration_core_mesh_wrap_cylinder_not_on_same_plane(
     assert_results_close(get_corresponding_reference_file_path(), mesh)
 
 
+def test_integration_core_mesh_deep_copy(
+    get_bc_data,
+    get_default_test_beam_material,
+    get_corresponding_reference_file_path,
+    assert_results_close,
+):
+    """This test checks that the deep copy function on a mesh does not copy the
+    materials or functions."""
+
+    # Create material and function object.
+    mat = get_default_test_beam_material(material_type="reissner")
+    fun = Function([{"COMPONENT": 0, "SYMBOLIC_FUNCTION_OF_SPACE_TIME": "t"}])
+
+    def create_mesh(mesh):
+        """Add material and function to the mesh and create a beam."""
+        mesh.add(fun, mat)
+        set1 = create_beam_mesh_line(mesh, Beam3rHerm2Line3, mat, [0, 0, 0], [1, 0, 0])
+        set2 = create_beam_mesh_line(mesh, Beam3rHerm2Line3, mat, [1, 0, 0], [1, 1, 0])
+        mesh.add(
+            BoundaryCondition(
+                set1["line"], get_bc_data(identifier=1), bc_type=bme.bc.dirichlet
+            )
+        )
+        mesh.add(
+            BoundaryCondition(
+                set2["line"], get_bc_data(identifier=2), bc_type=bme.bc.neumann
+            )
+        )
+        mesh.couple_nodes()
+
+    # The second mesh will be translated and rotated with those vales.
+    translate = [1.0, 2.34535435, 3.345353]
+    rotation = Rotation([1, 0.2342342423, -2.234234], np.pi / 15 * 27)
+
+    # First create the mesh twice, move one and get the input file.
+    mesh_ref_1 = Mesh()
+    mesh_ref_2 = Mesh()
+    create_mesh(mesh_ref_1)
+    create_mesh(mesh_ref_2)
+    mesh_ref_2.rotate(rotation)
+    mesh_ref_2.translate(translate)
+
+    mesh = Mesh()
+    mesh.add(mesh_ref_1, mesh_ref_2)
+
+    # Now copy the first mesh and add them together in the input file.
+    mesh_copy_1 = Mesh()
+    create_mesh(mesh_copy_1)
+    mesh_copy_2 = mesh_copy_1.copy()
+    mesh_copy_2.rotate(rotation)
+    mesh_copy_2.translate(translate)
+
+    mesh_copy = Mesh()
+    mesh_copy.add(mesh_copy_1, mesh_copy_2)
+
+    # Check that the input files are the same.
+    assert_results_close(mesh, mesh_copy)
+    assert_results_close(get_corresponding_reference_file_path(), mesh)
+
+
 def test_integration_core_mesh_deep_copy_with_geometry_sets(
     get_default_test_beam_material,
     assert_results_close,
@@ -355,3 +419,60 @@ def test_integration_core_mesh_deep_copy_with_geometry_sets(
     mesh.add(beam_set_copy)
     bme.check_overlapping_elements = False
     assert_results_close(get_corresponding_reference_file_path(), mesh)
+
+
+def test_integration_core_mesh_check_double_elements(
+    get_default_test_beam_material,
+    assert_results_close,
+    get_corresponding_reference_file_path,
+    tmp_path,
+):
+    """Test the check for overlapping elements in a mesh."""
+
+    # Create mesh object.
+    mesh = Mesh()
+    mat = get_default_test_beam_material()
+    mesh.add(mat)
+
+    # Add two beams to create an elbow structure. The beams each have a
+    # node at the intersection.
+    create_beam_mesh_line(mesh, Beam3, mat, [0, 0, 0], [2, 0, 0], n_el=2)
+    create_beam_mesh_line(mesh, Beam3, mat, [0, 0, 0], [1, 0, 0])
+
+    # Rotate the mesh with an arbitrary rotation.
+    mesh.rotate(Rotation([1, 2, 3.24313], 2.2323423), [1, 3, -2.23232323])
+
+    # The elements in the created mesh are overlapping, check that an error
+    # is thrown.
+    with pytest.raises(ValueError):
+        mesh.check_overlapping_elements()
+
+    # Check if the overlapping elements are written to the vtk output.
+    warnings.filterwarnings("ignore")
+    ref_file = get_corresponding_reference_file_path(
+        additional_identifier="beam", extension="vtu"
+    )
+    vtk_file = tmp_path / "test_beam.vtu"
+    mesh.write_vtk(
+        output_name="test", output_directory=tmp_path, overlapping_elements=True
+    )
+
+    # Compare the vtk files.
+    assert_results_close(ref_file, vtk_file)
+
+
+def test_integration_core_mesh_display_pyvista(
+    get_default_test_beam_material, get_corresponding_reference_file_path
+):
+    """Test that the display in pyvista function does not lead to errors.
+
+    TODO: Add a check for the created visualization
+    """
+
+    _, mesh = create_beam_to_solid_conditions_model(
+        get_default_test_beam_material,
+        get_corresponding_reference_file_path,
+        full_import=True,
+    )
+
+    mesh.display_pyvista(resolution=3)

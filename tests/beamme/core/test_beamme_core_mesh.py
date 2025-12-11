@@ -22,9 +22,14 @@
 """This script is used to test the functionality of the core mesh."""
 
 import numpy as np
+import pytest
 
-from beamme.core.element_beam import Beam3
+from beamme.core.conf import bme
+from beamme.core.coupling import Coupling
+from beamme.core.element_beam import Beam, Beam3
+from beamme.core.geometry_set import GeometrySet
 from beamme.core.mesh import Mesh
+from beamme.core.node import Node
 from beamme.mesh_creation_functions.beam_line import create_beam_mesh_line
 
 
@@ -50,3 +55,39 @@ def test_beamme_core_mesh_get_nodes_by_function(
     assert 2 == len(nodes)
     for node in nodes:
         assert_results_close(1.0, node.coordinates[0])
+
+
+def test_beamme_core_mesh_add_checks():
+    """This test checks that Mesh raises an error when double objects are added
+    to the mesh."""
+
+    # Mesh instance for this test.
+    mesh = Mesh()
+
+    # Create basic objects that will be added to the mesh.
+    node = Node([0, 1.0, 2.0])
+    element = Beam()
+    mesh.add(node)
+    mesh.add(element)
+
+    # Create objects based on basic mesh items.
+    coupling = Coupling(mesh.nodes, bme.bc.point_coupling, bme.coupling_dof.fix)
+    coupling_penalty = Coupling(
+        mesh.nodes, bme.bc.point_coupling_penalty, bme.coupling_dof.fix
+    )
+    geometry_set = GeometrySet(mesh.elements)
+    mesh.add(coupling)
+    mesh.add(coupling_penalty)
+    mesh.add(geometry_set)
+
+    # Add the objects again and check for errors.
+    with pytest.raises(ValueError, match="The node is already in this mesh!"):
+        mesh.add(node)
+    with pytest.raises(ValueError, match="The element is already in this mesh!"):
+        mesh.add(element)
+    with pytest.raises(ValueError, match="The item is already in this container!"):
+        mesh.add(coupling)
+    with pytest.raises(ValueError, match="The item is already in this container!"):
+        mesh.add(coupling_penalty)
+    with pytest.raises(ValueError, match="The item is already in this container!"):
+        mesh.add(geometry_set)
