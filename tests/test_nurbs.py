@@ -27,7 +27,6 @@ import splinepy
 
 from beamme.core.mesh import Mesh
 from beamme.core.rotation import Rotation
-from beamme.four_c.material import MaterialSolid
 from beamme.mesh_creation_functions.nurbs_generic import (
     add_geomdl_nurbs_to_mesh,
     add_splinepy_nurbs_to_mesh,
@@ -49,6 +48,7 @@ from beamme.mesh_creation_functions.nurbs_utils import (
 
 
 def test_nurbs_hollow_cylinder_segment_2d(
+    get_default_test_solid_element_description,
     get_default_test_solid_material,
     assert_results_close,
     get_corresponding_reference_file_path,
@@ -64,13 +64,9 @@ def test_nurbs_hollow_cylinder_segment_2d(
     mesh = Mesh()
 
     # Create patch set
-    element_description = {
-        "KINEM": "linear",
-        "EAS": "none",
-        "THICK": 1.0,
-        "STRESS_STRAIN": "plane_strain",
-        "GP": [3, 3],
-    }
+    element_description = get_default_test_solid_element_description(
+        element_type="2d_solid"
+    )
 
     patch_set = add_geomdl_nurbs_to_mesh(
         mesh,
@@ -86,7 +82,10 @@ def test_nurbs_hollow_cylinder_segment_2d(
 
 
 def test_nurbs_flat_plate_2d(
-    assert_results_close, get_corresponding_reference_file_path
+    get_default_test_solid_element_description,
+    get_default_test_solid_material,
+    assert_results_close,
+    get_corresponding_reference_file_path,
 ):
     """Test the creation of a two dimensional flat plate."""
 
@@ -97,13 +96,12 @@ def test_nurbs_flat_plate_2d(
     mesh = Mesh()
 
     # Add material
-    mat = MaterialSolid(
-        material_string="MAT_Kirchhoff_Love_shell",
-        data={"YOUNG_MODULUS": 10.0, "POISSON_RATIO": 0.3, "THICKNESS": 0.05},
-    )
+    mat = get_default_test_solid_material(material_type="2d_shell")
 
     # Create patch set
-    element_description = {"type": "SHELL_KIRCHHOFF_LOVE_NURBS", "GP": [3, 3]}
+    element_description = get_default_test_solid_element_description(
+        element_type="2d_shell"
+    )
     patch_set = add_geomdl_nurbs_to_mesh(
         mesh, surf_obj, material=mat, data=element_description
     )
@@ -115,7 +113,10 @@ def test_nurbs_flat_plate_2d(
 
 
 def test_nurbs_flat_plate_2d_splinepy(
-    assert_results_close, get_corresponding_reference_file_path
+    get_default_test_solid_element_description,
+    get_default_test_solid_material,
+    assert_results_close,
+    get_corresponding_reference_file_path,
 ):
     """Test the creation of a two dimensional flat plate with splinepy."""
 
@@ -131,11 +132,10 @@ def test_nurbs_flat_plate_2d_splinepy(
 
     # Create the shell mesh
     mesh = Mesh()
-    mat = MaterialSolid(
-        material_string="MAT_Kirchhoff_Love_shell",
-        data={"YOUNG_MODULUS": 10.0, "POISSON_RATIO": 0.3, "THICKNESS": 0.05},
+    mat = get_default_test_solid_material(material_type="2d_shell")
+    element_description = get_default_test_solid_element_description(
+        element_type="2d_shell"
     )
-    element_description = {"type": "SHELL_KIRCHHOFF_LOVE_NURBS", "GP": [3, 3]}
     patch_set = add_splinepy_nurbs_to_mesh(
         mesh, surf_obj, material=mat, data=element_description
     )
@@ -149,7 +149,10 @@ def test_nurbs_flat_plate_2d_splinepy(
 
 
 def test_nurbs_flat_plate_2d_splinepy_copy(
-    assert_results_close, get_corresponding_reference_file_path
+    get_default_test_solid_element_description,
+    get_default_test_solid_material,
+    assert_results_close,
+    get_corresponding_reference_file_path,
 ):
     """Test that a mesh created from a splinepy NURBS can be copied."""
 
@@ -160,11 +163,10 @@ def test_nurbs_flat_plate_2d_splinepy_copy(
 
     # Create mesh
     mesh = Mesh()
-    mat = MaterialSolid(
-        material_string="MAT_Kirchhoff_Love_shell",
-        data={"YOUNG_MODULUS": 10.0, "POISSON_RATIO": 0.3, "THICKNESS": 0.05},
+    mat = get_default_test_solid_material(material_type="2d_shell")
+    element_description = get_default_test_solid_element_description(
+        element_type="2d_shell"
     )
-    element_description = {"type": "SHELL_KIRCHHOFF_LOVE_NURBS", "GP": [3, 3]}
     add_splinepy_nurbs_to_mesh(mesh, surf_obj, material=mat, data=element_description)
 
     mesh_copy = mesh.copy()
@@ -176,6 +178,7 @@ def test_nurbs_flat_plate_2d_splinepy_copy(
 
 
 def test_nurbs_brick(
+    get_default_test_solid_element_description,
     get_default_test_solid_material,
     assert_results_close,
     get_corresponding_reference_file_path,
@@ -193,6 +196,7 @@ def test_nurbs_brick(
         mesh,
         vol_obj,
         material=get_default_test_solid_material(material_type="st_venant_kirchhoff"),
+        data=get_default_test_solid_element_description(element_type="3d_solid"),
     )
 
     mesh.add(patch_set)
@@ -202,6 +206,7 @@ def test_nurbs_brick(
 
 
 def test_nurbs_brick_splinepy(
+    get_default_test_solid_element_description,
     get_default_test_solid_material,
     assert_results_close,
     get_corresponding_reference_file_path,
@@ -228,6 +233,7 @@ def test_nurbs_brick_splinepy(
         mesh,
         vol_obj,
         material=get_default_test_solid_material(material_type="st_venant_kirchhoff"),
+        data=get_default_test_solid_element_description(element_type="3d_solid"),
     )
 
     mesh.add(patch_set)
@@ -242,6 +248,7 @@ def test_nurbs_brick_splinepy(
 
 
 def test_nurbs_rotation_nurbs_surface(
+    get_default_test_solid_element_description,
     get_default_test_solid_material,
     assert_results_close,
     get_corresponding_reference_file_path,
@@ -257,13 +264,9 @@ def test_nurbs_rotation_nurbs_surface(
     mesh = Mesh()
 
     # Create patch set
-    element_description = {
-        "KINEM": "linear",
-        "EAS": "none",
-        "THICK": 1.0,
-        "STRESS_STRAIN": "plane_strain",
-        "GP": [3, 3],
-    }
+    element_description = get_default_test_solid_element_description(
+        element_type="2d_solid"
+    )
 
     patch_set = add_geomdl_nurbs_to_mesh(
         mesh,
@@ -281,6 +284,7 @@ def test_nurbs_rotation_nurbs_surface(
 
 
 def test_nurbs_translate_nurbs_surface(
+    get_default_test_solid_element_description,
     get_default_test_solid_material,
     assert_results_close,
     get_corresponding_reference_file_path,
@@ -295,13 +299,9 @@ def test_nurbs_translate_nurbs_surface(
 
     # Create patch set
 
-    element_description = {
-        "KINEM": "linear",
-        "EAS": "none",
-        "THICK": 1.0,
-        "STRESS_STRAIN": "plane_strain",
-        "GP": [3, 3],
-    }
+    element_description = get_default_test_solid_element_description(
+        element_type="2d_solid"
+    )
 
     patch_set = add_geomdl_nurbs_to_mesh(
         mesh,
@@ -319,6 +319,7 @@ def test_nurbs_translate_nurbs_surface(
 
 
 def test_nurbs_cylindrical_shell_sector(
+    get_default_test_solid_element_description,
     get_default_test_solid_material,
     assert_results_close,
     get_corresponding_reference_file_path,
@@ -338,7 +339,7 @@ def test_nurbs_cylindrical_shell_sector(
         mesh,
         surf_obj,
         material=get_default_test_solid_material(material_type="st_venant_kirchhoff"),
-        data={"KINEM": "linear", "EAS": "none", "THICK": 1.0},
+        data=get_default_test_solid_element_description(element_type="2d_solid"),
     )
 
     mesh.add(patch_set)
@@ -348,6 +349,7 @@ def test_nurbs_cylindrical_shell_sector(
 
 
 def test_nurbs_couple_nurbs_meshes(
+    get_default_test_solid_element_description,
     get_default_test_solid_material,
     assert_results_close,
     get_corresponding_reference_file_path,
@@ -365,13 +367,9 @@ def test_nurbs_couple_nurbs_meshes(
     # Create first patch set
     mat = get_default_test_solid_material(material_type="st_venant_kirchhoff")
 
-    element_description = {
-        "KINEM": "linear",
-        "EAS": "none",
-        "THICK": 1.0,
-        "STRESS_STRAIN": "plane_strain",
-        "GP": [3, 3],
-    }
+    element_description = get_default_test_solid_element_description(
+        element_type="2d_solid"
+    )
 
     patch_set_1 = add_geomdl_nurbs_to_mesh(
         mesh, surf_obj_1, material=mat, data=element_description
@@ -399,6 +397,7 @@ def test_nurbs_couple_nurbs_meshes(
 
 
 def test_nurbs_sphere_surface(
+    get_default_test_solid_element_description,
     get_default_test_solid_material,
     assert_results_close,
     get_corresponding_reference_file_path,
@@ -412,13 +411,9 @@ def test_nurbs_sphere_surface(
     surf_obj = create_nurbs_sphere_surface(1, n_ele_u=3, n_ele_v=2)
 
     # Create first patch set
-    element_description = {
-        "KINEM": "linear",
-        "EAS": "none",
-        "THICK": 1.0,
-        "STRESS_STRAIN": "plane_strain",
-        "GP": [3, 3],
-    }
+    element_description = get_default_test_solid_element_description(
+        element_type="2d_solid"
+    )
 
     patch_set = add_geomdl_nurbs_to_mesh(
         mesh,
@@ -434,6 +429,7 @@ def test_nurbs_sphere_surface(
 
 
 def test_nurbs_string_types(
+    get_default_test_solid_element_description,
     get_default_test_solid_material,
     assert_results_close,
     get_corresponding_reference_file_path,
@@ -452,7 +448,7 @@ def test_nurbs_string_types(
         mesh,
         surf_obj,
         material=get_default_test_solid_material(material_type="st_venant_kirchhoff"),
-        data={"KINEM": "linear", "EAS": "none", "THICK": 1.0},
+        data=get_default_test_solid_element_description(element_type="2d_solid"),
     )
 
     mesh.add(patch_set)
@@ -462,6 +458,7 @@ def test_nurbs_string_types(
 
 
 def test_nurbs_hemisphere_surface(
+    get_default_test_solid_element_description,
     get_default_test_solid_material,
     assert_results_close,
     get_corresponding_reference_file_path,
@@ -476,13 +473,9 @@ def test_nurbs_hemisphere_surface(
 
     # Create first patch set
     mat = get_default_test_solid_material(material_type="st_venant_kirchhoff")
-    element_description = {
-        "KINEM": "linear",
-        "EAS": "none",
-        "THICK": 1.0,
-        "STRESS_STRAIN": "plane_strain",
-        "GP": [3, 3],
-    }
+    element_description = get_default_test_solid_element_description(
+        element_type="2d_solid"
+    )
 
     # Add the patch sets of every surface section of the hemisphere to the input file
     for surf in surfs:
@@ -500,6 +493,7 @@ def test_nurbs_hemisphere_surface(
 
 
 def test_nurbs_torus_surface(
+    get_default_test_solid_element_description,
     get_default_test_solid_material,
     assert_results_close,
     get_corresponding_reference_file_path,
@@ -514,13 +508,9 @@ def test_nurbs_torus_surface(
 
     # Define element description
     mat = get_default_test_solid_material(material_type="st_venant_kirchhoff")
-    element_description = {
-        "KINEM": "linear",
-        "EAS": "none",
-        "THICK": 1.0,
-        "STRESS_STRAIN": "plane_strain",
-        "GP": [3, 3],
-    }
+    element_description = get_default_test_solid_element_description(
+        element_type="2d_solid"
+    )
 
     # Add the patch sets of every surface section of the torus to the input file
     for surf in surfs:
