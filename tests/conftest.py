@@ -33,6 +33,7 @@ from beamme.core.conf import bme
 from beamme.core.material import MaterialBeamBase
 from beamme.four_c.material import (
     MaterialReissner,
+    MaterialSolid,
     MaterialStVenantKirchhoff,
 )
 
@@ -309,7 +310,58 @@ def get_default_test_solid_material() -> Callable:
         if material_type == "st_venant_kirchhoff":
             return MaterialStVenantKirchhoff(youngs_modulus=1.0, nu=0.3, density=1.0)
 
+        elif material_type == "2d_shell":
+            return MaterialSolid(
+                material_string="MAT_Kirchhoff_Love_shell",
+                data={"YOUNG_MODULUS": 10.0, "POISSON_RATIO": 0.3, "THICKNESS": 0.05},
+            )
+
         else:
             raise ValueError(f"Unknown solid material type: {material_type}")
 
     return _get_default_test_solid_material
+
+
+@pytest.fixture(scope="function")
+def get_default_test_solid_element_description() -> Callable:
+    """Return a function to create a default solid element description for
+    testing purposes.
+
+    Args:
+        element_type: The type of solid element to return.
+
+    Returns:
+        A function that creates a default solid element description.
+    """
+
+    def _get_default_test_solid_element_description(
+        element_type: str = "2d_solid",
+    ):
+        """Return a default solid element description for testing purposes.
+
+        Args:
+            element_type: The type of solid element to return.
+
+        Returns:
+            A function that creates a default solid element description.
+        """
+
+        if element_type == "2d_solid":
+            return {
+                "KINEM": "nonlinear",
+                "EAS": "none",
+                "THICK": 1.0,
+                "STRESS_STRAIN": "plane_strain",
+                "GP": [3, 3],
+            }
+
+        elif element_type == "2d_shell":
+            return {"type": "SHELL_KIRCHHOFF_LOVE_NURBS", "GP": [3, 3]}
+
+        elif element_type == "3d_solid":
+            return {"KINEM": "nonlinear"}
+
+        else:
+            raise ValueError(f"Unknown solid element type: {element_type}")
+
+    return _get_default_test_solid_element_description

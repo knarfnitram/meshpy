@@ -19,19 +19,16 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-"""This script is used to test the mesh creation functions for NURBS."""
+"""This script is used to test the NURBS mesh creation functions."""
 
 import numpy as np
-import pytest
 import splinepy
 
 from beamme.core.mesh import Mesh
 from beamme.core.rotation import Rotation
-from beamme.four_c.material import MaterialSolid
 from beamme.mesh_creation_functions.nurbs_generic import (
     add_geomdl_nurbs_to_mesh,
     add_splinepy_nurbs_to_mesh,
-    create_geometry_sets,
 )
 from beamme.mesh_creation_functions.nurbs_geometries import (
     create_nurbs_brick,
@@ -48,7 +45,8 @@ from beamme.mesh_creation_functions.nurbs_utils import (
 )
 
 
-def test_nurbs_hollow_cylinder_segment_2d(
+def test_integration_mesh_creation_functions_nurbs_hollow_cylinder_segment_2d(
+    get_default_test_solid_element_description,
     get_default_test_solid_material,
     assert_results_close,
     get_corresponding_reference_file_path,
@@ -64,13 +62,9 @@ def test_nurbs_hollow_cylinder_segment_2d(
     mesh = Mesh()
 
     # Create patch set
-    element_description = {
-        "KINEM": "linear",
-        "EAS": "none",
-        "THICK": 1.0,
-        "STRESS_STRAIN": "plane_strain",
-        "GP": [3, 3],
-    }
+    element_description = get_default_test_solid_element_description(
+        element_type="2d_solid"
+    )
 
     patch_set = add_geomdl_nurbs_to_mesh(
         mesh,
@@ -85,8 +79,11 @@ def test_nurbs_hollow_cylinder_segment_2d(
     assert_results_close(get_corresponding_reference_file_path(), mesh)
 
 
-def test_nurbs_flat_plate_2d(
-    assert_results_close, get_corresponding_reference_file_path
+def test_integration_mesh_creation_functions_nurbs_flat_plate_2d(
+    get_default_test_solid_element_description,
+    get_default_test_solid_material,
+    assert_results_close,
+    get_corresponding_reference_file_path,
 ):
     """Test the creation of a two dimensional flat plate."""
 
@@ -97,13 +94,12 @@ def test_nurbs_flat_plate_2d(
     mesh = Mesh()
 
     # Add material
-    mat = MaterialSolid(
-        material_string="MAT_Kirchhoff_Love_shell",
-        data={"YOUNG_MODULUS": 10.0, "POISSON_RATIO": 0.3, "THICKNESS": 0.05},
-    )
+    mat = get_default_test_solid_material(material_type="2d_shell")
 
     # Create patch set
-    element_description = {"type": "SHELL_KIRCHHOFF_LOVE_NURBS", "GP": [3, 3]}
+    element_description = get_default_test_solid_element_description(
+        element_type="2d_shell"
+    )
     patch_set = add_geomdl_nurbs_to_mesh(
         mesh, surf_obj, material=mat, data=element_description
     )
@@ -114,8 +110,11 @@ def test_nurbs_flat_plate_2d(
     assert_results_close(get_corresponding_reference_file_path(), mesh)
 
 
-def test_nurbs_flat_plate_2d_splinepy(
-    assert_results_close, get_corresponding_reference_file_path
+def test_integration_mesh_creation_functions_nurbs_flat_plate_2d_splinepy(
+    get_default_test_solid_element_description,
+    get_default_test_solid_material,
+    assert_results_close,
+    get_corresponding_reference_file_path,
 ):
     """Test the creation of a two dimensional flat plate with splinepy."""
 
@@ -131,25 +130,27 @@ def test_nurbs_flat_plate_2d_splinepy(
 
     # Create the shell mesh
     mesh = Mesh()
-    mat = MaterialSolid(
-        material_string="MAT_Kirchhoff_Love_shell",
-        data={"YOUNG_MODULUS": 10.0, "POISSON_RATIO": 0.3, "THICKNESS": 0.05},
+    mat = get_default_test_solid_material(material_type="2d_shell")
+    element_description = get_default_test_solid_element_description(
+        element_type="2d_shell"
     )
-    element_description = {"type": "SHELL_KIRCHHOFF_LOVE_NURBS", "GP": [3, 3]}
     patch_set = add_splinepy_nurbs_to_mesh(
         mesh, surf_obj, material=mat, data=element_description
     )
     mesh.add(patch_set)
     assert_results_close(
         get_corresponding_reference_file_path(
-            reference_file_base_name="test_nurbs_flat_plate_2d"
+            reference_file_base_name="test_integration_mesh_creation_functions_nurbs_flat_plate_2d"
         ),
         mesh,
     )
 
 
-def test_nurbs_flat_plate_2d_splinepy_copy(
-    assert_results_close, get_corresponding_reference_file_path
+def test_integration_mesh_creation_functions_nurbs_flat_plate_2d_splinepy_copy(
+    get_default_test_solid_element_description,
+    get_default_test_solid_material,
+    assert_results_close,
+    get_corresponding_reference_file_path,
 ):
     """Test that a mesh created from a splinepy NURBS can be copied."""
 
@@ -160,11 +161,10 @@ def test_nurbs_flat_plate_2d_splinepy_copy(
 
     # Create mesh
     mesh = Mesh()
-    mat = MaterialSolid(
-        material_string="MAT_Kirchhoff_Love_shell",
-        data={"YOUNG_MODULUS": 10.0, "POISSON_RATIO": 0.3, "THICKNESS": 0.05},
+    mat = get_default_test_solid_material(material_type="2d_shell")
+    element_description = get_default_test_solid_element_description(
+        element_type="2d_shell"
     )
-    element_description = {"type": "SHELL_KIRCHHOFF_LOVE_NURBS", "GP": [3, 3]}
     add_splinepy_nurbs_to_mesh(mesh, surf_obj, material=mat, data=element_description)
 
     mesh_copy = mesh.copy()
@@ -175,7 +175,8 @@ def test_nurbs_flat_plate_2d_splinepy_copy(
     assert_results_close(get_corresponding_reference_file_path(), mesh)
 
 
-def test_nurbs_brick(
+def test_integration_mesh_creation_functions_nurbs_brick(
+    get_default_test_solid_element_description,
     get_default_test_solid_material,
     assert_results_close,
     get_corresponding_reference_file_path,
@@ -193,6 +194,7 @@ def test_nurbs_brick(
         mesh,
         vol_obj,
         material=get_default_test_solid_material(material_type="st_venant_kirchhoff"),
+        data=get_default_test_solid_element_description(element_type="3d_solid"),
     )
 
     mesh.add(patch_set)
@@ -201,7 +203,8 @@ def test_nurbs_brick(
     assert_results_close(get_corresponding_reference_file_path(), mesh)
 
 
-def test_nurbs_brick_splinepy(
+def test_integration_mesh_creation_functions_nurbs_brick_splinepy(
+    get_default_test_solid_element_description,
     get_default_test_solid_material,
     assert_results_close,
     get_corresponding_reference_file_path,
@@ -228,6 +231,7 @@ def test_nurbs_brick_splinepy(
         mesh,
         vol_obj,
         material=get_default_test_solid_material(material_type="st_venant_kirchhoff"),
+        data=get_default_test_solid_element_description(element_type="3d_solid"),
     )
 
     mesh.add(patch_set)
@@ -235,13 +239,14 @@ def test_nurbs_brick_splinepy(
     # Compare with the reference file
     assert_results_close(
         get_corresponding_reference_file_path(
-            reference_file_base_name="test_nurbs_brick"
+            reference_file_base_name="test_integration_mesh_creation_functions_nurbs_brick"
         ),
         mesh,
     )
 
 
-def test_nurbs_rotation_nurbs_surface(
+def test_integration_mesh_creation_functions_nurbs_rotation_nurbs_surface(
+    get_default_test_solid_element_description,
     get_default_test_solid_material,
     assert_results_close,
     get_corresponding_reference_file_path,
@@ -257,13 +262,9 @@ def test_nurbs_rotation_nurbs_surface(
     mesh = Mesh()
 
     # Create patch set
-    element_description = {
-        "KINEM": "linear",
-        "EAS": "none",
-        "THICK": 1.0,
-        "STRESS_STRAIN": "plane_strain",
-        "GP": [3, 3],
-    }
+    element_description = get_default_test_solid_element_description(
+        element_type="2d_solid"
+    )
 
     patch_set = add_geomdl_nurbs_to_mesh(
         mesh,
@@ -280,7 +281,8 @@ def test_nurbs_rotation_nurbs_surface(
     assert_results_close(get_corresponding_reference_file_path(), mesh)
 
 
-def test_nurbs_translate_nurbs_surface(
+def test_integration_mesh_creation_functions_nurbs_translate_nurbs_surface(
+    get_default_test_solid_element_description,
     get_default_test_solid_material,
     assert_results_close,
     get_corresponding_reference_file_path,
@@ -295,13 +297,9 @@ def test_nurbs_translate_nurbs_surface(
 
     # Create patch set
 
-    element_description = {
-        "KINEM": "linear",
-        "EAS": "none",
-        "THICK": 1.0,
-        "STRESS_STRAIN": "plane_strain",
-        "GP": [3, 3],
-    }
+    element_description = get_default_test_solid_element_description(
+        element_type="2d_solid"
+    )
 
     patch_set = add_geomdl_nurbs_to_mesh(
         mesh,
@@ -318,7 +316,8 @@ def test_nurbs_translate_nurbs_surface(
     assert_results_close(get_corresponding_reference_file_path(), mesh)
 
 
-def test_nurbs_cylindrical_shell_sector(
+def test_integration_mesh_creation_functions_nurbs_cylindrical_shell_sector(
+    get_default_test_solid_element_description,
     get_default_test_solid_material,
     assert_results_close,
     get_corresponding_reference_file_path,
@@ -338,7 +337,7 @@ def test_nurbs_cylindrical_shell_sector(
         mesh,
         surf_obj,
         material=get_default_test_solid_material(material_type="st_venant_kirchhoff"),
-        data={"KINEM": "linear", "EAS": "none", "THICK": 1.0},
+        data=get_default_test_solid_element_description(element_type="2d_solid"),
     )
 
     mesh.add(patch_set)
@@ -347,7 +346,8 @@ def test_nurbs_cylindrical_shell_sector(
     assert_results_close(get_corresponding_reference_file_path(), mesh)
 
 
-def test_nurbs_couple_nurbs_meshes(
+def test_integration_mesh_creation_functions_nurbs_couple_nurbs_meshes(
+    get_default_test_solid_element_description,
     get_default_test_solid_material,
     assert_results_close,
     get_corresponding_reference_file_path,
@@ -365,13 +365,9 @@ def test_nurbs_couple_nurbs_meshes(
     # Create first patch set
     mat = get_default_test_solid_material(material_type="st_venant_kirchhoff")
 
-    element_description = {
-        "KINEM": "linear",
-        "EAS": "none",
-        "THICK": 1.0,
-        "STRESS_STRAIN": "plane_strain",
-        "GP": [3, 3],
-    }
+    element_description = get_default_test_solid_element_description(
+        element_type="2d_solid"
+    )
 
     patch_set_1 = add_geomdl_nurbs_to_mesh(
         mesh, surf_obj_1, material=mat, data=element_description
@@ -398,7 +394,8 @@ def test_nurbs_couple_nurbs_meshes(
     assert_results_close(get_corresponding_reference_file_path(), mesh)
 
 
-def test_nurbs_sphere_surface(
+def test_integration_mesh_creation_functions_nurbs_sphere_surface(
+    get_default_test_solid_element_description,
     get_default_test_solid_material,
     assert_results_close,
     get_corresponding_reference_file_path,
@@ -412,13 +409,9 @@ def test_nurbs_sphere_surface(
     surf_obj = create_nurbs_sphere_surface(1, n_ele_u=3, n_ele_v=2)
 
     # Create first patch set
-    element_description = {
-        "KINEM": "linear",
-        "EAS": "none",
-        "THICK": 1.0,
-        "STRESS_STRAIN": "plane_strain",
-        "GP": [3, 3],
-    }
+    element_description = get_default_test_solid_element_description(
+        element_type="2d_solid"
+    )
 
     patch_set = add_geomdl_nurbs_to_mesh(
         mesh,
@@ -433,7 +426,8 @@ def test_nurbs_sphere_surface(
     assert_results_close(get_corresponding_reference_file_path(), mesh)
 
 
-def test_nurbs_string_types(
+def test_integration_mesh_creation_functions_nurbs_string_types(
+    get_default_test_solid_element_description,
     get_default_test_solid_material,
     assert_results_close,
     get_corresponding_reference_file_path,
@@ -452,7 +446,7 @@ def test_nurbs_string_types(
         mesh,
         surf_obj,
         material=get_default_test_solid_material(material_type="st_venant_kirchhoff"),
-        data={"KINEM": "linear", "EAS": "none", "THICK": 1.0},
+        data=get_default_test_solid_element_description(element_type="2d_solid"),
     )
 
     mesh.add(patch_set)
@@ -461,7 +455,8 @@ def test_nurbs_string_types(
     assert_results_close(get_corresponding_reference_file_path(), mesh)
 
 
-def test_nurbs_hemisphere_surface(
+def test_integration_mesh_creation_functions_nurbs_hemisphere_surface(
+    get_default_test_solid_element_description,
     get_default_test_solid_material,
     assert_results_close,
     get_corresponding_reference_file_path,
@@ -476,13 +471,9 @@ def test_nurbs_hemisphere_surface(
 
     # Create first patch set
     mat = get_default_test_solid_material(material_type="st_venant_kirchhoff")
-    element_description = {
-        "KINEM": "linear",
-        "EAS": "none",
-        "THICK": 1.0,
-        "STRESS_STRAIN": "plane_strain",
-        "GP": [3, 3],
-    }
+    element_description = get_default_test_solid_element_description(
+        element_type="2d_solid"
+    )
 
     # Add the patch sets of every surface section of the hemisphere to the input file
     for surf in surfs:
@@ -499,7 +490,8 @@ def test_nurbs_hemisphere_surface(
     assert_results_close(get_corresponding_reference_file_path(), mesh)
 
 
-def test_nurbs_torus_surface(
+def test_integration_mesh_creation_functions_nurbs_torus_surface(
+    get_default_test_solid_element_description,
     get_default_test_solid_material,
     assert_results_close,
     get_corresponding_reference_file_path,
@@ -514,13 +506,9 @@ def test_nurbs_torus_surface(
 
     # Define element description
     mat = get_default_test_solid_material(material_type="st_venant_kirchhoff")
-    element_description = {
-        "KINEM": "linear",
-        "EAS": "none",
-        "THICK": 1.0,
-        "STRESS_STRAIN": "plane_strain",
-        "GP": [3, 3],
-    }
+    element_description = get_default_test_solid_element_description(
+        element_type="2d_solid"
+    )
 
     # Add the patch sets of every surface section of the torus to the input file
     for surf in surfs:
@@ -537,7 +525,7 @@ def test_nurbs_torus_surface(
     assert_results_close(get_corresponding_reference_file_path(), mesh)
 
 
-def test_nurbs_empty_knot_spans(
+def test_integration_mesh_creation_functions_nurbs_empty_knot_spans(
     get_default_test_solid_material,
     assert_results_close,
     get_corresponding_reference_file_path,
@@ -561,200 +549,3 @@ def test_nurbs_empty_knot_spans(
 
     # Compare with the reference file
     assert_results_close(get_corresponding_reference_file_path(), mesh)
-
-
-@pytest.mark.parametrize(
-    ("nurbs_patch", "reference_values"),
-    [
-        (
-            create_nurbs_flat_plate_2d(1, 2, n_ele_u=1, n_ele_v=2),
-            {
-                "vertex_u_min_v_min": [0],
-                "vertex_u_min_v_max": [9],
-                "vertex_u_max_v_min": [2],
-                "vertex_u_max_v_max": [11],
-                "line_v_min": [0, 1, 2],
-                "line_v_min_next": [3, 4, 5],
-                "line_v_max_next": [6, 7, 8],
-                "line_v_max": [9, 10, 11],
-                "line_u_min": [0, 3, 6, 9],
-                "line_u_min_next": [1, 4, 7, 10],
-                "line_u_max_next": [1, 4, 7, 10],
-                "line_u_max": [2, 5, 8, 11],
-                "surf": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
-            },
-        ),
-        (
-            create_nurbs_brick(1, 2, 3, n_ele_u=1, n_ele_v=2, n_ele_w=3),
-            {
-                "vertex_u_min_v_min_w_min": [0],
-                "vertex_u_min_v_min_w_max": [48],
-                "vertex_u_min_v_max_w_min": [9],
-                "vertex_u_min_v_max_w_max": [57],
-                "vertex_u_max_v_min_w_min": [2],
-                "vertex_u_max_v_min_w_max": [50],
-                "vertex_u_max_v_max_w_min": [11],
-                "vertex_u_max_v_max_w_max": [59],
-                "line_v_min_w_min": [0, 1, 2],
-                "line_v_min_w_max": [48, 49, 50],
-                "line_v_max_w_min": [9, 10, 11],
-                "line_v_max_w_max": [57, 58, 59],
-                "line_u_min_w_min": [0, 3, 6, 9],
-                "line_u_min_w_max": [48, 51, 54, 57],
-                "line_u_max_w_min": [2, 5, 8, 11],
-                "line_u_max_w_max": [50, 53, 56, 59],
-                "line_u_min_v_min": [0, 12, 24, 36, 48],
-                "line_u_min_v_max": [9, 21, 33, 45, 57],
-                "line_u_max_v_min": [2, 14, 26, 38, 50],
-                "line_u_max_v_max": [11, 23, 35, 47, 59],
-                "surf_u_min": [
-                    0,
-                    12,
-                    24,
-                    36,
-                    48,
-                    3,
-                    15,
-                    27,
-                    39,
-                    51,
-                    6,
-                    18,
-                    30,
-                    42,
-                    54,
-                    9,
-                    21,
-                    33,
-                    45,
-                    57,
-                ],
-                "surf_u_max": [
-                    2,
-                    14,
-                    26,
-                    38,
-                    50,
-                    5,
-                    17,
-                    29,
-                    41,
-                    53,
-                    8,
-                    20,
-                    32,
-                    44,
-                    56,
-                    11,
-                    23,
-                    35,
-                    47,
-                    59,
-                ],
-                "surf_v_min": [0, 12, 24, 36, 48, 1, 13, 25, 37, 49, 2, 14, 26, 38, 50],
-                "surf_v_max": [
-                    9,
-                    21,
-                    33,
-                    45,
-                    57,
-                    10,
-                    22,
-                    34,
-                    46,
-                    58,
-                    11,
-                    23,
-                    35,
-                    47,
-                    59,
-                ],
-                "surf_w_min": [0, 3, 6, 9, 1, 4, 7, 10, 2, 5, 8, 11],
-                "surf_w_max": [48, 51, 54, 57, 49, 52, 55, 58, 50, 53, 56, 59],
-                "vol": [
-                    0,
-                    1,
-                    2,
-                    3,
-                    4,
-                    5,
-                    6,
-                    7,
-                    8,
-                    9,
-                    10,
-                    11,
-                    12,
-                    13,
-                    14,
-                    15,
-                    16,
-                    17,
-                    18,
-                    19,
-                    20,
-                    21,
-                    22,
-                    23,
-                    24,
-                    25,
-                    26,
-                    27,
-                    28,
-                    29,
-                    30,
-                    31,
-                    32,
-                    33,
-                    34,
-                    35,
-                    36,
-                    37,
-                    38,
-                    39,
-                    40,
-                    41,
-                    42,
-                    43,
-                    44,
-                    45,
-                    46,
-                    47,
-                    48,
-                    49,
-                    50,
-                    51,
-                    52,
-                    53,
-                    54,
-                    55,
-                    56,
-                    57,
-                    58,
-                    59,
-                ],
-            },
-        ),
-    ],
-)
-def test_nurbs_sets(get_default_test_solid_material, nurbs_patch, reference_values):
-    """Test that the add NURBS to mesh functionality returns the correct
-    geometry sets."""
-
-    # Add the nurbs to a mesh
-    mesh = Mesh()
-    add_geomdl_nurbs_to_mesh(
-        mesh,
-        nurbs_patch,
-        material=get_default_test_solid_material(material_type="st_venant_kirchhoff"),
-    )
-    nurbs_patch = mesh.elements[0]
-
-    # Create the geometry sets for this patch
-    patch_set = create_geometry_sets(nurbs_patch)
-
-    for key, geometry_set in patch_set.items():
-        set_nodes = geometry_set.get_all_nodes()
-        assert len(set_nodes) == len(reference_values[key])
-        for i_node, node_index in enumerate(reference_values[key]):
-            assert set_nodes[i_node] is mesh.nodes[node_index]
