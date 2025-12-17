@@ -49,6 +49,9 @@ from beamme.four_c.input_file_dump_item import (
 from beamme.four_c.input_file_mappings import (
     INPUT_FILE_MAPPINGS as _INPUT_FILE_MAPPINGS,
 )
+from beamme.four_c.material import (
+    get_all_contained_materials as _get_all_contained_materials,
+)
 from beamme.utils.environment import cubitpy_is_available as _cubitpy_is_available
 from beamme.utils.environment import get_application_path as _get_application_path
 from beamme.utils.environment import get_git_data as _get_git_data
@@ -321,10 +324,16 @@ class InputFile:
                 continue
             i += 1
 
-        #   Materials
-        if len(mesh.materials) != len(set(mesh.materials)):
+        #   Materials: Get a list of all materials in the mesh,
+        #   including nested sub-materials.
+        all_materials = [
+            material
+            for mesh_material in mesh.materials
+            for material in _get_all_contained_materials(mesh_material)
+        ]
+        if len(all_materials) != len(set(all_materials)):
             raise ValueError("Materials are not unique!")
-        for i, material in enumerate(mesh.materials, start=start_index_materials):
+        for i, material in enumerate(all_materials, start=start_index_materials):
             material.i_global = i
 
         #   Functions
@@ -357,7 +366,7 @@ class InputFile:
             self.add({section_name: dumped})
 
         #   Materials
-        _dump("MATERIALS", mesh.materials)
+        _dump("MATERIALS", all_materials)
 
         #   Functions
         for function in mesh.functions:

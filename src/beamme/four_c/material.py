@@ -23,8 +23,26 @@
 
 import numpy as _np
 
+from beamme.core.material import Material as _Material
 from beamme.core.material import MaterialBeamBase as _MaterialBeamBase
 from beamme.core.material import MaterialSolidBase as _MaterialSolidBase
+
+
+def get_all_contained_materials(material: _Material) -> list[_Material]:
+    """Get all sub materials contained in this material, also nested ones.
+
+    Args:
+        material: Material to get all contained materials from.
+
+    Returns:
+        List of all contained materials (including the given `material`).
+    """
+    contained_materials = [material]
+    if "MATIDS" in material.data:
+        for item in material.data["MATIDS"]:
+            if isinstance(item, _Material):
+                contained_materials.extend(get_all_contained_materials(item))
+    return contained_materials
 
 
 class MaterialReissner(_MaterialBeamBase):
