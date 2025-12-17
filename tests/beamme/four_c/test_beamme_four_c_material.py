@@ -21,6 +21,8 @@
 # THE SOFTWARE.
 """This file unit tests materials for 4C."""
 
+import pytest
+
 from beamme.four_c.material import (
     MaterialKirchhoff,
     MaterialReissner,
@@ -287,3 +289,18 @@ def test_beamme_four_c_material_sub_materials():
     assert len(sub_materials_reference) == len(sub_materials)
     for mat_reference, mat_test in zip(sub_materials_reference, sub_materials):
         assert mat_reference is mat_test
+
+
+def test_beamme_four_c_material_sub_materials_circular_loop():
+    """Test that sub-materials containing circular loops are detected."""
+
+    material_3 = MaterialSolid(material_string="mat_3", data={"MATIDS": [None]})
+    material_2 = MaterialSolid(material_string="mat_2", data={"MATIDS": [material_3]})
+    material_1 = MaterialSolid(material_string="mat_2", data={"MATIDS": [material_2]})
+
+    # Set the circular reference
+    material_3.data["MATIDS"][0] = material_1
+
+    # Check that the circular reference is detected
+    with pytest.raises(ValueError, match="Circular material reference detected!"):
+        get_all_contained_materials(material_1)

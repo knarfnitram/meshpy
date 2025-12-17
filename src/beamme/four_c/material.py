@@ -28,20 +28,45 @@ from beamme.core.material import MaterialBeamBase as _MaterialBeamBase
 from beamme.core.material import MaterialSolidBase as _MaterialSolidBase
 
 
-def get_all_contained_materials(material: _Material) -> list[_Material]:
-    """Get all sub materials contained in this material, also nested ones.
+def get_all_contained_materials(
+    material: _Material, _visited_materials: set[int] | None = None
+) -> list[_Material]:
+    """Recursively collect all materials contained within a material, including
+    nested ones.
 
     Args:
-        material: Material to get all contained materials from.
+        material:
+            The root material from which to collect contained materials.
+        _visited_materials:
+            Internal parameter used to track visited materials and prevent
+            infinite recursion in case of circular references.
+            Users should not pass this manually.
 
     Returns:
-        List of all contained materials (including the given `material`).
+        A flat list containing the given material and all nested materials.
+
+    Raises:
+        ValueError:
+            If a circular material reference is detected.
     """
+
+    if _visited_materials is None:
+        _visited_materials = set()
+
+    material_id = id(material)
+    if material_id in _visited_materials:
+        raise ValueError("Circular material reference detected!")
+    _visited_materials.add(material_id)
+
     contained_materials = [material]
+
     if "MATIDS" in material.data:
         for item in material.data["MATIDS"]:
             if isinstance(item, _Material):
-                contained_materials.extend(get_all_contained_materials(item))
+                contained_materials.extend(
+                    get_all_contained_materials(item, _visited_materials)
+                )
+
     return contained_materials
 
 
