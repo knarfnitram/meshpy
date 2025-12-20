@@ -19,15 +19,21 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-"""Unit tests the cubit interface of BeamMe."""
+"""Integration tests for the cubit interface of BeamMe."""
 
 import re
 
 import pytest
 
 from beamme.core.mesh import Mesh
+from beamme.four_c.element_beam import Beam3rHerm2Line3
 from beamme.four_c.input_file import InputFile
-from beamme.four_c.model_importer import _extract_mesh_sections, import_cubitpy_model
+from beamme.four_c.model_importer import (
+    _extract_mesh_sections,
+    import_cubitpy_model,
+    import_four_c_model,
+)
+from beamme.mesh_creation_functions.beam_line import create_beam_mesh_line
 from tests.create_test_models import create_tube_cubit
 
 
@@ -107,3 +113,41 @@ def test_integration_four_c_model_importer_import_nested_materials_error():
         ),
     ):
         _extract_mesh_sections(input_file)
+
+
+@pytest.mark.parametrize("full_import", (False, True))
+def test_integration_four_c_model_importer_non_consecutive_geometry_sets(
+    full_import,
+    get_default_test_beam_material,
+    get_corresponding_reference_file_path,
+    assert_results_close,
+):
+    """Test that we can import non-consecutively numbered geometry sets."""
+
+    input_file, mesh = import_four_c_model(
+        input_file_path=get_corresponding_reference_file_path(
+            additional_identifier="input"
+        ),
+        convert_input_to_mesh=full_import,
+    )
+
+    material = get_default_test_beam_material(material_type="reissner")
+    for i in range(3):
+        beam_set = create_beam_mesh_line(
+            mesh,
+            Beam3rHerm2Line3,
+            material,
+            [i + 3, 0, 0],
+            [i + 3, 0, 4],
+            n_el=2,
+        )
+        mesh.add(beam_set)
+
+    input_file.add(mesh)
+
+    assert_results_close(
+        get_corresponding_reference_file_path(
+            additional_identifier="full_import" if full_import else "dict_import"
+        ),
+        input_file,
+    )
