@@ -129,8 +129,21 @@ def _extract_mesh_sections(input_file: _InputFile) -> _Tuple[_InputFile, _Mesh]:
             )
         mat_name, mat_data = list(mat.items())[0]
         material = _MaterialSolid(material_string=mat_name, data=mat_data)
-        mesh.add(material)
         material_id_map[mat_id] = material
+
+    nested_materials = set()
+    for material in material_id_map.values():
+        # Loop over each material and link nested materials. Also, mark nested materials
+        # as they will not be added to the mesh.
+        material_ids = material.data.get("MATIDS", [])
+        for i_sub_material, material_id in enumerate(material_ids):
+            material_ids[i_sub_material] = material_id_map[material_id]
+            nested_materials.add(material_id)
+
+    # Add non-nested materials to the mesh
+    for mat_id, material in material_id_map.items():
+        if mat_id not in nested_materials:
+            mesh.materials.append(material)
 
     # extract nodes
     mesh.nodes = [_Node(node["COORD"]) for node in _pop_section("NODE COORDS")]
