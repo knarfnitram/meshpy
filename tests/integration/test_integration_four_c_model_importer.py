@@ -21,6 +21,8 @@
 # THE SOFTWARE.
 """Unit tests the cubit interface of BeamMe."""
 
+import re
+
 import pytest
 
 from beamme.core.mesh import Mesh
@@ -84,3 +86,24 @@ def test_integration_four_c_model_importer_import_nested_materials(
 
     # Compare with reference file.
     assert_results_close(get_corresponding_reference_file_path(), input_file)
+
+
+def test_integration_four_c_model_importer_import_nested_materials_error():
+    """Check that an error is raised when importing nested materials with bad
+    IDs."""
+
+    # Create an input file with "bad" material IDs.
+    input_file = InputFile()
+    input_file["MATERIALS"] = [
+        {"MAT": 1, "MAT_ElastHyper": {"NUMMAT": 2, "MATIDS": [2, 3], "DENS": 1.0}},
+        {"MAT": 2, "ELAST_CoupSVK": {"YOUNG": 1.0, "NUE": 0.0}},
+    ]
+
+    # Try to extract the mesh, this should raise an error.
+    with pytest.raises(
+        KeyError,
+        match=re.escape(
+            "Material ID 3 not in material_id_map_all (available IDs: [1, 2])."
+        ),
+    ):
+        _extract_mesh_sections(input_file)
