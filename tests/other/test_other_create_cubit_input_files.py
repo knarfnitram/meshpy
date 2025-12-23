@@ -31,7 +31,7 @@ from tests.create_test_models import (
 
 
 @pytest.mark.cubitpy
-def test_other_create_cubit_input_tube(
+def test_other_create_cubit_input_files_tube(
     tmp_path,
     get_corresponding_reference_file_path,
     assert_results_close,
@@ -44,7 +44,7 @@ def test_other_create_cubit_input_tube(
 
 
 @pytest.mark.cubitpy
-def test_other_create_cubit_input_block(
+def test_other_create_cubit_input_files_block(
     tmp_path,
     get_corresponding_reference_file_path,
     assert_results_close,
@@ -57,7 +57,7 @@ def test_other_create_cubit_input_block(
 
 
 @pytest.mark.cubitpy
-def test_other_create_cubit_input_solid_shell(
+def test_other_create_cubit_input_files_solid_shell(
     tmp_path,
     get_corresponding_reference_file_path,
     assert_results_close,

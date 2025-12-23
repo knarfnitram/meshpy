@@ -45,7 +45,7 @@ def test_integration_four_c_model_importer_import_cubitpy_model(
 
     assert_results_close(
         get_corresponding_reference_file_path(
-            reference_file_base_name="test_other_create_cubit_input_tube"
+            reference_file_base_name="test_other_create_cubit_input_files_tube"
         ),
         input_file_cubit,
     )

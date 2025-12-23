@@ -271,7 +271,7 @@ def test_four_c_solid_shell_direction_detection(
     # Test the plates
     _, mesh_block = import_four_c_model(
         input_file_path=get_corresponding_reference_file_path(
-            reference_file_base_name="test_other_create_cubit_input_solid_shell_blocks"
+            reference_file_base_name="test_other_create_cubit_input_files_solid_shell_blocks"
         ),
         convert_input_to_mesh=True,
     )
@@ -295,7 +295,7 @@ def test_four_c_solid_shell_direction_detection(
     # Test the dome
     _, mesh_dome_original = import_four_c_model(
         input_file_path=get_corresponding_reference_file_path(
-            reference_file_base_name="test_other_create_cubit_input_solid_shell_dome"
+            reference_file_base_name="test_other_create_cubit_input_files_solid_shell_dome"
         ),
         convert_input_to_mesh=True,
     )
@@ -672,7 +672,7 @@ def test_four_c_beam_to_solid(
     # Load a solid
     _, mesh = import_four_c_model(
         input_file_path=get_corresponding_reference_file_path(
-            reference_file_base_name="test_other_create_cubit_input_block"
+            reference_file_base_name="test_other_create_cubit_input_files_block"
         ),
         convert_input_to_mesh=True,
     )

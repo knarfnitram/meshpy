@@ -320,7 +320,7 @@ def test_integration_four_c_simulation_beam_and_solid_tube(
     # Create the input file and read solid mesh data.
     input_file, imported_mesh = import_four_c_model(
         input_file_path=get_corresponding_reference_file_path(
-            reference_file_base_name="test_other_create_cubit_input_tube"
+            reference_file_base_name="test_other_create_cubit_input_files_tube"
         ),
         convert_input_to_mesh=full_import,
     )

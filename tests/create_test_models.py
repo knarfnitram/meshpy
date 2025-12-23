@@ -309,7 +309,7 @@ def create_beam_to_solid_conditions_model(
     # Create input file
     input_file, mesh = import_four_c_model(
         input_file_path=get_corresponding_reference_file_path(
-            reference_file_base_name="test_other_create_cubit_input_block"
+            reference_file_base_name="test_other_create_cubit_input_files_block"
         ),
         convert_input_to_mesh=full_import,
     )
