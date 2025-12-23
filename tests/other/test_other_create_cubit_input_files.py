@@ -25,6 +25,7 @@ import pytest
 
 from tests.create_test_models import (
     create_block,
+    create_single_solid_element_brick,
     create_solid_shell_meshes,
     create_tube,
 )
@@ -76,3 +77,21 @@ def test_other_create_cubit_input_files_solid_shell(
     create_solid_shell_meshes(result_path_blocks, result_path_dome)
     assert_results_close(result_path_blocks, reference_path_blocks)
     assert_results_close(result_path_dome, reference_path_dome)
+
+
+@pytest.mark.cubitpy
+def test_other_create_cubit_input_files_single_solid_element_brick(
+    tmp_path,
+    get_corresponding_reference_file_path,
+    get_default_test_solid_material,
+    assert_results_close,
+):
+    """Test that the single solid element brick reference files are up to
+    date."""
+
+    reference_file = get_corresponding_reference_file_path()
+    result_path = tmp_path / reference_file.name
+
+    create_single_solid_element_brick(result_path, get_default_test_solid_material)
+
+    assert_results_close(result_path, reference_file)

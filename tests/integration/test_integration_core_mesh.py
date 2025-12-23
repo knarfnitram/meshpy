@@ -260,7 +260,7 @@ def test_integration_core_mesh_transformations_with_solid(
         # Create the mesh.
         input_file, mesh = import_four_c_model(
             input_file_path=get_corresponding_reference_file_path(
-                reference_file_base_name="4C_input_solid_cuboid"
+                reference_file_base_name="test_other_create_cubit_input_files_single_solid_element_brick"
             ),
             convert_input_to_mesh=import_full,
         )

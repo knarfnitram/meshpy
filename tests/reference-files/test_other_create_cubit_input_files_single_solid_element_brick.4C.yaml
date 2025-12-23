@@ -1,11 +1,11 @@
 MATERIALS:
   - MAT: 1
     MAT_Struct_StVenantKirchhoff:
-      DENS: 7.8e-06
-      NUE: 0
-      YOUNG: 1000000000.0
+      DENS: 1.0
+      NUE: 0.3
+      YOUNG: 1.0
 STRUCTURE ELEMENTS:
-  - "1 SOLID HEX8 1 2 3 4 5 6 7 8 MAT 1 KINEM nonlinear TECH shell_eas_ans"
+  - "1 SOLID HEX8 1 2 3 4 5 6 7 8 MAT 1 KINEM nonlinear"
 NODE COORDS:
   - "NODE 1 COORD -0.5 -1.0 1.5"
   - "NODE 2 COORD -0.5 -1.0 -1.5"
