@@ -29,7 +29,7 @@ from tests.create_test_models import (
 )
 
 
-@pytest.mark.parametrize("full_import", [False, True])
+@pytest.mark.parametrize("full_import", (False, True))
 @pytest.mark.cubitpy
 def test_integration_four_c_model_importer_import_cubitpy_model(
     full_import, assert_results_close, get_corresponding_reference_file_path

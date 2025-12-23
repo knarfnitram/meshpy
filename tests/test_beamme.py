@@ -35,20 +35,9 @@ from tests.create_test_models import (
 )
 
 
-# TODO: Standardize test parameterization for (full_import, additional_identifier).
-# Currently, different tests use inconsistent patterns for parametrize:
-#   - (False, "dict_import"), (True, "full_import")
-#   - (False, None), (True, "full")
-#   - Only "full_import" as a boolean param
-# Consider unifying these under a shared fixture or helper to reduce redundancy
-# and improve readability across tests. Also adjust reference file names.
-@pytest.mark.parametrize(
-    ("full_import", "additional_identifier"),
-    [(False, None), (True, "full")],
-)
+@pytest.mark.parametrize("full_import", (False, True))
 def test_beam_to_solid_conditions(
     full_import,
-    additional_identifier,
     get_default_test_beam_material,
     assert_results_close,
     get_corresponding_reference_file_path,
@@ -64,12 +53,7 @@ def test_beam_to_solid_conditions(
     input_file.add(mesh)
 
     # Check results
-    assert_results_close(
-        get_corresponding_reference_file_path(
-            additional_identifier=additional_identifier
-        ),
-        input_file,
-    )
+    assert_results_close(get_corresponding_reference_file_path(), input_file)
 
 
 @pytest.mark.parametrize(

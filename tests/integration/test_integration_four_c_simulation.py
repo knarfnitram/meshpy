@@ -172,7 +172,7 @@ def create_cantilever_model(n_steps, time_step=0.5):
 
 
 @pytest.mark.parametrize(*PYTEST_4C_SIMULATION_PARAMETRIZE)
-@pytest.mark.parametrize("full_import", [False, True])
+@pytest.mark.parametrize("full_import", (False, True))
 def test_integration_four_c_simulation_honeycomb_sphere(
     enforce_four_c,
     full_import,
@@ -296,12 +296,7 @@ def test_integration_four_c_simulation_honeycomb_sphere(
     input_file.add(mesh_honeycomb)
 
     # Check the created input file
-    assert_results_close(
-        get_corresponding_reference_file_path(
-            additional_identifier="full_import" if full_import else None
-        ),
-        input_file,
-    )
+    assert_results_close(get_corresponding_reference_file_path(), input_file)
 
     # Check if we still have to actually run 4C.
     if not enforce_four_c:
@@ -312,7 +307,7 @@ def test_integration_four_c_simulation_honeycomb_sphere(
 
 
 @pytest.mark.parametrize(*PYTEST_4C_SIMULATION_PARAMETRIZE)
-@pytest.mark.parametrize("full_import", [False, True])
+@pytest.mark.parametrize("full_import", (False, True))
 def test_integration_four_c_simulation_beam_and_solid_tube(
     enforce_four_c,
     full_import,
