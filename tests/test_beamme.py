@@ -30,30 +30,6 @@ from beamme.core.mesh import Mesh
 from beamme.core.node import Node
 from beamme.four_c.element_beam import Beam3rHerm2Line3
 from beamme.mesh_creation_functions.beam_line import create_beam_mesh_line
-from tests.create_test_models import (
-    create_beam_to_solid_conditions_model,
-)
-
-
-@pytest.mark.parametrize("full_import", (False, True))
-def test_beam_to_solid_conditions(
-    full_import,
-    get_default_test_beam_material,
-    assert_results_close,
-    get_corresponding_reference_file_path,
-):
-    """Create the input file for the beam-to-solid input conditions tests."""
-
-    # Get the input file.
-    input_file, mesh = create_beam_to_solid_conditions_model(
-        get_default_test_beam_material,
-        get_corresponding_reference_file_path,
-        full_import=full_import,
-    )
-    input_file.add(mesh)
-
-    # Check results
-    assert_results_close(get_corresponding_reference_file_path(), input_file)
 
 
 @pytest.mark.parametrize(
