@@ -37,7 +37,7 @@ class VolumeElement(_Element):
     vtk_topology: list = []
 
     def __init__(self, nodes=None, data={}, **kwargs):
-        super().__init__(nodes=nodes, material=None, **kwargs)
+        super().__init__(nodes=nodes, **kwargs)
         self.data = data
 
     def get_vtk(self, vtk_writer_beam, vtk_writer_solid, **kwargs):
