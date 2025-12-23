@@ -316,6 +316,34 @@ def get_default_test_solid_material() -> Callable:
                 data={"YOUNG_MODULUS": 10.0, "POISSON_RATIO": 0.3, "THICKNESS": 0.05},
             )
 
+        elif material_type == "solid_nested":
+            return MaterialSolid(
+                material_string="MAT_ElastHyper",
+                data={
+                    "NUMMAT": 2,
+                    "MATIDS": [
+                        MaterialSolid(
+                            material_string="ELAST_CoupSVK",
+                            data={"YOUNG": 1.0, "NUE": 0.0},
+                        ),
+                        MaterialSolid(
+                            material_string="MAT_ElastHyper",
+                            data={
+                                "NUMMAT": 1,
+                                "MATIDS": [
+                                    MaterialSolid(
+                                        material_string="ELAST_CoupSVK",
+                                        data={"YOUNG": 2.0, "NUE": 0.0},
+                                    )
+                                ],
+                                "DENS": 1.0,
+                            },
+                        ),
+                    ],
+                    "DENS": 1.0,
+                },
+            )
+
         else:
             raise ValueError(f"Unknown solid material type: {material_type}")
 
