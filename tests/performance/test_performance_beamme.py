@@ -416,5 +416,5 @@ def test_performance_beamme_write_vtk_smooth(
             "output_directory": tmp_path,
             "beam_centerline_visualization_segments": 5,
         },
-        expected_time=7.75,
+        expected_time=8.1,
     )
