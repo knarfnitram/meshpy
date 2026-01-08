@@ -156,30 +156,3 @@ def test_point_couplings_check():
     # This should work, as the points are not within the global tolerance of
     # each other but we dont perform the check
     Coupling(get_nodes(1.0), None, None, check_overlapping_nodes=False)
-
-
-def test_check_two_couplings(
-    get_default_test_beam_material,
-    assert_results_close,
-    get_corresponding_reference_file_path,
-):
-    """The current implementation can handle more than one coupling on a node
-    correctly, therefore we check this here."""
-
-    # Create mesh object
-    mesh = Mesh()
-    mat = get_default_test_beam_material(material_type="reissner")
-    mesh.add(mat)
-
-    # Add two beams to create an elbow structure. The beams each have a
-    # node at the intersection
-    create_beam_mesh_line(mesh, Beam3rHerm2Line3, mat, [0, 0, 0], [1, 0, 0])
-    create_beam_mesh_line(mesh, Beam3rHerm2Line3, mat, [1, 0, 0], [1, 1, 0])
-
-    # Call coupling twice -> this will create two coupling objects for the
-    # corner node
-    mesh.couple_nodes()
-    mesh.couple_nodes()
-
-    # Create the input file
-    assert_results_close(get_corresponding_reference_file_path(), mesh)

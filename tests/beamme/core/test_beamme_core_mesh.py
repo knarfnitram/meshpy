@@ -91,3 +91,33 @@ def test_beamme_core_mesh_add_checks():
         mesh.add(coupling_penalty)
     with pytest.raises(ValueError, match="The item is already in this container!"):
         mesh.add(geometry_set)
+
+
+def test_beamme_core_mesh_multiple_couple_nodes(get_default_test_beam_material):
+    """The current implementation can handle more than one coupling on a node
+    correctly, therefore we check this here."""
+
+    # Create mesh object
+    mesh = Mesh()
+    mat = get_default_test_beam_material(material_type="reissner")
+    mesh.add(mat)
+
+    # Add two beams to create an elbow structure. The beams each have a
+    # node at the intersection
+    beam_set_1 = create_beam_mesh_line(mesh, Beam3, mat, [0, 0, 0], [1, 0, 0])
+    beam_set_2 = create_beam_mesh_line(mesh, Beam3, mat, [1, 0, 0], [1, 1, 0])
+
+    # Call coupling twice -> this will create two coupling objects for the
+    # corner node
+    mesh.couple_nodes()
+    mesh.couple_nodes()
+
+    # Check that we have two point couplings and that they both couple the end and
+    # start node of the created lines.
+    couplings = mesh.boundary_conditions[bme.bc.point_coupling, bme.geo.point]
+    assert len(couplings) == 2
+    for coupling in couplings:
+        coupling_nodes = coupling.geometry_set.get_points()
+        assert len(coupling_nodes) == 2
+        assert beam_set_1["end"].get_points()[0] in coupling_nodes
+        assert beam_set_2["start"].get_points()[0] in coupling_nodes
