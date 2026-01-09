@@ -31,7 +31,7 @@ from beamme.four_c.model_importer import _extract_mesh_sections, import_cubitpy_
 from tests.create_test_models import create_tube_cubit
 
 
-@pytest.mark.parametrize("full_import", [False, True])
+@pytest.mark.parametrize("full_import", (False, True))
 @pytest.mark.cubitpy
 def test_integration_four_c_model_importer_import_cubitpy_model(
     full_import, assert_results_close, get_corresponding_reference_file_path
@@ -47,7 +47,7 @@ def test_integration_four_c_model_importer_import_cubitpy_model(
 
     assert_results_close(
         get_corresponding_reference_file_path(
-            reference_file_base_name="test_other_create_cubit_input_tube"
+            reference_file_base_name="test_other_create_cubit_input_files_tube"
         ),
         input_file_cubit,
     )

@@ -30,46 +30,6 @@ from beamme.core.mesh import Mesh
 from beamme.core.node import Node
 from beamme.four_c.element_beam import Beam3rHerm2Line3
 from beamme.mesh_creation_functions.beam_line import create_beam_mesh_line
-from tests.create_test_models import (
-    create_beam_to_solid_conditions_model,
-)
-
-
-# TODO: Standardize test parameterization for (full_import, additional_identifier).
-# Currently, different tests use inconsistent patterns for parametrize:
-#   - (False, "dict_import"), (True, "full_import")
-#   - (False, None), (True, "full")
-#   - Only "full_import" as a boolean param
-# Consider unifying these under a shared fixture or helper to reduce redundancy
-# and improve readability across tests. Also adjust reference file names.
-@pytest.mark.parametrize(
-    ("full_import", "additional_identifier"),
-    [(False, None), (True, "full")],
-)
-def test_beam_to_solid_conditions(
-    full_import,
-    additional_identifier,
-    get_default_test_beam_material,
-    assert_results_close,
-    get_corresponding_reference_file_path,
-):
-    """Create the input file for the beam-to-solid input conditions tests."""
-
-    # Get the input file.
-    input_file, mesh = create_beam_to_solid_conditions_model(
-        get_default_test_beam_material,
-        get_corresponding_reference_file_path,
-        full_import=full_import,
-    )
-    input_file.add(mesh)
-
-    # Check results
-    assert_results_close(
-        get_corresponding_reference_file_path(
-            additional_identifier=additional_identifier
-        ),
-        input_file,
-    )
 
 
 @pytest.mark.parametrize(

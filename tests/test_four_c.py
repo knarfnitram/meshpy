@@ -271,7 +271,7 @@ def test_four_c_solid_shell_direction_detection(
     # Test the plates
     _, mesh_block = import_four_c_model(
         input_file_path=get_corresponding_reference_file_path(
-            reference_file_base_name="test_other_create_cubit_input_solid_shell_blocks"
+            reference_file_base_name="test_other_create_cubit_input_files_solid_shell_blocks"
         ),
         convert_input_to_mesh=True,
     )
@@ -295,7 +295,7 @@ def test_four_c_solid_shell_direction_detection(
     # Test the dome
     _, mesh_dome_original = import_four_c_model(
         input_file_path=get_corresponding_reference_file_path(
-            reference_file_base_name="test_other_create_cubit_input_solid_shell_dome"
+            reference_file_base_name="test_other_create_cubit_input_files_solid_shell_dome"
         ),
         convert_input_to_mesh=True,
     )
@@ -672,7 +672,7 @@ def test_four_c_beam_to_solid(
     # Load a solid
     _, mesh = import_four_c_model(
         input_file_path=get_corresponding_reference_file_path(
-            reference_file_base_name="test_other_create_cubit_input_block"
+            reference_file_base_name="test_other_create_cubit_input_files_block"
         ),
         convert_input_to_mesh=True,
     )
@@ -752,13 +752,9 @@ def test_four_c_beam_to_solid(
         assert_results_close(get_corresponding_reference_file_path(), mesh)
 
 
-@pytest.mark.parametrize(
-    ("full_import", "additional_identifier"),
-    [(False, "dict_import"), (True, "full_import")],
-)
+@pytest.mark.parametrize("full_import", (False, True))
 def test_four_c_import_non_consecutive_geometry_sets(
     full_import,
-    additional_identifier,
     get_default_test_beam_material,
     get_corresponding_reference_file_path,
     assert_results_close,
@@ -788,7 +784,7 @@ def test_four_c_import_non_consecutive_geometry_sets(
 
     assert_results_close(
         get_corresponding_reference_file_path(
-            additional_identifier=additional_identifier
+            additional_identifier="full_import" if full_import else "dict_import"
         ),
         input_file,
     )

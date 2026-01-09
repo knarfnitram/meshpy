@@ -178,7 +178,7 @@ def test_integration_core_vtk_writer_solid(
     # Convert the solid mesh to beamme objects.
     _, mesh = import_four_c_model(
         input_file_path=get_corresponding_reference_file_path(
-            reference_file_base_name="test_other_create_cubit_input_tube"
+            reference_file_base_name="test_other_create_cubit_input_files_tube"
         ),
         convert_input_to_mesh=True,
     )

@@ -309,7 +309,7 @@ def create_beam_to_solid_conditions_model(
     # Create input file
     input_file, mesh = import_four_c_model(
         input_file_path=get_corresponding_reference_file_path(
-            reference_file_base_name="test_other_create_cubit_input_block"
+            reference_file_base_name="test_other_create_cubit_input_files_block"
         ),
         convert_input_to_mesh=full_import,
     )
@@ -343,3 +343,18 @@ def create_beam_to_solid_conditions_model(
     mesh.add(mesh_beams)
 
     return input_file, mesh
+
+
+def create_single_solid_element_brick(input_file_path, get_default_test_solid_material):
+    """Create an input file with a single solid element brick in CubitPy for
+    testing purposes."""
+
+    # Create the brick with a single solid element
+    cubit = CubitPy()
+    create_brick(
+        cubit, 1, 2, 3, mesh_interval=[1, 1, 1], element_type=cupy.element_type.hex8
+    )
+    material = get_default_test_solid_material(material_type="st_venant_kirchhoff")
+    material.i_global = 0
+    cubit.fourc_input["MATERIALS"] = [material.dump_to_list()]
+    cubit.dump(input_file_path)
