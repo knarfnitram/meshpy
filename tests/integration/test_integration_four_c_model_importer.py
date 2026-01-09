@@ -21,12 +21,14 @@
 # THE SOFTWARE.
 """Unit tests the cubit interface of BeamMe."""
 
+import re
+
 import pytest
 
-from beamme.four_c.model_importer import import_cubitpy_model
-from tests.create_test_models import (
-    create_tube_cubit,
-)
+from beamme.core.mesh import Mesh
+from beamme.four_c.input_file import InputFile
+from beamme.four_c.model_importer import _extract_mesh_sections, import_cubitpy_model
+from tests.create_test_models import create_tube_cubit
 
 
 @pytest.mark.parametrize("full_import", [False, True])
@@ -49,3 +51,59 @@ def test_integration_four_c_model_importer_import_cubitpy_model(
         ),
         input_file_cubit,
     )
+
+
+def test_integration_four_c_model_importer_import_nested_materials(
+    get_default_test_solid_material,
+    get_corresponding_reference_file_path,
+    assert_results_close,
+):
+    """Check if nested materials are imported correctly."""
+
+    # Create a minimal solid input file.
+    mesh = Mesh()
+    material = get_default_test_solid_material(material_type="solid_nested")
+    mesh.add(material)
+
+    # Add the mesh to an input file, this converts the material to the FourCIPP format.
+    input_file = InputFile()
+    input_file.add(mesh)
+
+    # Extract the mesh again. Only one material should be present in the extracted mesh.
+    _, mesh_extracted = _extract_mesh_sections(input_file)
+    assert len(mesh_extracted.materials) == 1
+
+    # Check that the imported mesh can be added to a mesh that already contains a
+    # material. This tests that the nested materials are correctly relinked during
+    # the import.
+    mesh_with_other_material = Mesh()
+    mesh_with_other_material.add(
+        get_default_test_solid_material(material_type="st_venant_kirchhoff")
+    )
+    input_file = InputFile()
+    input_file.add(mesh_with_other_material)
+    input_file.add(mesh_extracted)
+
+    # Compare with reference file.
+    assert_results_close(get_corresponding_reference_file_path(), input_file)
+
+
+def test_integration_four_c_model_importer_import_nested_materials_error():
+    """Check that an error is raised when importing nested materials with bad
+    IDs."""
+
+    # Create an input file with "bad" material IDs.
+    input_file = InputFile()
+    input_file["MATERIALS"] = [
+        {"MAT": 1, "MAT_ElastHyper": {"NUMMAT": 2, "MATIDS": [2, 3], "DENS": 1.0}},
+        {"MAT": 2, "ELAST_CoupSVK": {"YOUNG": 1.0, "NUE": 0.0}},
+    ]
+
+    # Try to extract the mesh, this should raise an error.
+    with pytest.raises(
+        KeyError,
+        match=re.escape(
+            "Material ID 3 not in material_id_map_all (available IDs: [1, 2])."
+        ),
+    ):
+        _extract_mesh_sections(input_file)

@@ -119,7 +119,7 @@ def _extract_mesh_sections(input_file: _InputFile) -> _Tuple[_InputFile, _Mesh]:
     mesh = _Mesh()
 
     # extract materials
-    material_id_map = {}
+    material_id_map_all = {}
 
     for mat in _pop_section("MATERIALS"):
         mat_id = mat.pop("MAT")
@@ -129,8 +129,31 @@ def _extract_mesh_sections(input_file: _InputFile) -> _Tuple[_InputFile, _Mesh]:
             )
         mat_name, mat_data = list(mat.items())[0]
         material = _MaterialSolid(material_string=mat_name, data=mat_data)
-        mesh.add(material)
-        material_id_map[mat_id] = material
+        material_id_map_all[mat_id] = material
+
+    nested_materials = set()
+    for material in material_id_map_all.values():
+        # Loop over each material and link nested materials. Also, mark nested materials
+        # as they will not be added to the mesh.
+        material_ids = material.data.get("MATIDS", [])
+        for i_sub_material, material_id in enumerate(material_ids):
+            try:
+                material_ids[i_sub_material] = material_id_map_all[material_id]
+            except KeyError as key_exception:
+                raise KeyError(
+                    f"Material ID {material_id} not in material_id_map_all (available "
+                    f"IDs: {list(material_id_map_all.keys())})."
+                ) from key_exception
+            nested_materials.add(material_id)
+
+    # Get a map of all non-nested materials. We assume that only those are used as
+    # materials for elements. Also, add the non-nested materials to the mesh.
+    material_id_map = {
+        key: val
+        for key, val in material_id_map_all.items()
+        if key not in nested_materials
+    }
+    mesh.materials.extend(material_id_map.values())
 
     # extract nodes
     mesh.nodes = [_Node(node["COORD"]) for node in _pop_section("NODE COORDS")]

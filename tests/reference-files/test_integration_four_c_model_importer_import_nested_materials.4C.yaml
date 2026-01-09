@@ -1,0 +1,24 @@
+MATERIALS:
+  - MAT: 1
+    MAT_Struct_StVenantKirchhoff:
+      YOUNG: 1.0
+      NUE: 0.3
+      DENS: 1.0
+  - MAT: 2
+    MAT_ElastHyper:
+      NUMMAT: 2
+      MATIDS: [3, 4]
+      DENS: 1.0
+  - MAT: 3
+    ELAST_CoupSVK:
+      YOUNG: 1.0
+      NUE: 0.0
+  - MAT: 4
+    MAT_ElastHyper:
+      NUMMAT: 1
+      MATIDS: [5]
+      DENS: 1.0
+  - MAT: 5
+    ELAST_CoupSVK:
+      YOUNG: 2.0
+      NUE: 0.0

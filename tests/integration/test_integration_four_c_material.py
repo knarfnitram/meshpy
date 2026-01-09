@@ -29,6 +29,7 @@ from beamme.four_c.material import MaterialSolid
 
 
 def test_integration_four_c_sub_materials(
+    get_default_test_solid_material,
     get_corresponding_reference_file_path,
     assert_results_close,
 ):
@@ -36,31 +37,7 @@ def test_integration_four_c_sub_materials(
 
     # Add a nested material to the mesh and check the result.
     mesh = Mesh()
-    material = MaterialSolid(
-        material_string="MAT_ElastHyper",
-        data={
-            "NUMMAT": 2,
-            "MATIDS": [
-                MaterialSolid(
-                    material_string="ELAST_CoupSVK", data={"YOUNG": 1.0, "NUE": 0.0}
-                ),
-                MaterialSolid(
-                    material_string="MAT_ElastHyper",
-                    data={
-                        "NUMMAT": 1,
-                        "MATIDS": [
-                            MaterialSolid(
-                                material_string="ELAST_CoupSVK",
-                                data={"YOUNG": 2.0, "NUE": 0.0},
-                            )
-                        ],
-                        "DENS": 1.0,
-                    },
-                ),
-            ],
-            "DENS": 1.0,
-        },
-    )
+    material = get_default_test_solid_material(material_type="solid_nested")
     mesh.add(material)
     assert_results_close(get_corresponding_reference_file_path(), mesh)
 
