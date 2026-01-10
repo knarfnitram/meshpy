@@ -97,6 +97,10 @@ def create_beam_mesh_parametric_curve(
         with all nodes of the curve.
     """
 
+    # To avoid issues with automatic derivation, we need to ensure that the interval
+    # values are of type float.
+    interval = _np.asarray(interval, dtype=float)
+
     # Check size of position function
     if len(function(interval[0])) == 2:
         is_3d_curve = False
@@ -114,7 +118,7 @@ def create_beam_mesh_parametric_curve(
     # Check that the position is an np.array
     if not isinstance(function(interval[0]), _np.ndarray):
         raise TypeError(
-            "Function must be of type np.ndarray, got {}!".format(
+            "Function return value must be of type np.ndarray, got {}!".format(
                 type(function(interval[0]))
             )
         )
