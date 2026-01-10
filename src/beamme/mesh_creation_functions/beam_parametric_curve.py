@@ -65,7 +65,8 @@ def create_beam_mesh_parametric_curve(
         mathematical functions are used, they have to come from the wrapper
         autograd.numpy.
     interval: [start end]
-        Start and end values for the parameter of the curve.
+        Start and end values for the parameter of the curve, must be in ascending
+        order.
     output_length: bool
         If this is true, the function returns a tuple containing the created
         sets and the total arc length along the integrated function.
@@ -101,6 +102,18 @@ def create_beam_mesh_parametric_curve(
     # values are of type float.
     interval = _np.asarray(interval, dtype=float)
 
+    # Validate interval shape, length and order.
+    if interval.ndim != 1:
+        raise ValueError(
+            f"Interval must be a 1D sequence of exactly two values, got array with shape {interval.shape}."
+        )
+    if interval.size != 2:
+        raise ValueError(
+            f"Interval must contain exactly two values, got {interval.size}."
+        )
+    if interval[0] >= interval[1]:
+        raise ValueError(f"Interval must be in ascending order, got {interval}.")
+
     # Check size of position function
     if len(function(interval[0])) == 2:
         is_3d_curve = False
@@ -129,15 +142,6 @@ def create_beam_mesh_parametric_curve(
         rp = _jacobian(function)
     else:
         rp = function_derivative
-
-    # Check which one of the boundaries is larger.
-    if interval[0] > interval[1]:
-        # In this case rp needs to be negated.
-        rp_positive = rp
-
-        def rp(t):
-            """Return the inverted tangent vector."""
-            return -(rp_positive(t))
 
     def ds(t):
         """Increment along the curve."""
