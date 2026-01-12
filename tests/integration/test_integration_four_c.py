@@ -48,6 +48,58 @@ from beamme.mesh_creation_functions.beam_line import create_beam_mesh_line
 from beamme.mesh_creation_functions.nurbs_generic import add_splinepy_nurbs_to_mesh
 
 
+@pytest.mark.parametrize(
+    ("coupling_type", "coupling_dof_type", "additional_identifier"),
+    (
+        (bme.bc.point_coupling, bme.coupling_dof.fix, "exact"),
+        (
+            bme.bc.point_coupling_penalty,
+            {"POSITIONAL_PENALTY_PARAMETER": 10000, "ROTATIONAL_PENALTY_PARAMETER": 0},
+            "penalty",
+        ),
+    ),
+)
+def test_integration_four_c_point_coupling(
+    coupling_type,
+    coupling_dof_type,
+    additional_identifier,
+    get_default_test_beam_material,
+    assert_results_close,
+    get_corresponding_reference_file_path,
+):
+    """Test the creation of point couplings for 4C."""
+
+    # Create material and mesh
+    material = get_default_test_beam_material(
+        material_type="reissner", interaction_radius=2.0
+    )
+    mesh = Mesh()
+
+    # Create a 2x2 grid of beams.
+    for i in range(3):
+        for j in range(2):
+            create_beam_mesh_line(
+                mesh, Beam3rHerm2Line3, material, [j, i, 0.0], [j + 1, i, 0.0]
+            )
+            create_beam_mesh_line(
+                mesh, Beam3rHerm2Line3, material, [i, j, 0.0], [i, j + 1, 0.0]
+            )
+
+    # Couple the beams.
+    mesh.couple_nodes(
+        reuse_matching_nodes=True,
+        coupling_type=coupling_type,
+        coupling_dof_type=coupling_dof_type,
+    )
+
+    assert_results_close(
+        get_corresponding_reference_file_path(
+            additional_identifier=additional_identifier
+        ),
+        mesh,
+    )
+
+
 def test_integration_four_c_point_coupling_indirect(
     get_default_test_beam_material,
     assert_results_close,
