@@ -1,0 +1,61 @@
+name: setup_python_environment
+description: Setup a Python environment either with conda, venv or the system python. The version can be configured.
+
+inputs:
+  python-version:
+    description: "Python version to use"
+    required: false
+    default: "3.13"
+
+  env_type:
+    description: "Environment type: `conda`, `venv` or `system`" # on Windows `bash -l {0}` shell is required for conda environments
+    required: false
+    default: "venv"
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Miniconda
+      if: inputs.env_type == 'conda'
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        activate-environment: beamme
+        python-version: ${{ inputs.python-version }}
+        miniforge-variant: Miniforge3
+        channels: conda-forge
+        conda-remove-defaults: true
+        auto-activate-base: false
+        auto-update-conda: false
+        use-mamba: true
+
+    - name: Setup Python for venv or system
+      if: inputs.env_type != 'conda'
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Create venv
+      if: inputs.env_type == 'venv'
+      shell: bash
+      run: |
+        python -m venv .venv
+
+    # Save the virtual environment path to the GITHUB_PATH so that it is available in subsequent steps/jobs
+    # This circumvents the need to source the virtual environment in each step
+    # Note: This does not work out of the box for conda environments on Windows due to shell limitations (need to use `bash -l {0}` as shell)
+    - name: Export Python environment to PATH
+      shell: bash
+      run: |
+        if [[ "${{ inputs.env_type }}" == "conda" ]]; then
+          source "$CONDA/etc/profile.d/conda.sh"
+          conda activate beamme
+          echo "$CONDA_PREFIX/bin" >> "$GITHUB_PATH"
+        elif [[ "${{ inputs.env_type }}" == "venv" ]]; then
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+        fi
+
+    - name: Verify Python installation (debug)
+      shell: bash
+      run: |
+        which python
+        python --version

@@ -12,7 +12,6 @@ runs:
       shell: bash
       run: |
         cd ${GITHUB_WORKSPACE}
-        source python-workflow-venv/bin/activate
         mkdir -p coverage-badge
         coverage-badge -o coverage-badge/coverage_badge.svg
         cp .github/actions/coverage/coverage_badge_index.html coverage-badge/index.html

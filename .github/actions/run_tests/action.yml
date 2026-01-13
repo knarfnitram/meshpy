@@ -5,10 +5,6 @@ inputs:
     description: Command to install BeamMe with pip
     required: false
     default: ".[dev,fourc]"
-  source-command:
-    description: Command to source the virtual environment
-    required: false
-    default: ""
   additional-pytest-flags:
     description: Additional flags to pass to pytest, i.e., markers
     required: false
@@ -28,7 +24,6 @@ runs:
       run: |
         export CUBIT_ROOT=${{ inputs.cubit-root }}
         cd ${GITHUB_WORKSPACE}
-        ${{ inputs.source-command }}
         pip install ${{ inputs.install-command }}
         python --version
         pip list

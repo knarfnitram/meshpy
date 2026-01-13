@@ -2,7 +2,7 @@ name: Protected test suite (can access cubit secrets)
 
 on:
   schedule:
-    - cron: '0 06 * * *'
+    - cron: "0 06 * * *"
   push:
     branches:
       - main
@@ -44,14 +44,15 @@ jobs:
           cubit_download_url: ${{ env.CUBIT_DOWNLOAD_URL }}
           cubit_email: ${{ secrets.CUBIT_EMAIL }}
           cubit_password: ${{ secrets.CUBIT_PASSWORD }}
-      - name: Setup virtual python environment
-        uses: ./.github/actions/setup_virtual_python_environment
+      - name: Setup python environment
+        uses: ./.github/actions/setup_python_environment
+        with:
+          env_type: "conda"
       - name: Build ArborX geometric search
         uses: ./.github/actions/build_arborx_geometric_search
       - name: Run the test suite
         uses: ./.github/actions/run_tests
         with:
-          source-command: "source python-workflow-venv/bin/activate"
           install-command: "-e .[cubitpy,dev,fourc]"
           additional-pytest-flags: "--4C --ArborX --CubitPy --cov-fail-under=93"
           cubit-root: ${{ steps.cubit.outputs.cubit_root }}
@@ -98,13 +99,14 @@ jobs:
           cubit_download_url: ${{ env.CUBIT_DOWNLOAD_URL }}
           cubit_email: ${{ secrets.CUBIT_EMAIL }}
           cubit_password: ${{ secrets.CUBIT_PASSWORD }}
-      - name: Setup virtual python environment
-        uses: ./.github/actions/setup_virtual_python_environment
+      - name: Setup python environment
+        uses: ./.github/actions/setup_python_environment
+        with:
+          env_type: "conda"
       - name: Run the test suite
         uses: ./.github/actions/run_tests
         with:
           install-command: ".[cubitpy,dev,fourc]"
-          source-command: "source python-workflow-venv/bin/activate"
           additional-pytest-flags: "--performance-tests --exclude-standard-tests -s --no-cov"
           cubit-root: ${{ steps.cubit.outputs.cubit_root }}
       - name: Free cubit license
