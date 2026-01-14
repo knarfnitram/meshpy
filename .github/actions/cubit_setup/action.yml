@@ -17,7 +17,7 @@ inputs:
   cubit_activation_delay_between_retries:
     description: Delay between retries to try cubit activation in seconds
     required: false
-    default: "10"
+    default: "60"
 outputs:
   cubit_root:
     description: "Path to the Cubit installation"
@@ -41,6 +41,8 @@ runs:
         cd ${GITHUB_WORKSPACE}
         wget -q ${{ inputs.cubit_download_url }}
         tar -xzf *.tar.gz
+        # Remove the downloaded tarball
+        rm *.tar.gz
         # Save cubit root path for following steps
         CUBIT_FOLDER=$(find . -maxdepth 1 -type d -name "Coreform-Cubit-*" | head -n 1 | sed 's|^\./||')
         CUBIT_ROOT="$(pwd)/$CUBIT_FOLDER"

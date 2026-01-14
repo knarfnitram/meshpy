@@ -25,7 +25,7 @@ jobs:
       # Otherwise (scheduled or merge triggers) use the trusted environment (no approval needed).
       name: ${{ github.event_name == 'pull_request_target' && (github.event.pull_request.author_association == 'COLLABORATOR') && 'cubit_secrets_trusted' || (github.event_name == 'pull_request_target' && 'cubit_secrets_untrusted' || 'cubit_secrets_trusted') }}
     container:
-      image: ghcr.io/4c-multiphysics/4c:main
+      image: ghcr.io/4c-multiphysics/4c-minimal:main
     defaults:
       run:
         shell: bash
@@ -37,13 +37,6 @@ jobs:
           # For PR runs, checkout PR code; otherwise fallback to default branch or ref
           ref: ${{ github.event.pull_request.head.ref || github.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
-      - name: Setup cubit
-        id: cubit
-        uses: ./.github/actions/cubit_setup
-        with:
-          cubit_download_url: ${{ env.CUBIT_DOWNLOAD_URL }}
-          cubit_email: ${{ secrets.CUBIT_EMAIL }}
-          cubit_password: ${{ secrets.CUBIT_PASSWORD }}
       - name: Setup python environment
         uses: ./.github/actions/setup_python_environment
         with:
@@ -54,6 +47,13 @@ jobs:
         uses: ./.github/actions/install_beamme
         with:
           install-command: "-e .[cubitpy,dev,fourc]"
+      - name: Setup cubit
+        id: cubit
+        uses: ./.github/actions/cubit_setup
+        with:
+          cubit_download_url: ${{ env.CUBIT_DOWNLOAD_URL }}
+          cubit_email: ${{ secrets.CUBIT_EMAIL }}
+          cubit_password: ${{ secrets.CUBIT_PASSWORD }}
       - name: Run the test suite
         uses: ./.github/actions/run_tests
         with:
@@ -83,7 +83,7 @@ jobs:
       # Otherwise (scheduled or merge triggers) use the trusted environment (no approval needed).
       name: ${{ github.event_name == 'pull_request_target' && (github.event.pull_request.author_association == 'COLLABORATOR') && 'cubit_secrets_trusted' || (github.event_name == 'pull_request_target' && 'cubit_secrets_untrusted' || 'cubit_secrets_trusted') }}
     container:
-      image: ghcr.io/4c-multiphysics/4c:main
+      image: ghcr.io/4c-multiphysics/4c-minimal:main
     defaults:
       run:
         shell: bash
@@ -95,13 +95,6 @@ jobs:
           # For PR runs, checkout PR code; otherwise fallback to default branch or ref
           ref: ${{ github.event.pull_request.head.ref || github.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
-      - name: Setup cubit
-        id: cubit
-        uses: ./.github/actions/cubit_setup
-        with:
-          cubit_download_url: ${{ env.CUBIT_DOWNLOAD_URL }}
-          cubit_email: ${{ secrets.CUBIT_EMAIL }}
-          cubit_password: ${{ secrets.CUBIT_PASSWORD }}
       - name: Setup python environment
         uses: ./.github/actions/setup_python_environment
         with:
@@ -110,6 +103,13 @@ jobs:
         uses: ./.github/actions/install_beamme
         with:
           install-command: ".[cubitpy,dev,fourc]"
+      - name: Setup cubit
+        id: cubit
+        uses: ./.github/actions/cubit_setup
+        with:
+          cubit_download_url: ${{ env.CUBIT_DOWNLOAD_URL }}
+          cubit_email: ${{ secrets.CUBIT_EMAIL }}
+          cubit_password: ${{ secrets.CUBIT_PASSWORD }}
       - name: Run the test suite
         uses: ./.github/actions/run_tests
         with:
