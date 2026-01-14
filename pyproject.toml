@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools", "wheel", "cython", "numpy"]
+requires = ["setuptools", "setuptools_scm[toml]", "wheel", "cython", "numpy"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -28,6 +28,11 @@ dependencies = [
 
 dynamic = ["version"]
 
+[tool.setuptools_scm]
+version_file = "src/beamme/version.py"
+version_scheme = "post-release"
+local_scheme = "no-local-version"
+
 [project.optional-dependencies]
 cubitpy = ["cubitpy"]
 fourc = ["fourcipp"]
@@ -50,6 +55,11 @@ Repository = "https://github.com/beamme-py/beamme/"
 Issues = "https://github.com/beamme-py/beamme/issues/"
 
 # Tools
+
+[tool.coverage.run]
+omit = [
+  "src/beamme/version.py",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
