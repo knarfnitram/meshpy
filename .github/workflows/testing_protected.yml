@@ -25,7 +25,7 @@ jobs:
       # Otherwise (scheduled or merge triggers) use the trusted environment (no approval needed).
       name: ${{ github.event_name == 'pull_request_target' && (github.event.pull_request.author_association == 'COLLABORATOR') && 'cubit_secrets_trusted' || (github.event_name == 'pull_request_target' && 'cubit_secrets_untrusted' || 'cubit_secrets_trusted') }}
     container:
-      image: ghcr.io/4c-multiphysics/4c:main
+      image: ghcr.io/4c-multiphysics/4c-minimal:main
     defaults:
       run:
         shell: bash
@@ -83,7 +83,7 @@ jobs:
       # Otherwise (scheduled or merge triggers) use the trusted environment (no approval needed).
       name: ${{ github.event_name == 'pull_request_target' && (github.event.pull_request.author_association == 'COLLABORATOR') && 'cubit_secrets_trusted' || (github.event_name == 'pull_request_target' && 'cubit_secrets_untrusted' || 'cubit_secrets_trusted') }}
     container:
-      image: ghcr.io/4c-multiphysics/4c:main
+      image: ghcr.io/4c-multiphysics/4c-minimal:main
     defaults:
       run:
         shell: bash
