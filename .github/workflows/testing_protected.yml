@@ -50,10 +50,13 @@ jobs:
           env_type: "conda"
       - name: Build ArborX geometric search
         uses: ./.github/actions/build_arborx_geometric_search
+      - name: Install BeamMe
+        uses: ./.github/actions/install_beamme
+        with:
+          install-command: "-e .[cubitpy,dev,fourc]"
       - name: Run the test suite
         uses: ./.github/actions/run_tests
         with:
-          install-command: "-e .[cubitpy,dev,fourc]"
           additional-pytest-flags: "--4C --ArborX --CubitPy --cov-fail-under=93"
           cubit-root: ${{ steps.cubit.outputs.cubit_root }}
       - name: Free cubit license
@@ -103,10 +106,13 @@ jobs:
         uses: ./.github/actions/setup_python_environment
         with:
           env_type: "conda"
+      - name: Install BeamMe
+        uses: ./.github/actions/install_beamme
+        with:
+          install-command: ".[cubitpy,dev,fourc]"
       - name: Run the test suite
         uses: ./.github/actions/run_tests
         with:
-          install-command: ".[cubitpy,dev,fourc]"
           additional-pytest-flags: "--performance-tests --exclude-standard-tests -s --no-cov"
           cubit-root: ${{ steps.cubit.outputs.cubit_root }}
       - name: Free cubit license
