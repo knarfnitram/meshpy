@@ -1,10 +1,6 @@
 name: run_tests
 description: Perform Test suite
 inputs:
-  install-command:
-    description: Command to install BeamMe with pip
-    required: false
-    default: ".[dev,fourc]"
   additional-pytest-flags:
     description: Additional flags to pass to pytest, i.e., markers
     required: false
@@ -24,9 +20,6 @@ runs:
       run: |
         export CUBIT_ROOT=${{ inputs.cubit-root }}
         cd ${GITHUB_WORKSPACE}
-        pip install ${{ inputs.install-command }}
-        python --version
-        pip list
         TEMP_DIR="${RUNNER_TEMP}/beamme_pytest"
         mkdir -p "$TEMP_DIR"
         echo "PYTEST_TMPDIR=$TEMP_DIR" >> $GITHUB_ENV

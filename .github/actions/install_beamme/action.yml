@@ -1,0 +1,22 @@
+name: install_beamme
+description: Install BeamMe with configurable dependencies
+inputs:
+  install-command:
+    description: Command to install BeamMe with pip
+    required: false
+    default: ".[dev,fourc]"
+runs:
+  using: composite
+  steps:
+    - name: Install BeamMe
+      shell: bash
+      run: |
+        cd ${GITHUB_WORKSPACE}
+        pip install ${{ inputs.install-command }}
+
+    - name: Verify python and packages
+      shell: bash
+      run: |
+        which python
+        python --version
+        pip list

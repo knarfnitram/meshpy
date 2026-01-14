@@ -54,7 +54,7 @@ runs:
           echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
         fi
 
-    - name: Verify Python installation (debug)
+    - name: Verify Python installation
       shell: bash
       run: |
         which python
