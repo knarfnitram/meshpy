@@ -17,7 +17,7 @@ inputs:
   cubit_activation_delay_between_retries:
     description: Delay between retries to try cubit activation in seconds
     required: false
-    default: "10"
+    default: "60"
 outputs:
   cubit_root:
     description: "Path to the Cubit installation"
