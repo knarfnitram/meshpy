@@ -11,11 +11,14 @@ on:
       - opened
       - reopened
       - synchronize
+  workflow_run:
+    workflows: [Build wheels]
+    types: [completed]
   workflow_dispatch:
 
 jobs:
-  beamme-testing:
-    name: ${{ matrix.os-version }} python${{ matrix.python-version }}
+  beamme-testing-from-source-code:
+    name: ${{ matrix.os-version }} python${{ matrix.python-version }} from source
     strategy:
       fail-fast: false
       matrix:
