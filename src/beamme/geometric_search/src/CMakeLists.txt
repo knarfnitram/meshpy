@@ -20,58 +20,46 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.18)
 
 # Project name
-project(arborxpy)
+project(arborxpy LANGUAGES CXX)
+
+# Compiler options
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Find python packages
-find_package(Python COMPONENTS Interpreter Development)
-find_package(PythonLibs REQUIRED)
-include_directories(${PYTHON_INCLUDE_DIRS})
+find_package(Python REQUIRED COMPONENTS Interpreter Development.Module)
 
-# Add the local pybind11 directory
-add_subdirectory(../../../pybind11 build)
-find_package(pybind11 CONFIG)
-include_directories(../../../pybind11/include)
+# Add pybind11 package
+add_subdirectory(../../../pybind11 pybind11-build)
 
-# Get ArborX from github
+# Get ArborX
 include(FetchContent)
-fetchcontent_declare(
+FetchContent_Declare(
   arborx
   GIT_REPOSITORY https://github.com/arborx/ArborX.git
   GIT_TAG 4c015c70f3927b55e730515ce8db235e68c13480
-  )
-fetchcontent_makeavailable(arborx)
+)
+FetchContent_MakeAvailable(arborx)
 
-# Compiler flags
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -O3 -fvisibility=hidden")
-
-# Setup arborxpy
-set(module_name "arborx_lib")
-set(target_name "${module_name}")
-add_definitions("-DPYTHON_MODULE_NAME")
-set(PYTHON_MODULE_NAME "${target_name}")
-add_library(
-  ${target_name}
-  MODULE
+# Build the python extension module
+set(lib_name "arborx_lib")
+pybind11_add_module(${lib_name}
   geometric_search.cpp
   find_close_points.cpp
 )
-set_target_properties(
-  ${target_name}
-  PROPERTIES
-  PREFIX "${PYTHON_MODULE_PREFIX}"
-  SUFFIX "${PYTHON_MODULE_EXTENSION}"
-)
-target_link_libraries(
-  ${target_name}
-  PUBLIC
-  ArborX::ArborX
-)
+
+# Set compile options
+target_compile_options(${lib_name} PRIVATE -Wall -Wextra -O3 -fvisibility=hidden)
+
+target_link_libraries(${lib_name} PRIVATE ArborX::ArborX)
+
+# Copy the module where the import are expected
 add_custom_command(
-  TARGET ${target_name}
+  TARGET ${lib_name}
   POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${target_name}> ${CMAKE_SOURCE_DIR}/../
+  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${lib_name}> ${CMAKE_SOURCE_DIR}/../
 )
