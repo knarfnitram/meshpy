@@ -1,0 +1,36 @@
+name: wheel_test
+description: Test a pre-built wheel
+
+inputs:
+  python-version:
+    description: Python version to use
+    required: true
+
+  wheel-name:
+    description: Artifact name containing wheels
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Python
+      uses: ./.github/actions/setup_python_environment
+      with:
+        python-version: ${{ inputs.python-version }}
+        env_type: venv
+
+    - name: Download wheels
+      uses: actions/download-artifact@v5
+      with:
+        name: ${{ inputs.wheel-name }}
+        path: wheelhouse
+
+    - name: Install wheel under test
+      shell: bash
+      run: |
+        pip install $(echo wheelhouse/*cp${PYTAG}*.whl)
+        pip install fourcipp pytest-cov testbook vistools xmltodict
+
+    - name: Run test suite
+      shell: bash
+      run: pytest --no-cov
