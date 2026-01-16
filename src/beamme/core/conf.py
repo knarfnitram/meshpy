@@ -1,6 +1,6 @@
 # The MIT License (MIT)
 #
-# Copyright (c) 2018-2025 BeamMe Authors
+# Copyright (c) 2018-2026 BeamMe Authors
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,7 @@ from enum import auto as _auto
 INPUT_FILE_HEADER = [
     "-" * 40,
     "This input file was created with BeamMe.",
-    "Copyright (c) 2018-2025 BeamMe Authors",
+    "Copyright (c) 2018-2026 BeamMe Authors",
     "https://beamme-py.github.io/beamme/",
     "-" * 40,
 ]

@@ -1,6 +1,6 @@
 # The MIT License (MIT)
 #
-# Copyright (c) 2018-2025 BeamMe Authors
+# Copyright (c) 2018-2026 BeamMe Authors
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,7 @@
 
 # general configuration
 project = "BeamMe"
-copyright = "2025, BeamMe Authors"
+copyright = "2026, BeamMe Authors"
 author = "BeamMe Authors"
 
 # html theme configuration
