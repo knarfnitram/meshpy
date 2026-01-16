@@ -47,7 +47,9 @@ jobs:
 
       - name: Flatten wheel folders in one directory
         run: |
+          # Move all wheels from subfolders to the main folder and delete empty folders
           find wheels -name '*.whl' -exec mv {} wheels/ \;
+          find wheels -type d -empty -delete
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1

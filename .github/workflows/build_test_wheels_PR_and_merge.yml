@@ -1,4 +1,4 @@
-name: Build and test wheels for pull requests
+name: Build and test wheels for pull requests and merges to main
 
 on:
   pull_request:
