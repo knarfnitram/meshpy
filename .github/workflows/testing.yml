@@ -46,7 +46,7 @@ jobs:
             ${{ matrix.python-version == '3.10' && ' ' || '--no-cov' }}
       - name: Upload test results on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ github.job }}-${{ matrix.os-version }}-python${{ matrix.python-version }}-${{ github.run_number }}
           path: ${{ env.PYTEST_TMPDIR }}
