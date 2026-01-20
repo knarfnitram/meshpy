@@ -59,6 +59,7 @@ the [Institute for Computational Mechanics (LNM)](https://www.epc.ed.tum.de/lnm/
 - [Work that uses BeamMe](#work-that-uses-beamme)
 - [Installation](#installation)
   - [Python environment](#python-environment)
+  - [Install BeamMe via pip / PyPI (latest release)](#install-beamme-via-pip--pypi-latest-release)
   - [Install BeamMe from GitHub (most recent version)](#install-beamme-from-github-most-recent-version)
   - [Install BeamMe from source](#install-beamme-from-source)
 - [Optional dependencies](#optional-dependencies)
@@ -234,6 +235,16 @@ BeamMe is tested with, and supports Python versions 3.10-3.13. It is recommended
   # Activate the environment
   source <path-to-env-folder>/beamme-env/bin/activate
   ```
+
+### Install BeamMe via pip / PyPI (latest release)
+
+You can quickly install BeamMe into your current environment using pip:
+```bash
+pip install beamme
+```
+
+Optional dependencies (for development and extra features) can be installed with: `pip install "beamme[dev,fourc]"`
+> **Note:** On Zsh, you may need to quote the brackets as shown to avoid shell expansion.
 
 ### Install BeamMe from GitHub (most recent version)
 
