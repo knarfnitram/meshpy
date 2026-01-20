@@ -37,16 +37,10 @@ jobs:
           # only works in editable mode.
           install-command: >-
             ${{ matrix.python-version == '3.10' && '-e .[dev,fourc]' || '.[dev,fourc]'}}
-      - name: Run the test suite
+      - name: Run the test suite and upload results on failure
         uses: ./.github/actions/run_tests
         with:
           # The single space in the empty string is required, otherwise GitHub
           # evaluates the if clause wrong.
           additional-pytest-flags: >-
             ${{ matrix.python-version == '3.10' && ' ' || '--no-cov' }}
-      - name: Upload test results on failure
-        if: failure()
-        uses: actions/upload-artifact@v6
-        with:
-          name: ${{ github.job }}-${{ matrix.os-version }}-python${{ matrix.python-version }}-${{ github.run_number }}
-          path: ${{ env.PYTEST_TMPDIR }}
