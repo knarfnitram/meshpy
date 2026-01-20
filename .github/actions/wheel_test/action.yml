@@ -27,9 +27,7 @@ runs:
 
     - name: Install wheel under test
       shell: bash
-      run: |
-        pip install $(echo wheelhouse/*cp${PYTAG}*.whl)
-        pip install fourcipp pytest-cov testbook vistools xmltodict
+      run: pip install "$(echo wheelhouse/*cp${PYTAG}*.whl)[dev,fourc]"
 
     - name: Run test suite
       shell: bash

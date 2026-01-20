@@ -8,6 +8,16 @@ on:
     - cron: "0 06 * * *"
 
 jobs:
+  build-src-dist:
+    name: build-source-distribution
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Build source distribution
+        uses: ./.github/actions/source_distribution_build
+
   build-test-wheels:
     name: build-test-wheel python ${{ matrix.python-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -40,18 +50,20 @@ jobs:
       id-token: write
     steps:
 
-      - name: Download all wheels
+      - name: Download all wheels and the source distribution
         uses: actions/download-artifact@v7
         with:
-          path: wheels
+          path: upload
 
-      - name: Flatten wheel folders in one directory
+      - name: Flatten artifacts into one directory
         run: |
-          # Move all wheels from subfolders to the main folder and delete empty folders
-          find wheels -name '*.whl' -exec mv {} wheels/ \;
-          find wheels -type d -empty -delete
+          # Move all wheels and the sdist from subfolders to the main folder and delete empty folders
+          find upload -mindepth 2 -name '*.whl' -exec mv {} upload/ \;
+          find upload -mindepth 2 -name '*.tar.gz' -exec mv {} upload/ \;
+          # Remove empty folders
+          find upload -type d -empty -delete
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages_dir: wheels
+          packages-dir: upload
