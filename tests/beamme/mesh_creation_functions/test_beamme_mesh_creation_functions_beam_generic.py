@@ -23,12 +23,14 @@
 
 import re
 
+import numpy as np
 import pytest
 
 from beamme.core.element_beam import Beam3
 from beamme.core.mesh import Mesh
 from beamme.core.node import NodeCosserat
 from beamme.core.rotation import Rotation
+from beamme.mesh_creation_functions.beam_arc import create_beam_mesh_arc_segment_2d
 from beamme.mesh_creation_functions.beam_generic import create_beam_mesh_generic
 from beamme.mesh_creation_functions.beam_line import create_beam_mesh_line
 
@@ -192,3 +194,145 @@ def test_beamme_mesh_creation_functions_beam_generic_arc_length_argument_checks(
             close_beam=True,
             end_node=dummy_arg,
         )
+
+
+@pytest.mark.parametrize(
+    "basic_creation_function",
+    ["line", "arc"],
+)
+def test_beamme_mesh_creation_functions_beam_generic_arc_length(
+    basic_creation_function, get_default_test_beam_material, assert_results_close
+):
+    """Test that the arc length can be stored in the nodes when creating a
+    filament."""
+
+    node_positions_of_elements = [0, 0.25, 1]
+    mat = get_default_test_beam_material(material_type="reissner")
+    offset = 3.0
+    if basic_creation_function == "line":
+        length = 2.5
+        start_pos = [0, 0, 0]
+        end_pos = [length, 0, 0]
+        start_rot = Rotation()
+        end_rot = Rotation()
+
+        def create_beam(mesh, **kwargs):
+            """Wrapper for the common arguments in the call to create the
+            line."""
+
+            create_beam_mesh_line(
+                mesh,
+                Beam3,
+                mat,
+                start_pos,
+                end_pos,
+                node_positions_of_elements=node_positions_of_elements,
+                **kwargs,
+            )
+
+    elif basic_creation_function == "arc":
+        length = np.pi * 0.5
+        start_pos = [0, 1, 0]
+        end_pos = [-1, 0, 0]
+        start_rot = Rotation([0, 0, 1], np.pi)
+        end_rot = Rotation([0, 0, 1], 1.5 * np.pi)
+
+        def create_beam(mesh, **kwargs):
+            """Wrapper for the common arguments in the call to create the
+            arc."""
+
+            create_beam_mesh_arc_segment_2d(
+                mesh,
+                Beam3,
+                mat,
+                [0, 0, 0],
+                1.0,
+                np.pi * 0.5,
+                np.pi,
+                node_positions_of_elements=node_positions_of_elements,
+                **kwargs,
+            )
+
+    arc_length_ref = np.array([0, 0.125, 0.25, 0.625, 1.0]) * length
+    arc_length_offset_ref = arc_length_ref + offset
+
+    def get_start_and_end_node(*, arc_length_start=None, arc_length_end=None):
+        """Return the explicitly created start and end node."""
+        start_node = NodeCosserat(start_pos, start_rot, arc_length=arc_length_start)
+        end_node = NodeCosserat(end_pos, end_rot, arc_length=arc_length_end)
+        return (start_node, end_node)
+
+    def check_arc_length(mesh, arc_length_ref):
+        """Compare the arc lengths of the nodes in mesh with reference
+        values."""
+        arc_length_from_mesh = np.array([node.arc_length for node in mesh.nodes])
+        assert_results_close(
+            {"arc_length": arc_length_from_mesh}, {"arc_length": arc_length_ref}
+        )
+
+    # Standard arc length calculation
+    mesh = Mesh()
+    create_beam(mesh, set_nodal_arc_length=True)
+    check_arc_length(mesh, arc_length_ref)
+
+    # Standard arc length calculation with offset
+    mesh = Mesh()
+    create_beam(mesh, set_nodal_arc_length=True, nodal_arc_length_offset=offset)
+    check_arc_length(mesh, arc_length_offset_ref)
+
+    # Arc length calculation based on start node
+    mesh = Mesh()
+    start_node, _ = get_start_and_end_node(arc_length_start=offset)
+    mesh.add(start_node)
+    create_beam(mesh, set_nodal_arc_length=True, start_node=start_node)
+    check_arc_length(mesh, arc_length_offset_ref)
+
+    # Arc length calculation based on end node
+    mesh = Mesh()
+    _, end_node = get_start_and_end_node(arc_length_end=offset + length)
+    mesh.add(end_node)
+    create_beam(mesh, set_nodal_arc_length=True, end_node=end_node)
+    # The nodes are in different order here, so we need to reorder the reference result
+    check_arc_length(
+        mesh, [arc_length_offset_ref[-1]] + arc_length_offset_ref.tolist()[:-1]
+    )
+
+    # Arc length calculation based on start and end node (if the values don't
+    # match an error will be raised)
+    mesh = Mesh()
+    start_node, end_node = get_start_and_end_node(
+        arc_length_start=offset, arc_length_end=offset + length
+    )
+    mesh.add(start_node, end_node)
+    create_beam(
+        mesh, set_nodal_arc_length=True, start_node=start_node, end_node=end_node
+    )
+    # The nodes are in different order here, so we need to reorder the reference result
+    check_arc_length(
+        mesh,
+        [arc_length_offset_ref[0]]
+        + [arc_length_offset_ref[-1]]
+        + arc_length_offset_ref.tolist()[1:-1],
+    )
+
+    # Arc length calculation based on all possible parameters (if the values don't
+    # match an error will be raised)
+    mesh = Mesh()
+    start_node, end_node = get_start_and_end_node(
+        arc_length_start=offset, arc_length_end=offset + length
+    )
+    mesh.add(start_node, end_node)
+    create_beam(
+        mesh,
+        set_nodal_arc_length=True,
+        start_node=start_node,
+        end_node=end_node,
+        nodal_arc_length_offset=offset,
+    )
+    # The nodes are in different order here, so we need to reorder the reference result
+    check_arc_length(
+        mesh,
+        [arc_length_offset_ref[0]]
+        + [arc_length_offset_ref[-1]]
+        + arc_length_offset_ref.tolist()[1:-1],
+    )
