@@ -19,7 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-"""This script is used to test the functionality to create 4C input files."""
+"""Integration tests for the beam potential functionality of BeamMe."""
 
 import numpy as np
 
@@ -35,7 +35,7 @@ from beamme.mesh_creation_functions.beam_helix import create_beam_mesh_helix
 from beamme.utils.nodes import is_node_on_plane
 
 
-def test_four_c_beam_potential_helix(
+def test_integration_four_c_beam_potential_helix(
     get_default_test_beam_material,
     assert_results_close,
     get_corresponding_reference_file_path,
