@@ -119,7 +119,7 @@ def test_integration_mesh_creation_functions_beam_helix_rotation_offset(
     assert_results_close(get_corresponding_reference_file_path(), mesh)
 
 
-def test_mesh_creation_functions_helix_radius_zero(
+def test_integration_mesh_creation_functions_beam_helix_radius_zero(
     get_default_test_beam_material,
     assert_results_close,
     get_corresponding_reference_file_path,
@@ -156,7 +156,7 @@ def test_mesh_creation_functions_helix_radius_zero(
     assert_results_close(get_corresponding_reference_file_path(), mesh)
 
 
-def test_mesh_creation_functions_helix_helix_angle_right_angle(
+def test_integration_mesh_creation_functions_beam_helix_right_angle(
     get_default_test_beam_material,
     assert_results_close,
     get_corresponding_reference_file_path,
