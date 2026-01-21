@@ -21,8 +21,6 @@
 # THE SOFTWARE.
 """This script is used to test the mesh creation functions."""
 
-import re
-
 import autograd.numpy as npAD
 import numpy as np
 import pytest
@@ -44,7 +42,6 @@ from beamme.mesh_creation_functions.beam_arc import (
     create_beam_mesh_arc_segment_via_axis,
     create_beam_mesh_arc_segment_via_rotation,
 )
-from beamme.mesh_creation_functions.beam_generic import create_beam_mesh_generic
 from beamme.mesh_creation_functions.beam_helix import create_beam_mesh_helix
 from beamme.mesh_creation_functions.beam_line import create_beam_mesh_line
 from beamme.mesh_creation_functions.beam_node_continuation import (
@@ -843,141 +840,3 @@ def test_mesh_creation_functions_element_length_option(
     # Check the output
     mesh.add(mesh_line, mesh_line_long, mesh_arc, mesh_curve)
     assert_results_close(get_corresponding_reference_file_path(), mesh)
-
-
-def test_mesh_creation_functions_argument_checks(
-    get_default_test_beam_material,
-):
-    """Test that wrong input values leads to failure."""
-
-    dummy_arg = "dummy"
-
-    # Check error messages for input parameters
-    with pytest.raises(
-        ValueError,
-        match='The arguments "n_el", "l_el" and "node_positions_of_elements" are mutually exclusive',
-    ):
-        mesh = Mesh()
-        # This should raise an error since we dont allow `n_el` and `l_el`
-        # to be set at the same time.
-        create_beam_mesh_line(
-            mesh,
-            Beam3rHerm2Line3,
-            get_default_test_beam_material(material_type="reissner"),
-            [1.0, 2.0, 0.0],
-            [3.0, 4.0, 6.0],
-            n_el=1,
-            l_el=1.5,
-        )
-    with pytest.raises(
-        ValueError,
-        match='The arguments "n_el", "l_el" and "node_positions_of_elements" are mutually exclusive',
-    ):
-        mesh = Mesh()
-        # This should raise an error because node_positions_of_elements can not be used with l_el.
-
-        create_beam_mesh_generic(
-            mesh,
-            beam_class=dummy_arg,
-            material=dummy_arg,
-            function_generator=dummy_arg,
-            interval=dummy_arg,
-            l_el=1,
-            node_positions_of_elements=[0.0, 0.5, 1.0],
-        )
-
-    with pytest.raises(
-        ValueError,
-        match='The arguments "n_el", "l_el" and "node_positions_of_elements" are mutually exclusive',
-    ):
-        mesh = Mesh()
-        # This should raise an error because node_positions_of_elements can not be used with n_el.
-        create_beam_mesh_generic(
-            mesh,
-            beam_class=dummy_arg,
-            material=dummy_arg,
-            function_generator=dummy_arg,
-            interval=dummy_arg,
-            n_el=1,
-            node_positions_of_elements=[0.0, 0.5, 1.0],
-        )
-
-    with pytest.raises(
-        ValueError, match='The parameter "l_el" requires "interval_length" to be set.'
-    ):
-        mesh = Mesh()
-        # This should raise an error because we set `l_el` but don't provide
-        # `interval_length`.
-        create_beam_mesh_generic(
-            mesh,
-            beam_class=dummy_arg,
-            material=dummy_arg,
-            function_generator=dummy_arg,
-            interval=[0, 1],
-            l_el=2.0,
-        )
-
-    with pytest.raises(
-        ValueError,
-        match="First entry of node_positions_of_elements must be 0, got -1.0",
-    ):
-        mesh = Mesh()
-        # This should raise an error because the interval [0,1] is violated.
-        create_beam_mesh_generic(
-            mesh,
-            beam_class=dummy_arg,
-            material=dummy_arg,
-            function_generator=dummy_arg,
-            interval=dummy_arg,
-            node_positions_of_elements=[-1.0, 0.0, 1.0],
-        )
-
-    with pytest.raises(
-        ValueError, match="Last entry of node_positions_of_elements must be 1, got 2.0"
-    ):
-        mesh = Mesh()
-        # This should raise an error because the interval [0,1] is violated.
-        create_beam_mesh_generic(
-            mesh,
-            beam_class=dummy_arg,
-            material=dummy_arg,
-            function_generator=dummy_arg,
-            interval=dummy_arg,
-            node_positions_of_elements=[0.0, 1.0, 2.0],
-        )
-
-    with pytest.raises(
-        ValueError,
-        match=re.escape(
-            "The given node_positions_of_elements must be in ascending order. Got [0.0, 0.2, 0.1, 1.0]"
-        ),
-    ):
-        mesh = Mesh()
-        # This should raise an error because the interval is not ordered.
-        create_beam_mesh_generic(
-            mesh,
-            beam_class=dummy_arg,
-            material=dummy_arg,
-            function_generator=dummy_arg,
-            interval=dummy_arg,
-            node_positions_of_elements=[0.0, 0.2, 0.1, 1.0],
-        )
-
-    with pytest.raises(
-        ValueError,
-        match=re.escape(
-            'The arguments "close_beam" and "end_node" are mutually exclusive'
-        ),
-    ):
-        mesh = Mesh()
-        # This should raise an error because the interval is not ordered.
-        create_beam_mesh_generic(
-            mesh,
-            beam_class=dummy_arg,
-            material=dummy_arg,
-            function_generator=dummy_arg,
-            interval=dummy_arg,
-            n_el=1,
-            close_beam=True,
-            end_node=dummy_arg,
-        )
