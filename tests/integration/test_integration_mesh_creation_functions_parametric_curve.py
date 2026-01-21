@@ -138,7 +138,9 @@ def test_integration_mesh_creation_functions_parametric_curve_3d_helix(
 
 
 def test_integration_mesh_creation_functions_parametric_curve_3d_helix_length(
-    get_default_test_beam_material, assert_results_close
+    get_default_test_beam_material,
+    get_corresponding_reference_file_path,
+    assert_results_close,
 ):
     """Create a helix from a parametric curve where and check that the correct
     length is returned."""
@@ -170,6 +172,9 @@ def test_integration_mesh_creation_functions_parametric_curve_3d_helix_length(
 
     # Check that both meshes are equal
     assert_results_close(mesh_1, mesh_2)
+
+    # Compare with reference solution
+    assert_results_close(get_corresponding_reference_file_path(), mesh_1)
 
 
 def test_integration_mesh_creation_functions_parametric_curve_2d_sin(
