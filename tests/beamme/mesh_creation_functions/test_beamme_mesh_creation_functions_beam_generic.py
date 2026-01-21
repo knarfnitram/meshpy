@@ -58,9 +58,7 @@ def test_beamme_mesh_creation_functions_beam_generic_start_end_node_error(
         create_beam_mesh_line(*args, **kwargs)
 
 
-def test_beamme_mesh_creation_functions_beam_generic_argument_checks(
-    get_default_test_beam_material,
-):
+def test_beamme_mesh_creation_functions_beam_generic_argument_checks():
     """Test that wrong input values leads to failure."""
 
     dummy_arg = "dummy"
@@ -73,12 +71,12 @@ def test_beamme_mesh_creation_functions_beam_generic_argument_checks(
         mesh = Mesh()
         # This should raise an error since we dont allow `n_el` and `l_el`
         # to be set at the same time.
-        create_beam_mesh_line(
+        create_beam_mesh_generic(
             mesh,
-            Beam3,
-            get_default_test_beam_material(material_type="reissner"),
-            [1.0, 2.0, 0.0],
-            [3.0, 4.0, 6.0],
+            beam_class=dummy_arg,
+            material=dummy_arg,
+            function_generator=dummy_arg,
+            interval=dummy_arg,
             n_el=1,
             l_el=1.5,
         )
