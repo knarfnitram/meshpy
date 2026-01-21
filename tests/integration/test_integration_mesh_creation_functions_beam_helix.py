@@ -38,7 +38,7 @@ from beamme.mesh_creation_functions.beam_line import create_beam_mesh_line
         {"height_helix": 10.0, "turns": 2.5 / np.pi},
     ),
 )
-def test_integration_mesh_creation_functions_helix_no_rotation(
+def test_integration_mesh_creation_functions_beam_helix_no_rotation(
     helix_kwargs,
     get_default_test_beam_material,
     assert_results_close,
@@ -83,7 +83,7 @@ def test_integration_mesh_creation_functions_helix_no_rotation(
         {"height_helix": 10.0, "turns": 2.5 / np.pi * np.sqrt(2)},
     ),
 )
-def test_integration_mesh_creation_functions_helix_rotation_offset(
+def test_integration_mesh_creation_functions_beam_helix_rotation_offset(
     helix_kwargs,
     get_default_test_beam_material,
     assert_results_close,

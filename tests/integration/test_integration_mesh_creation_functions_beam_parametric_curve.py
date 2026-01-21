@@ -97,7 +97,7 @@ def create_helix_function(
     return helix
 
 
-def test_integration_mesh_creation_functions_parametric_curve_3d_helix(
+def test_integration_mesh_creation_functions_beam_parametric_curve_3d_helix(
     get_default_test_beam_material,
     assert_results_close,
     get_corresponding_reference_file_path,
@@ -137,7 +137,7 @@ def test_integration_mesh_creation_functions_parametric_curve_3d_helix(
     assert_results_close(get_corresponding_reference_file_path(), mesh)
 
 
-def test_integration_mesh_creation_functions_parametric_curve_3d_helix_length(
+def test_integration_mesh_creation_functions_beam_parametric_curve_3d_helix_length(
     get_default_test_beam_material,
     get_corresponding_reference_file_path,
     assert_results_close,
@@ -177,7 +177,7 @@ def test_integration_mesh_creation_functions_parametric_curve_3d_helix_length(
     assert_results_close(get_corresponding_reference_file_path(), mesh_1)
 
 
-def test_integration_mesh_creation_functions_parametric_curve_2d_sin(
+def test_integration_mesh_creation_functions_beam_parametric_curve_2d_sin(
     get_default_test_beam_material,
     assert_results_close,
     get_corresponding_reference_file_path,
@@ -215,7 +215,7 @@ def test_integration_mesh_creation_functions_parametric_curve_2d_sin(
     assert_results_close(get_corresponding_reference_file_path(), mesh)
 
 
-def test_integration_mesh_creation_functions_parametric_curve_3d_rotation(
+def test_integration_mesh_creation_functions_beam_parametric_curve_3d_rotation(
     get_default_test_beam_material,
     assert_results_close,
     get_corresponding_reference_file_path,
@@ -270,7 +270,7 @@ def test_integration_mesh_creation_functions_parametric_curve_3d_rotation(
     assert_results_close(get_corresponding_reference_file_path(), mesh)
 
 
-def test_integration_mesh_creation_functions_parametric_curve_3d_line(
+def test_integration_mesh_creation_functions_beam_parametric_curve_3d_line(
     get_default_test_beam_material,
     assert_results_close,
     get_corresponding_reference_file_path,
