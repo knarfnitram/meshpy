@@ -1,4 +1,4 @@
-name: Build and test wheels nightly and for new releases
+name: Build source distribution and build and test wheels nightly and publish for new releases
 
 on:
   push:
@@ -44,7 +44,7 @@ jobs:
   publish-wheels:
     # only publish wheels on new tag
     if: startsWith(github.ref, 'refs/tags/')
-    needs: build-test-wheels
+    needs: [build-src-dist, build-test-wheels]
     runs-on: ubuntu-latest
     permissions:
       id-token: write

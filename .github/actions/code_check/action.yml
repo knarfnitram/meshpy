@@ -1,5 +1,5 @@
 name: code_check
-description: Perform Code checks
+description: Perform code checks
 runs:
   using: composite
   steps:

@@ -1,5 +1,4 @@
-name: Build and test wheels for pull requests and merges to main
-
+name: Build source distribution and build and test wheels for pull requests and merges to main
 on:
   pull_request:
     types:

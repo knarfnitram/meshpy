@@ -1,5 +1,5 @@
 name: run_tests
-description: Perform Test suite
+description: Perform test suite and upload test results on failure
 inputs:
   additional-pytest-flags:
     description: Additional flags to pass to pytest, i.e., markers
@@ -24,3 +24,10 @@ runs:
         mkdir -p "$TEMP_DIR"
         echo "PYTEST_TMPDIR=$TEMP_DIR" >> $GITHUB_ENV
         pytest  --basetemp="$TEMP_DIR" ${{ inputs.additional-pytest-flags}} --color=yes
+
+    - name: Upload test results on failure
+      if: failure()
+      uses: actions/upload-artifact@v6
+      with:
+        name: ${{ github.job }}-${{ runner.os }}-python${{ env.PYTHON_VERSION }}-${{ github.run_number }}
+        path: ${{ env.PYTEST_TMPDIR }}

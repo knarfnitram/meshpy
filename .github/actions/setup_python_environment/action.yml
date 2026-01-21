@@ -54,8 +54,10 @@ runs:
           echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
         fi
 
-    - name: Verify Python installation
+    - name: Verify Python installation and save version to environment variables
       shell: bash
       run: |
         which python
         python --version
+        # save python version to GITHUB_ENV for later steps
+        echo "PYTHON_VERSION=${{ inputs.python-version }}" >> $GITHUB_ENV
