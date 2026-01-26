@@ -22,8 +22,6 @@
 """This script is used to test the create parametric curve mesh creation
 functions."""
 
-from typing import Callable
-
 import autograd.numpy as npAD
 import numpy as np
 from autograd import jacobian
@@ -37,68 +35,9 @@ from beamme.mesh_creation_functions.beam_parametric_curve import (
 from beamme.utils.nodes import get_nodal_coordinates
 
 
-def create_helix_function(
-    radius: float,
-    incline: float,
-    *,
-    transformation_factor: float | None = None,
-    number_of_turns: float | None = None,
-) -> Callable:
-    """Create and return a parametric function that represents a helix shape.
-    The parameter coordinate can optionally be stretched to make the curve arc-
-    length along the parameter coordinated non-constant and create a more
-    complex curve for testing purposes.
-
-    Args:
-        radius: Radius of the helix
-        incline: Incline of the helix
-        transformation_factor: Factor to control the coordinate stretching (no direct physical interpretation)
-        number_of_turns: Number of turns the helix will have to get approximate boundaries for the transformation.
-            This is only used for the transformation, not the actual geometry, as we return the
-            function to create the geometry and not the geometry itself.
-
-    Returns:
-        A function that describes a helix in 3D space.
-    """
-
-    if transformation_factor is None and number_of_turns is None:
-
-        def transformation(t):
-            """Return identity transformation."""
-            return 1.0
-
-    elif transformation_factor is not None and number_of_turns is not None:
-
-        def transformation(t):
-            """Transform the parameter coordinate to make the function more
-            complex."""
-            return (
-                npAD.exp(transformation_factor * t / (2.0 * np.pi * number_of_turns))
-                * t
-                / npAD.exp(transformation_factor)
-            )
-
-    else:
-        raise ValueError(
-            "You have to set none or both optional parameters: "
-            "transformation_factor and number_of_turns"
-        )
-
-    def helix(t):
-        """Parametric function to describe a helix."""
-        return npAD.array(
-            [
-                radius * npAD.cos(transformation(t)),
-                radius * npAD.sin(transformation(t)),
-                transformation(t) * incline / (2 * np.pi),
-            ]
-        )
-
-    return helix
-
-
 def test_integration_mesh_creation_functions_beam_parametric_curve_3d_helix(
     get_default_test_beam_material,
+    create_parametric_function,
     assert_results_close,
     get_corresponding_reference_file_path,
 ):
@@ -117,7 +56,9 @@ def test_integration_mesh_creation_functions_beam_parametric_curve_3d_helix(
     tz = 4.0  # incline
     n = 1  # number of turns
     n_el = 5
-    helix = create_helix_function(R, tz, transformation_factor=2.0, number_of_turns=n)
+    helix = create_parametric_function(
+        "helix", R, tz, transformation_factor=2.0, number_of_turns=n
+    )
 
     helix_set = create_beam_mesh_parametric_curve(
         mesh, Beam3rHerm2Line3, mat, helix, [0.0, 2.0 * np.pi * n], n_el=n_el
@@ -139,6 +80,7 @@ def test_integration_mesh_creation_functions_beam_parametric_curve_3d_helix(
 
 def test_integration_mesh_creation_functions_beam_parametric_curve_3d_helix_length(
     get_default_test_beam_material,
+    create_parametric_function,
     get_corresponding_reference_file_path,
     assert_results_close,
 ):
@@ -154,7 +96,9 @@ def test_integration_mesh_creation_functions_beam_parametric_curve_3d_helix_leng
     tz = 4.0  # incline
     n = 1  # number of turns
     n_el = 3
-    helix = create_helix_function(R, tz, transformation_factor=2.0, number_of_turns=n)
+    helix = create_parametric_function(
+        "helix", R, tz, transformation_factor=2.0, number_of_turns=n
+    )
 
     args = [Beam3rHerm2Line3, mat, helix, [0.0, 2.0 * np.pi * n]]
     kwargs = {"n_el": n_el}

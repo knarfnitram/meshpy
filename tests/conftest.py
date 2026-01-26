@@ -25,7 +25,10 @@ import os
 from pathlib import Path
 from typing import Callable, Dict
 
+import autograd.numpy as npAD
+import numpy as np
 import pytest
+import splinepy
 from _pytest.config import Config
 from _pytest.config.argparsing import Parser
 
@@ -393,3 +396,131 @@ def get_default_test_solid_element_description() -> Callable:
             raise ValueError(f"Unknown solid element type: {element_type}")
 
     return _get_default_test_solid_element_description
+
+
+@pytest.fixture(scope="function")
+def create_parametric_function() -> Callable:
+    """Fixture to create a function generator for parametric curves.
+
+    Returns:
+        A function generator that creates parametric curve functions for testing purposes.
+    """
+
+    def create_helix_function(
+        radius: float,
+        incline: float,
+        *,
+        transformation_factor: float | None = None,
+        number_of_turns: float | None = None,
+    ) -> Callable[[float], npAD.ndarray]:
+        """Create and return a parametric function that represents a helix
+        shape. The parameter coordinate can optionally be stretched to make the
+        curve arc-length along the parameter coordinated non-constant and
+        create a more complex curve for testing purposes.
+
+        Args:
+            radius: Radius of the helix
+            incline: Incline of the helix
+            transformation_factor: Factor to control the coordinate stretching (no direct physical interpretation)
+            number_of_turns: Number of turns the helix will have to get approximate boundaries for the transformation.
+                This is only used for the transformation, not the actual geometry, as we return the
+                function to create the geometry and not the geometry itself.
+
+        Returns:
+            A function that describes a helix in 3D space.
+        """
+
+        if transformation_factor is None and number_of_turns is None:
+
+            def transformation(t):
+                """Return identity transformation."""
+                return t
+
+        elif transformation_factor is not None and number_of_turns is not None:
+
+            def transformation(t):
+                """Transform the parameter coordinate to make the function more
+                complex."""
+                return (
+                    npAD.exp(
+                        transformation_factor * t / (2.0 * np.pi * number_of_turns)
+                    )
+                    * t
+                    / npAD.exp(transformation_factor)
+                )
+
+        else:
+            raise ValueError(
+                "You have to set none or both optional parameters: "
+                "transformation_factor and number_of_turns"
+            )
+
+        def helix(t):
+            """Parametric function to describe a helix."""
+            return npAD.array(
+                [
+                    radius * npAD.cos(transformation(t)),
+                    radius * npAD.sin(transformation(t)),
+                    transformation(t) * incline / (2 * np.pi),
+                ]
+            )
+
+        return helix
+
+    def _create_parametric_function(function_type: str, *args, **kwargs) -> Callable:
+        """Return a function representing a parametric curve for testing
+        purposes.
+
+        Args:
+            function_type: The type of parametric function to create.
+            args: Positional arguments for the function generator.
+            kwargs: Keyword arguments for the function generator.
+
+        Returns:
+            A function that creates a parametric curve.
+        """
+
+        if function_type == "helix":
+            return create_helix_function(*args, **kwargs)
+        else:
+            raise ValueError(f"Unknown parametric function type: {function_type}")
+
+    return _create_parametric_function
+
+
+@pytest.fixture(scope="function")
+def create_splinepy_object() -> Callable:
+    """Fixture that creates splinepy objects for testing purposes."""
+
+    def _create_splinepy_object(splinepy_type: str) -> splinepy.Spline:
+        """Create a splinepy object for testing purposes.
+
+        Args:
+            splinepy_type: The type of splinepy object to create.
+
+        Returns:
+            A splinepy object.
+        """
+
+        if splinepy_type == "bezier":
+            control_points = np.array(
+                [
+                    [0.0, 0.0, 0.0],
+                    [1.0, 2.0, 1.0],
+                    [2.0, 2.0, 2.0],
+                    [3.0, 0.0, 0.0],
+                ]
+            )
+            return splinepy.Bezier(degrees=[3], control_points=control_points)
+
+        elif splinepy_type == "nurbs":
+            return splinepy.NURBS(
+                degrees=[2],
+                knot_vectors=[[0, 0, 0, 1, 1, 1]],
+                control_points=[[0, 0, 0], [1, 2, -1], [2, 0, 0]],
+                weights=[[1.0], [1.0], [1.0]],
+            )
+        else:
+            raise ValueError(f"Unknown splinepy object type: {splinepy_type}")
+
+    return _create_splinepy_object
