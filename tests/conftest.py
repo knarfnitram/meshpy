@@ -23,24 +23,19 @@
 
 import os
 from pathlib import Path
-from typing import Callable, Dict
+from typing import Callable
 
 import pytest
 from _pytest.config import Config
 from _pytest.config.argparsing import Parser
 
 from beamme.core.conf import bme
-from beamme.core.material import MaterialBeamBase
-from beamme.four_c.material import (
-    MaterialReissner,
-    MaterialSolid,
-    MaterialStVenantKirchhoff,
-)
 
 # Import additional confest files (split for better overview)
 pytest_plugins = [
     "tests.conftest_performance_tests",
     "tests.conftest_result_comparison",
+    "tests.conftest_test_object_generators",
 ]
 
 
@@ -216,180 +211,3 @@ def get_corresponding_reference_file_path(
         return corresponding_reference_file_path
 
     return _get_corresponding_reference_file_path
-
-
-@pytest.fixture(scope="function")
-def get_bc_data() -> Callable:
-    """Return a function to create a dummy definition for a boundary condition
-    in 4C.
-
-    Returns:
-        A function to create a dummy boundary condition definition.
-    """
-
-    def _get_bc_data(*, identifier=None, num_dof: int = 3) -> Dict:
-        """Return a dummy definition for a boundary condition in 4C that can be
-        used for testing purposes.
-
-        Args:
-            identifier: Any value, will be written to the value for the first DOF. This can be used to create multiple boundary conditions and distinguish them in the input file.
-            num_dof: Number of degrees of freedom constrained by this boundary condition.
-        """
-
-        val = [0] * num_dof
-        if identifier is not None:
-            val[0] = identifier
-
-        return {
-            "NUMDOF": num_dof,
-            "ONOFF": [1] * num_dof,
-            "VAL": val,
-            "FUNCT": [0] * num_dof,
-        }
-
-    return _get_bc_data
-
-
-@pytest.fixture(scope="function")
-def get_default_test_beam_material() -> Callable:
-    """Return a function to create a default beam material for testing
-    purposes.
-
-    Returns:
-        A function that creates a default beam material.
-    """
-
-    def _get_default_test_beam_material(material_type: str = "base", **kwargs):
-        """Return a default material for testing purposes.
-
-        Args:
-            material_type: The type of beam material to return.
-
-        Returns:
-            A material object corresponding to the specified beam type.
-        """
-
-        if material_type == "base":
-            return MaterialBeamBase(radius=1.0, **kwargs)
-
-        elif material_type == "reissner":
-            return MaterialReissner(
-                radius=1.0, youngs_modulus=1.0, nu=0.3, density=1.0, **kwargs
-            )
-
-        else:
-            raise ValueError(f"Unknown beam type: {material_type}")
-
-    return _get_default_test_beam_material
-
-
-@pytest.fixture(scope="function")
-def get_default_test_solid_material() -> Callable:
-    """Return a function to create a default solid material for testing
-    purposes.
-
-    Args:
-        material_type: The type of solid material to return.
-
-    Returns:
-        A function that creates a default solid material.
-    """
-
-    def _get_default_test_solid_material(
-        material_type: str = "st_venant_kirchhoff",
-    ):
-        """Return a default solid material for testing purposes.
-
-        Args:
-            material_type: The type of solid material to return.
-
-        Returns:
-            A material object corresponding to the specified solid material type.
-        """
-
-        if material_type == "st_venant_kirchhoff":
-            return MaterialStVenantKirchhoff(youngs_modulus=1.0, nu=0.3, density=1.0)
-
-        elif material_type == "2d_shell":
-            return MaterialSolid(
-                material_string="MAT_Kirchhoff_Love_shell",
-                data={"YOUNG_MODULUS": 10.0, "POISSON_RATIO": 0.3, "THICKNESS": 0.05},
-            )
-
-        elif material_type == "solid_nested":
-            return MaterialSolid(
-                material_string="MAT_ElastHyper",
-                data={
-                    "NUMMAT": 2,
-                    "MATIDS": [
-                        MaterialSolid(
-                            material_string="ELAST_CoupSVK",
-                            data={"YOUNG": 1.0, "NUE": 0.0},
-                        ),
-                        MaterialSolid(
-                            material_string="MAT_ElastHyper",
-                            data={
-                                "NUMMAT": 1,
-                                "MATIDS": [
-                                    MaterialSolid(
-                                        material_string="ELAST_CoupSVK",
-                                        data={"YOUNG": 2.0, "NUE": 0.0},
-                                    )
-                                ],
-                                "DENS": 1.0,
-                            },
-                        ),
-                    ],
-                    "DENS": 1.0,
-                },
-            )
-
-        else:
-            raise ValueError(f"Unknown solid material type: {material_type}")
-
-    return _get_default_test_solid_material
-
-
-@pytest.fixture(scope="function")
-def get_default_test_solid_element_description() -> Callable:
-    """Return a function to create a default solid element description for
-    testing purposes.
-
-    Args:
-        element_type: The type of solid element to return.
-
-    Returns:
-        A function that creates a default solid element description.
-    """
-
-    def _get_default_test_solid_element_description(
-        element_type: str = "2d_solid",
-    ):
-        """Return a default solid element description for testing purposes.
-
-        Args:
-            element_type: The type of solid element to return.
-
-        Returns:
-            A function that creates a default solid element description.
-        """
-
-        if element_type == "2d_solid":
-            return {
-                "KINEM": "nonlinear",
-                "EAS": "none",
-                "THICK": 1.0,
-                "STRESS_STRAIN": "plane_strain",
-                "GP": [3, 3],
-            }
-
-        elif element_type == "2d_shell":
-            return {"type": "SHELL_KIRCHHOFF_LOVE_NURBS", "GP": [3, 3]}
-
-        elif element_type == "3d_solid":
-            return {"KINEM": "nonlinear"}
-
-        else:
-            raise ValueError(f"Unknown solid element type: {element_type}")
-
-    return _get_default_test_solid_element_description

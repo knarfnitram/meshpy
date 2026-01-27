@@ -21,10 +21,8 @@
 # THE SOFTWARE.
 """This script is used to test the mesh creation functions."""
 
-import autograd.numpy as npAD
 import numpy as np
 import pytest
-import splinepy
 
 from beamme.core.mesh import Mesh
 from beamme.core.node import NodeCosserat
@@ -55,89 +53,6 @@ from beamme.mesh_creation_functions.beam_splinepy import (
     create_beam_mesh_from_splinepy,
     get_curve_function_and_jacobian_for_integration,
 )
-
-
-def create_helix_function(
-    radius, incline, *, transformation_factor=None, number_of_turns=None
-):
-    """Create and return a parametric function that represents a helix shape.
-    The parameter coordinate can optionally be stretched to make the curve arc-
-    length along the parameter coordinated non-constant and create a more
-    complex curve for testing purposes.
-
-    Args
-    ----
-    radius: float
-        Radius of the helix
-    incline: float
-        Incline of the helix
-    transformation_factor: float
-        Factor to control the coordinate stretching (no direct physical interpretation)
-    number_of_turns: float
-        Number of turns the helix will have to get approximate boundaries for the transformation.
-        This is only used for the transformation, not the actual geometry, as we return the
-        function to create the geometry and not the geometry itself.
-    """
-
-    if transformation_factor is None and number_of_turns is None:
-
-        def transformation(t):
-            """Return identity transformation."""
-            return 1.0
-
-    elif transformation_factor is not None and number_of_turns is not None:
-
-        def transformation(t):
-            """Transform the parameter coordinate to make the function more
-            complex."""
-            return (
-                npAD.exp(transformation_factor * t / (2.0 * np.pi * number_of_turns))
-                * t
-                / npAD.exp(transformation_factor)
-            )
-
-    else:
-        raise ValueError(
-            "You have to set none or both optional parameters: "
-            "transformation_factor and number_of_turns"
-        )
-
-    def helix(t):
-        """Parametric function to describe a helix."""
-        return npAD.array(
-            [
-                radius * npAD.cos(transformation(t)),
-                radius * npAD.sin(transformation(t)),
-                transformation(t) * incline / (2 * np.pi),
-            ]
-        )
-
-    return helix
-
-
-def create_testing_bezier_curve():
-    """Create a Bezier curve used for testing."""
-
-    control_points = np.array(
-        [
-            [0.0, 0.0, 0.0],
-            [1.0, 2.0, 1.0],
-            [2.0, 2.0, 2.0],
-            [3.0, 0.0, 0.0],
-        ]
-    )
-    return splinepy.Bezier(degrees=[3], control_points=control_points)
-
-
-def create_testing_nurbs_curve():
-    """Create a NURBS curve used for testing."""
-
-    return splinepy.NURBS(
-        degrees=[2],
-        knot_vectors=[[0, 0, 0, 1, 1, 1]],
-        control_points=[[0, 0, 0], [1, 2, -1], [2, 0, 0]],
-        weights=[[1.0], [1.0], [1.0]],
-    )
 
 
 def test_mesh_creation_functions_arc_segment_via_axis(
@@ -625,16 +540,16 @@ def test_mesh_creation_functions_wire(
 
 
 @pytest.mark.parametrize(
-    ("name", "curve_creation_function", "ref_length"),
+    ("splinepy_type", "ref_length"),
     [
-        ("bezier", create_testing_bezier_curve, 5.064502358928783),
-        ("nurbs", create_testing_nurbs_curve, 3.140204411551537),
+        ("bezier", 5.064502358928783),
+        ("nurbs", 3.140204411551537),
     ],
 )
 def test_mesh_creation_functions_splinepy(
-    name,
-    curve_creation_function,
+    splinepy_type,
     ref_length,
+    create_splinepy_object,
     get_default_test_beam_material,
     assert_results_close,
     get_corresponding_reference_file_path,
@@ -642,7 +557,7 @@ def test_mesh_creation_functions_splinepy(
     """Test the create_beam_mesh_from_splinepy function with different splinepy
     curves."""
 
-    curve = curve_creation_function()
+    curve = create_splinepy_object(splinepy_type)
     mat = get_default_test_beam_material(material_type="reissner")
     mesh = Mesh()
     _, length = create_beam_mesh_from_splinepy(
@@ -651,15 +566,17 @@ def test_mesh_creation_functions_splinepy(
     assert_results_close(ref_length, length)
 
     assert_results_close(
-        get_corresponding_reference_file_path(additional_identifier=name), mesh
+        get_corresponding_reference_file_path(additional_identifier=splinepy_type), mesh
     )
 
 
-def test_mesh_creation_functions_splinepy_unit(assert_results_close):
+def test_mesh_creation_functions_splinepy_unit(
+    create_splinepy_object, assert_results_close
+):
     """Unittest the function and jacobian creation in the
     create_beam_mesh_from_splinepy function."""
 
-    curve = create_testing_nurbs_curve()
+    curve = create_splinepy_object("nurbs")
     r, dr, _, _ = get_curve_function_and_jacobian_for_integration(curve, tol=10)
 
     t_values = [5.0 / 7.0, -0.3, 1.2]
@@ -778,6 +695,7 @@ def test_mesh_creation_functions_node_continuation_accumulated(
 
 def test_mesh_creation_functions_element_length_option(
     get_default_test_beam_material,
+    get_parametric_function,
     assert_results_close,
     get_corresponding_reference_file_path,
 ):
@@ -825,7 +743,9 @@ def test_mesh_creation_functions_element_length_option(
     R = 2.0
     tz = 4.0  # incline
     n = 0.5  # number of turns
-    helix = create_helix_function(R, tz, transformation_factor=2.0, number_of_turns=n)
+    helix = get_parametric_function(
+        "helix", R, tz, transformation_factor=2.0, number_of_turns=n
+    )
 
     mesh_curve = Mesh()
     create_beam_mesh_parametric_curve(
