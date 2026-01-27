@@ -695,7 +695,7 @@ def test_mesh_creation_functions_node_continuation_accumulated(
 
 def test_mesh_creation_functions_element_length_option(
     get_default_test_beam_material,
-    create_parametric_function,
+    get_parametric_function,
     assert_results_close,
     get_corresponding_reference_file_path,
 ):
@@ -743,7 +743,7 @@ def test_mesh_creation_functions_element_length_option(
     R = 2.0
     tz = 4.0  # incline
     n = 0.5  # number of turns
-    helix = create_parametric_function(
+    helix = get_parametric_function(
         "helix", R, tz, transformation_factor=2.0, number_of_turns=n
     )
 

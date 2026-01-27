@@ -106,9 +106,6 @@ def get_default_test_solid_material() -> Callable:
     """Return a function to create a default solid material for testing
     purposes.
 
-    Args:
-        material_type: The type of solid material to return.
-
     Returns:
         A function that creates a default solid material.
     """
@@ -173,9 +170,6 @@ def get_default_test_solid_element_description() -> Callable:
     """Return a function to create a default solid element description for
     testing purposes.
 
-    Args:
-        element_type: The type of solid element to return.
-
     Returns:
         A function that creates a default solid element description.
     """
@@ -189,7 +183,7 @@ def get_default_test_solid_element_description() -> Callable:
             element_type: The type of solid element to return.
 
         Returns:
-            A function that creates a default solid element description.
+            A dictionary containing the solid element description parameters.
         """
 
         if element_type == "2d_solid":
@@ -214,14 +208,14 @@ def get_default_test_solid_element_description() -> Callable:
 
 
 @pytest.fixture(scope="function")
-def create_parametric_function() -> Callable:
+def get_parametric_function() -> Callable:
     """Fixture to create a function generator for parametric curves.
 
     Returns:
         A function generator that creates parametric curve functions for testing purposes.
     """
 
-    def create_helix_function(
+    def get_helix_function(
         radius: float,
         incline: float,
         *,
@@ -282,7 +276,7 @@ def create_parametric_function() -> Callable:
 
         return helix
 
-    def _create_parametric_function(function_type: str, *args, **kwargs) -> Callable:
+    def _get_parametric_function(function_type: str, *args, **kwargs) -> Callable:
         """Return a function representing a parametric curve for testing
         purposes.
 
@@ -296,11 +290,11 @@ def create_parametric_function() -> Callable:
         """
 
         if function_type == "helix":
-            return create_helix_function(*args, **kwargs)
+            return get_helix_function(*args, **kwargs)
         else:
             raise ValueError(f"Unknown parametric function type: {function_type}")
 
-    return _create_parametric_function
+    return _get_parametric_function
 
 
 @pytest.fixture(scope="function")

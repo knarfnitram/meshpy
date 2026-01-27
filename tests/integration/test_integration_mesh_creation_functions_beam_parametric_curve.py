@@ -37,7 +37,7 @@ from beamme.utils.nodes import get_nodal_coordinates
 
 def test_integration_mesh_creation_functions_beam_parametric_curve_3d_helix(
     get_default_test_beam_material,
-    create_parametric_function,
+    get_parametric_function,
     assert_results_close,
     get_corresponding_reference_file_path,
 ):
@@ -56,7 +56,7 @@ def test_integration_mesh_creation_functions_beam_parametric_curve_3d_helix(
     tz = 4.0  # incline
     n = 1  # number of turns
     n_el = 5
-    helix = create_parametric_function(
+    helix = get_parametric_function(
         "helix", R, tz, transformation_factor=2.0, number_of_turns=n
     )
 
@@ -80,7 +80,7 @@ def test_integration_mesh_creation_functions_beam_parametric_curve_3d_helix(
 
 def test_integration_mesh_creation_functions_beam_parametric_curve_3d_helix_length(
     get_default_test_beam_material,
-    create_parametric_function,
+    get_parametric_function,
     get_corresponding_reference_file_path,
     assert_results_close,
 ):
@@ -96,7 +96,7 @@ def test_integration_mesh_creation_functions_beam_parametric_curve_3d_helix_leng
     tz = 4.0  # incline
     n = 1  # number of turns
     n_el = 3
-    helix = create_parametric_function(
+    helix = get_parametric_function(
         "helix", R, tz, transformation_factor=2.0, number_of_turns=n
     )
 
