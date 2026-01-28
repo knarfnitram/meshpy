@@ -76,7 +76,7 @@ def test_beamme_mesh_creation_functions_beam_generic_argument_checks():
             beam_class=dummy_arg,
             material=dummy_arg,
             function_generator=dummy_arg,
-            interval=dummy_arg,
+            interval=[0, 1],
             n_el=1,
             l_el=1.5,
         )
@@ -92,7 +92,7 @@ def test_beamme_mesh_creation_functions_beam_generic_argument_checks():
             beam_class=dummy_arg,
             material=dummy_arg,
             function_generator=dummy_arg,
-            interval=dummy_arg,
+            interval=[0, 1],
             l_el=1,
             node_positions_of_elements=[0.0, 0.5, 1.0],
         )
@@ -108,7 +108,7 @@ def test_beamme_mesh_creation_functions_beam_generic_argument_checks():
             beam_class=dummy_arg,
             material=dummy_arg,
             function_generator=dummy_arg,
-            interval=dummy_arg,
+            interval=[0, 1],
             n_el=1,
             node_positions_of_elements=[0.0, 0.5, 1.0],
         )
@@ -139,7 +139,7 @@ def test_beamme_mesh_creation_functions_beam_generic_argument_checks():
             beam_class=dummy_arg,
             material=dummy_arg,
             function_generator=dummy_arg,
-            interval=dummy_arg,
+            interval=[0, 1],
             node_positions_of_elements=[-1.0, 0.0, 1.0],
         )
 
@@ -153,7 +153,7 @@ def test_beamme_mesh_creation_functions_beam_generic_argument_checks():
             beam_class=dummy_arg,
             material=dummy_arg,
             function_generator=dummy_arg,
-            interval=dummy_arg,
+            interval=[0, 1],
             node_positions_of_elements=[0.0, 1.0, 2.0],
         )
 
@@ -170,7 +170,7 @@ def test_beamme_mesh_creation_functions_beam_generic_argument_checks():
             beam_class=dummy_arg,
             material=dummy_arg,
             function_generator=dummy_arg,
-            interval=dummy_arg,
+            interval=[0, 1],
             node_positions_of_elements=[0.0, 0.2, 0.1, 1.0],
         )
 
@@ -187,7 +187,7 @@ def test_beamme_mesh_creation_functions_beam_generic_argument_checks():
             beam_class=dummy_arg,
             material=dummy_arg,
             function_generator=dummy_arg,
-            interval=dummy_arg,
+            interval=[0, 1],
             n_el=1,
             close_beam=True,
             end_node=dummy_arg,
@@ -230,7 +230,7 @@ def test_beamme_mesh_creation_functions_beam_generic_arc_length_argument_checks(
             beam_class=dummy_arg,
             material=dummy_arg,
             function_generator=dummy_arg,
-            interval=dummy_arg,
+            interval=[0, 1],
             l_el=1,
             node_positions_of_elements=[0.0, 0.5, 1.0],
         )
@@ -246,7 +246,7 @@ def test_beamme_mesh_creation_functions_beam_generic_arc_length_argument_checks(
             beam_class=dummy_arg,
             material=dummy_arg,
             function_generator=dummy_arg,
-            interval=dummy_arg,
+            interval=[0, 1],
             n_el=1,
             node_positions_of_elements=[0.0, 0.5, 1.0],
         )
@@ -277,7 +277,7 @@ def test_beamme_mesh_creation_functions_beam_generic_arc_length_argument_checks(
             beam_class=dummy_arg,
             material=dummy_arg,
             function_generator=dummy_arg,
-            interval=dummy_arg,
+            interval=[0, 1],
             node_positions_of_elements=[-1.0, 0.0, 1.0],
         )
 
@@ -291,7 +291,7 @@ def test_beamme_mesh_creation_functions_beam_generic_arc_length_argument_checks(
             beam_class=dummy_arg,
             material=dummy_arg,
             function_generator=dummy_arg,
-            interval=dummy_arg,
+            interval=[0, 1],
             node_positions_of_elements=[0.0, 1.0, 2.0],
         )
 
@@ -308,7 +308,7 @@ def test_beamme_mesh_creation_functions_beam_generic_arc_length_argument_checks(
             beam_class=dummy_arg,
             material=dummy_arg,
             function_generator=dummy_arg,
-            interval=dummy_arg,
+            interval=[0, 1],
             node_positions_of_elements=[0.0, 0.2, 0.1, 1.0],
         )
 
@@ -325,7 +325,7 @@ def test_beamme_mesh_creation_functions_beam_generic_arc_length_argument_checks(
             beam_class=dummy_arg,
             material=dummy_arg,
             function_generator=dummy_arg,
-            interval=dummy_arg,
+            interval=[0, 1],
             n_el=1,
             close_beam=True,
             end_node=dummy_arg,
