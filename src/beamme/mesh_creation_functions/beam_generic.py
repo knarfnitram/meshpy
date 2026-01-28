@@ -22,12 +22,7 @@
 """Generic function for beam creation."""
 
 from typing import Callable as _Callable
-from typing import Dict as _Dict
-from typing import List as _List
-from typing import Optional as _Optional
-from typing import Tuple as _Tuple
 from typing import Type as _Type
-from typing import Union as _Union
 
 import numpy as _np
 
@@ -41,23 +36,110 @@ from beamme.core.node import NodeCosserat as _NodeCosserat
 from beamme.utils.nodes import get_single_node as _get_single_node
 
 
+def _get_interval_node_positions_of_elements(
+    n_el: int | None,
+    l_el: float | None,
+    node_positions_of_elements: list[float] | None,
+    interval_length: float | None,
+) -> _np.ndarray:
+    """Get the node positions within the interval [0,1].
+
+    Args:
+        n_el:
+            Number of equally spaced beam elements along the line. Defaults to 1.
+            Mutually exclusive with l_el
+        l_el:
+            Desired length of beam elements. This requires the option interval_length
+            to be set. Mutually exclusive with n_el. Be aware, that this length
+            might not be achieved, if the elements are warped after they are
+            created.
+        node_positions_of_elements:
+            A list of normalized positions (within [0,1] and in ascending order)
+            that define the boundaries of beam elements along the created curve.
+            The given values will be mapped to the actual `interval` given as an
+            argument to this function. These values specify where elements start
+            and end, additional internal nodes (such as midpoints in higher-order
+            elements) may be placed automatically.
+        interval_length:
+            Approximation of the total length of the interval. Is required when
+            the option `l_el` is given.
+
+    Returns:
+        Numpy array with the node positions within the interval [0,1].
+    """
+
+    # Check for mutually exclusive parameters
+    n_given_arguments = sum(
+        1
+        for argument in [n_el, l_el, node_positions_of_elements]
+        if argument is not None
+    )
+    if n_given_arguments == 0:
+        # No arguments were given, use a single element per default
+        n_el = 1
+    elif n_given_arguments > 1:
+        raise ValueError(
+            'The arguments "n_el", "l_el" and "node_positions_of_elements" are mutually exclusive'
+        )
+
+    # Cases where we have equally spaced elements
+    if n_el is not None or l_el is not None:
+        if l_el is not None:
+            # Calculate the number of elements in case a desired element length is provided
+            if interval_length is None:
+                raise ValueError(
+                    'The parameter "l_el" requires "interval_length" to be set.'
+                )
+            n_el = max([1, round(interval_length / l_el)])
+        elif n_el is None:
+            raise ValueError("n_el should not be None at this point")
+
+        node_positions_of_elements = [i_node / n_el for i_node in range(n_el + 1)]
+    # A list for the element node positions was provided
+    elif node_positions_of_elements is not None:
+        # Check that the given positions are in ascending order and start with 0 and end with 1
+        for index, value, name in zip([0, -1], [0, 1], ["First", "Last"]):
+            if not _np.isclose(
+                value,
+                node_positions_of_elements[index],
+                atol=1e-12,
+                rtol=0.0,
+            ):
+                raise ValueError(
+                    f"{name} entry of node_positions_of_elements must be {value}, got {node_positions_of_elements[index]}"
+                )
+        if not all(
+            x < y
+            for x, y in zip(node_positions_of_elements, node_positions_of_elements[1:])
+        ):
+            raise ValueError(
+                f"The given node_positions_of_elements must be in ascending order. Got {node_positions_of_elements}"
+            )
+    else:
+        raise ValueError(
+            'One of the parameters "n_el", "l_el" or "node_positions_of_elements" has to be provided.'
+        )
+
+    return _np.asarray(node_positions_of_elements)
+
+
 def create_beam_mesh_generic(
     mesh: _Mesh,
     *,
     beam_class: _Type[_Beam],
     material: _MaterialBeamBase,
     function_generator: _Callable,
-    interval: _Tuple[float, float],
-    n_el: _Optional[int] = None,
-    l_el: _Optional[float] = None,
-    interval_length: _Optional[float] = None,
+    interval: tuple[float, float],
+    n_el: int | None = None,
+    l_el: float | None = None,
+    node_positions_of_elements: list[float] | None = None,
+    interval_length: float | None = None,
     set_nodal_arc_length: bool = False,
-    nodal_arc_length_offset: _Optional[float] = None,
-    node_positions_of_elements: _Optional[_List[float]] = None,
-    start_node: _Optional[_Union[_NodeCosserat, _GeometrySet]] = None,
-    end_node: _Optional[_Union[_NodeCosserat, _GeometrySet]] = None,
+    nodal_arc_length_offset: float | None = None,
+    start_node: _NodeCosserat | _GeometrySet | None = None,
+    end_node: _NodeCosserat | _GeometrySet | None = None,
     close_beam: bool = False,
-    vtk_cell_data: _Optional[_Dict[str, _Tuple]] = None,
+    vtk_cell_data: dict[str, tuple] | None = None,
 ) -> _GeometryName:
     """Generic beam creation function.
 
@@ -94,8 +176,16 @@ def create_beam_mesh_generic(
             to be set. Mutually exclusive with n_el. Be aware, that this length
             might not be achieved, if the elements are warped after they are
             created.
+        node_positions_of_elements:
+            A list of normalized positions (within [0,1] and in ascending order)
+            that define the boundaries of beam elements along the created curve.
+            The given values will be mapped to the actual `interval` given as an
+            argument to this function. These values specify where elements start
+            and end, additional internal nodes (such as midpoints in higher-order
+            elements) may be placed automatically.
         interval_length:
-            Total length of the interval. Is required when the option l_el is given.
+            Approximation of the total length of the interval. Is required when
+            the option `l_el` is given.
         set_nodal_arc_length:
             Flag if the arc length along the beam filament is set in the created
             nodes. It is ensured that the arc length is consistent with possible
@@ -105,13 +195,6 @@ def create_beam_mesh_generic(
             the function. Defaults to 0, the arc length set in the start node, or
             the arc length in the end node minus total length (such that the arc
             length at the end node matches).
-        node_positions_of_elements:
-            A list of normalized positions (within [0,1] and in ascending order)
-            that define the boundaries of beam elements along the created curve.
-            The given values will be mapped to the actual `interval` given as an
-            argument to this function. These values specify where elements start
-            and end, additional internal nodes (such as midpoints in higher-order
-            elements) may be placed automatically.
         start_node:
             Node to use as the first node for this line. Use this if the line
             is connected to other lines (angles have to be the same, otherwise
@@ -134,20 +217,6 @@ def create_beam_mesh_generic(
         with all nodes of the curve.
     """
 
-    # Check for mutually exclusive parameters
-    n_given_arguments = sum(
-        1
-        for argument in [n_el, l_el, node_positions_of_elements]
-        if argument is not None
-    )
-    if n_given_arguments == 0:
-        # No arguments were given, use a single element per default
-        n_el = 1
-    elif n_given_arguments > 1:
-        raise ValueError(
-            'The arguments "n_el", "l_el" and "node_positions_of_elements" are mutually exclusive'
-        )
-
     if close_beam and end_node is not None:
         raise ValueError(
             'The arguments "close_beam" and "end_node" are mutually exclusive'
@@ -164,46 +233,12 @@ def create_beam_mesh_generic(
             '"set_nodal_arc_length" to True does not make sense.'
         )
 
-    # Cases where we have equally spaced elements
-    if n_el is not None or l_el is not None:
-        if l_el is not None:
-            # Calculate the number of elements in case a desired element length is provided
-            if interval_length is None:
-                raise ValueError(
-                    'The parameter "l_el" requires "interval_length" to be set.'
-                )
-            n_el = max([1, round(interval_length / l_el)])
-        elif n_el is None:
-            raise ValueError("n_el should not be None at this point")
-
-        node_positions_of_elements = [i_node / n_el for i_node in range(n_el + 1)]
-    # A list for the element node positions was provided
-    elif node_positions_of_elements is not None:
-        # Check that the given positions are in ascending order and start with 0 and end with 1
-        for index, value, name in zip([0, -1], [0, 1], ["First", "Last"]):
-            if not _np.isclose(
-                value,
-                node_positions_of_elements[index],
-                atol=1e-12,
-                rtol=0.0,
-            ):
-                raise ValueError(
-                    f"{name} entry of node_positions_of_elements must be {value}, got {node_positions_of_elements[index]}"
-                )
-        if not all(
-            x < y
-            for x, y in zip(node_positions_of_elements, node_positions_of_elements[1:])
-        ):
-            raise ValueError(
-                f"The given node_positions_of_elements must be in ascending order. Got {node_positions_of_elements}"
-            )
-
-    # Get the scale the node positions to the interval coordinates
+    # Get node positions of elements within the given interval
     interval_node_positions_of_elements = interval[0] + (
         interval[1] - interval[0]
-    ) * _np.asarray(node_positions_of_elements)
-
-    # We need to make sure we have the number of elements for the case a given end node
+    ) * _get_interval_node_positions_of_elements(
+        n_el, l_el, node_positions_of_elements, interval_length
+    )
     n_el = len(interval_node_positions_of_elements) - 1
 
     # Make sure the material is in the mesh.
