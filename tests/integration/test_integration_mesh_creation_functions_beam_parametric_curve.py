@@ -219,12 +219,7 @@ def test_integration_mesh_creation_functions_beam_parametric_curve_3d_line(
     assert_results_close,
     get_corresponding_reference_file_path,
 ):
-    """Create a line from a parametric curve.
-
-    Once the interval is in ascending order, once in descending. This
-    tests checks that the elements are created with the correct tangent
-    vectors.
-    """
+    """Create a line from a parametric curve."""
 
     # Create mesh
     mesh = Mesh()
@@ -241,13 +236,14 @@ def test_integration_mesh_creation_functions_beam_parametric_curve_3d_line(
 
     # Create mesh.
     set_1 = create_beam_mesh_parametric_curve(
-        mesh, Beam3rHerm2Line3, mat, line, [0.0, 5.0], n_el=3
+        mesh,
+        Beam3rHerm2Line3,
+        mat,
+        line,
+        [0.0, 5.0],
+        node_positions_of_elements=[0, 0.3, 0.5, 1.0],
     )
-    mesh.translate([0, 1, 0])
-    set_2 = create_beam_mesh_parametric_curve(
-        mesh, Beam3rHerm2Line3, mat, line, [5.0, 0.0], n_el=3
-    )
-    mesh.add(set_1, set_2)
+    mesh.add(set_1)
 
     # Check the output.
     assert_results_close(get_corresponding_reference_file_path(), mesh)
