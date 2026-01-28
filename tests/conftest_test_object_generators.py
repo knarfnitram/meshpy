@@ -276,6 +276,15 @@ def get_parametric_function() -> Callable:
 
         return helix
 
+    def distorted_helix(t: float):
+        """Parametric function to describe a distorted helix.
+
+        The resulting curve has a large variation in the Jacobian along
+        the curve, thus making it a good test case for the curve
+        integration robustness and performance.
+        """
+        return npAD.array([t, 10 * npAD.sin(t), npAD.cos(t)])
+
     def _get_parametric_function(function_type: str, *args, **kwargs) -> Callable:
         """Return a function representing a parametric curve for testing
         purposes.
@@ -291,6 +300,8 @@ def get_parametric_function() -> Callable:
 
         if function_type == "helix":
             return get_helix_function(*args, **kwargs)
+        elif function_type == "distorted_helix":
+            return distorted_helix
         else:
             raise ValueError(f"Unknown parametric function type: {function_type}")
 
