@@ -170,6 +170,7 @@ def get_corresponding_reference_file_path(
 
     def _get_corresponding_reference_file_path(
         reference_file_base_name: str | None = None,
+        test_name_suffix_trim_count: int | None = None,
         additional_identifier: str | None = None,
         additional_identifier_separator: str = "_",
         extension: str = "4C.yaml",
@@ -180,7 +181,14 @@ def get_corresponding_reference_file_path(
 
         Args:
             reference_file_base_name: Basename of reference file, if none is
-                provided the current test name is utilized
+                provided the current test name is utilized. (Mutually exclusive
+                with `test_name_suffix_trim_count`)
+            test_name_suffix_trim_count: Number of underscore-separated parts to
+                remove from the end of the test name when deriving the reference
+                file name. For example, given "test_beam_variant1_variant2" and a
+                value of 2, the derived reference name will be "test_beam".
+                If not provided, the full test name is used.
+                (Mutually exclusive with `reference_file_base_name`)
             additional_identifier: Additional identifier for reference file, by default none
             additional_identifier_separator: Separator between base name and
                 additional identifier.
@@ -190,7 +198,20 @@ def get_corresponding_reference_file_path(
             Path to reference file.
         """
 
+        if (
+            reference_file_base_name is not None
+            and test_name_suffix_trim_count is not None
+        ):
+            raise ValueError(
+                "The parameters `reference_file_base_name` and `test_name_suffix_trim_count`, are mutually exclusive."
+            )
+
         corresponding_reference_file = reference_file_base_name or current_test_name
+
+        if test_name_suffix_trim_count is not None:
+            corresponding_reference_file = "_".join(
+                corresponding_reference_file.split("_")[:-test_name_suffix_trim_count]
+            )
 
         if additional_identifier:
             corresponding_reference_file += (
