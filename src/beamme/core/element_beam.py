@@ -22,19 +22,12 @@
 """This file defines the base beam element."""
 
 from typing import Any as _Any
-from typing import Callable as _Callable
-from typing import List as _List
-from typing import Optional as _Optional
-from typing import Type as _Type
 
 import numpy as _np
 import vtk as _vtk
 
 from beamme.core.conf import bme as _bme
 from beamme.core.element import Element as _Element
-from beamme.core.material import MaterialBeamBase as _MaterialBeamBase
-from beamme.core.node import NodeCosserat as _NodeCosserat
-from beamme.core.rotation import Rotation as _Rotation
 from beamme.core.vtk_writer import add_point_data_node_sets as _add_point_data_node_sets
 
 
@@ -50,115 +43,6 @@ class Beam(_Element):
 
     def __init__(self, material=None, nodes=None):
         super().__init__(nodes=nodes, material=material)
-
-    @classmethod
-    def create_beam(
-        cls: _Type["Beam"],
-        material: _MaterialBeamBase,
-        beam_function: _Callable,
-        *,
-        start_node: _Optional[_NodeCosserat] = None,
-        end_node: _Optional[_NodeCosserat] = None,
-        relative_twist: _Optional[_Rotation] = None,
-        set_nodal_arc_length: bool = False,
-        nodal_arc_length_offset: _Optional[float] = None,
-    ) -> tuple["Beam", _List[_NodeCosserat]]:
-        """Create the nodes for this beam element. The function returns a list
-        with the created nodes.
-
-        In the case of start_node and end_node, it is checked, that the
-        function and the node have the same coordinates and rotations.
-
-        Args:
-            material: The material to be used with this beam.
-            beam_function:
-                Returns the position, rotation and (optionally) arc length of the
-                beam along the local coordinate xi. If no arc lengths is provided,
-                the returned value should simply be None.
-            start_node:
-                If this argument is given, this is the node of the beam at xi=-1.
-            end_node:
-                If this argument is given, this is the node of the beam at xi=1.
-            relative_twist:
-                Apply this relative rotation to all created nodes. This can be used to
-                "twist" the created beam to match the rotation of given nodes.
-            set_nodal_arc_length:
-                Flag if the arc length in the created nodes should be set.
-            nodal_arc_length_offset:
-                Offset of the stored nodal arc length w.r.t. to the one generated
-                by the function.
-
-        Returns:
-            The created beam object and the newly created nodes. The created nodes
-            are returned, because we can then directly add them to a `Mesh` without
-            having to check if they are already in the mesh.
-        """
-
-        def check_node(node, pos, rot, arc_length, name):
-            """Check if the given node matches with the position and rotation
-            and optionally also the arc length."""
-
-            if _np.linalg.norm(pos - node.coordinates) > _bme.eps_pos:
-                raise ValueError(
-                    f"{name} position does not match with function! Got {pos} from function but "
-                    + f"given node value is {node.coordinates}"
-                )
-            if not node.rotation == rot:
-                raise ValueError(f"{name} rotation does not match with function!")
-
-            if arc_length is not None:
-                if _np.abs(node.arc_length - arc_length) > _bme.eps_pos:
-                    raise ValueError(
-                        f"Arc lengths don't match, got {node.arc_length} and {arc_length}"
-                    )
-
-        # Flags if nodes are given
-        has_start_node = start_node is not None
-        has_end_node = end_node is not None
-
-        # Create the element
-        beam = cls(material=material)
-
-        # Loop over local nodes.
-        arc_length = None
-        for i, xi in enumerate(cls.nodes_create):
-            # Get the position and rotation at xi
-            pos, rot, arc_length_from_function = beam_function(xi)
-            if relative_twist is not None:
-                rot = rot * relative_twist
-            if set_nodal_arc_length:
-                arc_length = arc_length_from_function + nodal_arc_length_offset
-
-            # Check if the position and rotation match existing nodes
-            if i == 0 and has_start_node:
-                check_node(start_node, pos, rot, arc_length, "start_node")
-                beam.nodes = [start_node]
-            elif (i == len(cls.nodes_create) - 1) and has_end_node:
-                check_node(end_node, pos, rot, arc_length, "end_node")
-
-            # Create the node
-            if (i > 0 or not has_start_node) and (
-                i < len(cls.nodes_create) - 1 or not has_end_node
-            ):
-                is_middle_node = 0 < i < len(cls.nodes_create) - 1
-                beam.nodes.append(
-                    _NodeCosserat(
-                        pos, rot, is_middle_node=is_middle_node, arc_length=arc_length
-                    )
-                )
-
-        # Get a list with the created nodes.
-        if has_start_node:
-            created_nodes = beam.nodes[1:]
-        else:
-            created_nodes = beam.nodes.copy()
-
-        # Add the end node to the beam.
-        if has_end_node:
-            beam.nodes.append(end_node)
-
-        # Return the created beam object and the created nodes.
-        return beam, created_nodes
 
     @classmethod
     def get_coupling_dict(cls, coupling_dof_type):

@@ -33,10 +33,12 @@ from beamme.core.geometry_set import GeometrySet as _GeometrySet
 from beamme.core.material import MaterialBeamBase as _MaterialBeamBase
 from beamme.core.mesh import Mesh as _Mesh
 from beamme.core.node import NodeCosserat as _NodeCosserat
+from beamme.core.rotation import Rotation as _Rotation
 from beamme.utils.nodes import get_single_node as _get_single_node
 
 
 def _get_interval_node_positions_of_elements(
+    interval: tuple[float, float],
     n_el: int | None,
     l_el: float | None,
     node_positions_of_elements: list[float] | None,
@@ -45,6 +47,9 @@ def _get_interval_node_positions_of_elements(
     """Get the node positions within the interval [0,1].
 
     Args:
+        interval:
+            Start and end values for interval that will be used to create the
+            beam filament.
         n_el:
             Number of equally spaced beam elements along the line. Defaults to 1.
             Mutually exclusive with l_el
@@ -65,7 +70,7 @@ def _get_interval_node_positions_of_elements(
             the option `l_el` is given.
 
     Returns:
-        Numpy array with the node positions within the interval [0,1].
+        Numpy array with the node positions within the interval.
     """
 
     # Check for mutually exclusive parameters
@@ -120,7 +125,154 @@ def _get_interval_node_positions_of_elements(
             'One of the parameters "n_el", "l_el" or "node_positions_of_elements" has to be provided.'
         )
 
-    return _np.asarray(node_positions_of_elements)
+    return interval[0] + (interval[1] - interval[0]) * _np.asarray(
+        node_positions_of_elements
+    )
+
+
+def _get_interval_nodal_positions(
+    interval_node_positions_of_elements: _np.ndarray, nodes_create: list[float]
+) -> tuple[_np.ndarray, _np.ndarray]:
+    """Return the nodal positions along the interval depending on the element
+    formulation.
+
+    Args:
+        interval_node_positions_of_elements:
+            Numpy array with the element boundary node positions within the interval of the filament
+        nodes_create:
+            List with the FE parameter coordinates (in the interval [-1,1]) of the
+            element nodes.
+
+    Returns:
+        evaluation_positions:
+            Numpy array with the interval positions of all nodes along the beam filament (ordered).
+        middle_node_flags:
+            Numpy array with flags that indicate if a node is an element internal node.
+    """
+
+    if (
+        _np.abs(nodes_create[0] + 1.0) > _bme.eps_parameter_space
+        or _np.abs(nodes_create[-1] - 1.0) > _bme.eps_parameter_space
+    ):
+        raise ValueError(
+            "The first and last entry of nodes_create must be -1 and 1, respectively."
+        )
+
+    middle_node_coordinates = nodes_create[1:-1]
+    n_middle_nodes = len(middle_node_coordinates)
+    n_el = len(interval_node_positions_of_elements) - 1
+    n_nodes = n_el * n_middle_nodes + (n_el + 1)
+
+    evaluation_positions = _np.zeros(n_nodes)
+    evaluation_positions[:: n_middle_nodes + 1] = interval_node_positions_of_elements
+
+    interval_start_positions = interval_node_positions_of_elements[:-1]
+    interval_end_positions = interval_node_positions_of_elements[1:]
+    interval_length = interval_end_positions - interval_start_positions
+
+    for i in range(n_middle_nodes):
+        nodes_create_position = 0.5 * (middle_node_coordinates[i] + 1.0)
+        evaluation_positions[i + 1 :: n_middle_nodes + 1] = (
+            interval_start_positions + nodes_create_position * interval_length
+        )
+
+    middle_node_flags = _np.ones(n_nodes, dtype=bool)
+    middle_node_flags[:: n_middle_nodes + 1] = False
+
+    return evaluation_positions, middle_node_flags
+
+
+def _evaluate_position_and_rotation(
+    beam_function: _Callable[[float], tuple[_np.ndarray, _Rotation, float | None]],
+    evaluation_positions: _np.ndarray,
+) -> tuple[_np.ndarray, list[_Rotation], _np.ndarray]:
+    """Evaluate positions, rotations and arc lengths along the filament, also
+    return a flag indicating middle nodes.
+
+    Args:
+        beam_function:
+            The `beam_function` has to take one variable s (from `evaluation_positions`)
+            and return the position, rotation and arc-length along the beam.
+        evaluation_positions:
+            Numpy array with the node positions within the interval of the filament.
+
+    Returns:
+        coordinates:
+            Numpy array with the coordinates of all nodes along the beam.
+        rotations:
+            List with the rotations of all nodes along the beam.
+        arc_lengths:
+            Numpy array with the arc lengths of all nodes along the beam.
+    """
+
+    n_nodes = len(evaluation_positions)
+    coordinates = _np.zeros((n_nodes, 3))
+    rotations: list[_Rotation] = []
+    arc_lengths = _np.zeros(n_nodes)
+
+    for i_node, evaluation_position in enumerate(evaluation_positions):
+        position, rotation, arc_length = beam_function(evaluation_position)
+        coordinates[i_node, :] = position
+        rotations.append(rotation)
+        arc_lengths[i_node] = arc_length
+
+    return coordinates, rotations, arc_lengths
+
+
+def _check_given_node_and_return_relative_twist(
+    mesh: _Mesh,
+    node: _NodeCosserat,
+    position_from_function: _np.ndarray,
+    rotation_from_function: _Rotation,
+    name: str,
+) -> _Rotation | None:
+    """Perform some checks for given nodes and return relative twist if
+    necessary.
+
+    If the rotations do not match, check if the first basis vector of the triads is the same. If that is the case, a simple relative twist can be applied to ensure that the triad field is continuous. This relative twist can lead to issues if the beam cross-section is not double symmetric.
+
+    Args:
+        mesh: Mesh in which to check if the given nodes already exist.
+        node: Given node that should be used at the start or end of the beam.
+        position_from_function: Position at the start or end of the beam as given
+            by the beam function.
+        rotation_from_function: Rotation at the start or end of the beam as given
+            by the beam function.
+        name: Name of the node ("start" or "end") for better error messages.
+
+    Returns:
+        relative_twist:
+            If the rotation of the given node does not match with the one from the
+            function, but the tangent is the same, the relative twist that has to
+            be applied to the rotation field is returned. If no relative twist is
+            necessary, None is returned.
+    """
+
+    if node not in mesh.nodes:
+        raise ValueError("The given node is not in the current mesh")
+
+    if _np.linalg.norm(position_from_function - node.coordinates) > _bme.eps_pos:
+        raise ValueError(
+            f"The position of the given {name} node does not match with the position from the function!"
+        )
+
+    if rotation_from_function == node.rotation:
+        return None
+    elif not _bme.allow_beam_rotation:
+        raise ValueError(
+            f"The rotation of the given {name} node does not match with the rotation from the function!"
+        )
+    else:
+        # Evaluate the relative rotation
+        # First check if the first basis vector is the same
+        relative_basis_1 = node.rotation.inv() * rotation_from_function * [1, 0, 0]
+        if _np.linalg.norm(relative_basis_1 - [1, 0, 0]) < _bme.eps_quaternion:
+            # Calculate the relative rotation
+            return rotation_from_function.inv() * node.rotation
+        else:
+            raise ValueError(
+                f"The tangent of the {name} node does not match with the given function!"
+            )
 
 
 def create_beam_mesh_generic(
@@ -128,7 +280,7 @@ def create_beam_mesh_generic(
     *,
     beam_class: _Type[_Beam],
     material: _MaterialBeamBase,
-    function_generator: _Callable,
+    beam_function: _Callable[[float], tuple[_np.ndarray, _Rotation, float | None]],
     interval: tuple[float, float],
     n_el: int | None = None,
     l_el: float | None = None,
@@ -156,11 +308,9 @@ def create_beam_mesh_generic(
             Class of beam that will be used for this line.
         material:
             Material for this line.
-        function_generator:
-            The function_generator has to take two variables, point_a and
-            point_b (both within the interval) and return a function(xi) that
-            calculates the position and rotation along the beam, where
-            point_a -> xi = -1 and point_b -> xi = 1.
+        beam_function:
+            The beam_function has to return the position along the beam centerline
+            for any point in the given `interval`.
 
             Usually, the Jacobian of the returned position field should be a unit
             vector. Otherwise, the nodes may be spaced in an undesired way. All
@@ -172,7 +322,7 @@ def create_beam_mesh_generic(
             Number of equally spaced beam elements along the line. Defaults to 1.
             Mutually exclusive with l_el
         l_el:
-            Desired length of beam elements. This requires the option interval_length
+            Desired length of beam elements. This requires the option `interval_length`
             to be set. Mutually exclusive with n_el. Be aware, that this length
             might not be achieved, if the elements are warped after they are
             created.
@@ -233,151 +383,113 @@ def create_beam_mesh_generic(
             '"set_nodal_arc_length" to True does not make sense.'
         )
 
-    # Get node positions of elements within the given interval
-    interval_node_positions_of_elements = interval[0] + (
-        interval[1] - interval[0]
-    ) * _get_interval_node_positions_of_elements(
-        n_el, l_el, node_positions_of_elements, interval_length
+    # Get element boundary node positions within the given interval
+    interval_node_positions_of_elements = _get_interval_node_positions_of_elements(
+        interval, n_el, l_el, node_positions_of_elements, interval_length
     )
     n_el = len(interval_node_positions_of_elements) - 1
+
+    # Get the nodal positions in the interval for all nodes (depending on the element formulation).
+    evaluation_positions, middle_node_flags = _get_interval_nodal_positions(
+        interval_node_positions_of_elements, beam_class.nodes_create
+    )
+
+    # Evaluate the centerline position and the rotation for all beam nodes
+    coordinates, rotations, arc_lengths = _evaluate_position_and_rotation(
+        beam_function, evaluation_positions
+    )
 
     # Make sure the material is in the mesh.
     mesh.add_material(material)
 
-    # List with nodes and elements that will be added in the creation of
-    # this beam.
-    elements = []
-    nodes = []
-
-    def check_given_node(node):
-        """Check that the given node is already in the mesh."""
-        if node not in mesh.nodes:
-            raise ValueError("The given node is not in the current mesh")
-
-    def get_relative_twist(rotation_node, rotation_function, name):
-        """Check if the rotation at a node and the one returned by the function
-        match.
-
-        If not, check if the first basis vector of the triads is the
-        same. If that is the case, a simple relative twist can be
-        applied to ensure that the triad field is continuous. This
-        relative twist can lead to issues if the beam cross-section is
-        not double symmetric.
-        """
-
-        if rotation_node == rotation_function:
-            return None
-        elif not _bme.allow_beam_rotation:
-            # The settings do not allow for a rotation of the beam
-            raise ValueError(
-                f"Given rotation of the {name} node does not match with given rotation function!"
-            )
-        else:
-            # Evaluate the relative rotation
-            # First check if the first basis vector is the same
-            relative_basis_1 = rotation_node.inv() * rotation_function * [1, 0, 0]
-            if _np.linalg.norm(relative_basis_1 - [1, 0, 0]) < _bme.eps_quaternion:
-                # Calculate the relative rotation
-                return rotation_function.inv() * rotation_node
-            else:
-                raise ValueError(
-                    f"The tangent of the {name} node does not match with the given function!"
-                )
-
-    # Position and rotation at the start and end of the interval
-    function_over_whole_interval = function_generator(*interval)
+    # Inspect given nodes and get relative twists if necessary
     relative_twist_start = None
-    relative_twist_end = None
-
-    # If a start node is given, set this as the first node for this beam.
     if start_node is not None:
         start_node = _get_single_node(start_node)
-        nodes = [start_node]
-        check_given_node(start_node)
-        _, start_rotation, _ = function_over_whole_interval(-1.0)
-        relative_twist_start = get_relative_twist(
-            start_node.rotation, start_rotation, "start"
+        relative_twist_start = _check_given_node_and_return_relative_twist(
+            mesh, start_node, coordinates[0], rotations[0], "start"
         )
 
     # If an end node is given, check what behavior is wanted.
+    relative_twist_end = None
     if end_node is not None:
         end_node = _get_single_node(end_node)
-        check_given_node(end_node)
-        _, end_rotation, _ = function_over_whole_interval(1.0)
-        relative_twist_end = get_relative_twist(end_node.rotation, end_rotation, "end")
+        relative_twist_end = _check_given_node_and_return_relative_twist(
+            mesh, end_node, coordinates[-1], rotations[-1], "end"
+        )
+
+    # Check if a relative twist has to be applied
+    relative_twist_list = [
+        twist
+        for twist in [relative_twist_start, relative_twist_end]
+        if twist is not None
+    ]
+    if len(relative_twist_list) == 2:
+        if not relative_twist_list[0] == relative_twist_list[1]:
+            raise ValueError(
+                "The relative twist required for the start and end node do not match"
+            )
+    if len(relative_twist_list) > 0:
+        relative_twist = relative_twist_list[0]
+        for i_rot, rotation in enumerate(rotations):
+            rotations[i_rot] = rotation * relative_twist
 
     # Get the start value for the arc length functionality
     if set_nodal_arc_length:
         if nodal_arc_length_offset is not None:
-            # Let's use the given value, if it does not match with possible given
-            # start or end nodes, the check in the create beam function will detect
-            # that.
+            # Let's use the given value, the later check will detect if this
+            # does not match the given nodes.
             pass
         elif start_node is not None and start_node.arc_length is not None:
             nodal_arc_length_offset = start_node.arc_length
         elif end_node is not None and end_node.arc_length is not None:
-            if interval_length is None:
-                raise ValueError(
-                    "The end node has an arc length but the interval_length is not "
-                    "given. This is not supported."
-                )
-            nodal_arc_length_offset = end_node.arc_length - interval_length
+            nodal_arc_length_offset = end_node.arc_length - arc_lengths[-1]
         else:
             # Default value
             nodal_arc_length_offset = 0.0
+        arc_lengths += nodal_arc_length_offset
 
-    # Check if a relative twist has to be applied
-    if relative_twist_start is not None and relative_twist_end is not None:
-        if relative_twist_start == relative_twist_end:
-            relative_twist = relative_twist_start
-        else:
-            raise ValueError(
-                "The relative twist required for the start and end node do not match"
-            )
-    elif relative_twist_start is not None:
-        relative_twist = relative_twist_start
-    elif relative_twist_end is not None:
-        relative_twist = relative_twist_end
+        if start_node is not None:
+            if _np.abs(start_node.arc_length - arc_lengths[0]) > _bme.eps_pos:
+                raise ValueError(
+                    "The arc length at the start node does not match with "
+                    "the calculated one!"
+                )
+        if end_node is not None:
+            if _np.abs(end_node.arc_length - arc_lengths[-1]) > _bme.eps_pos:
+                raise ValueError(
+                    "The arc length at the end node does not match with "
+                    "the calculated one!"
+                )
     else:
-        relative_twist = None
+        arc_lengths = [None] * len(arc_lengths)
 
-    # Create the beams.
+    # Create the nodes and add the new ones to the mesh
+    nodes = [
+        _NodeCosserat(pos, rot, is_middle_node=middle_node_flag, arc_length=arc_length)
+        for pos, rot, arc_length, middle_node_flag in zip(
+            coordinates, rotations, arc_lengths, middle_node_flags
+        )
+    ]
+    if start_node is not None:
+        nodes[0] = start_node
+    if close_beam:
+        nodes[-1] = nodes[0]
+    elif end_node is not None:
+        nodes[-1] = end_node
+    start_slice = 1 if start_node is not None else None
+    end_slice = -1 if end_node is not None or close_beam else None
+    mesh.nodes.extend(nodes[start_slice:end_slice])
+
+    # Create the beam elements and assign the nodes
+    nodes_per_element = len(beam_class.nodes_create)
+    elements: list[_Beam] = []
     for i_el in range(n_el):
-        # If the beam is closed with itself, set the end node to be the
-        # first node of the beam. This is done when the second element is
-        # created, as the first node already exists here.
-        if i_el == 1 and close_beam:
-            end_node = nodes[0]
-
-        # Get the function to create this beam element.
-        function = function_generator(
-            interval_node_positions_of_elements[i_el],
-            interval_node_positions_of_elements[i_el + 1],
-        )
-
-        # Set the start node for the created beam.
-        if start_node is not None or i_el > 0:
-            first_node = nodes[-1]
-        else:
-            first_node = None
-
-        # If an end node is given, set this one for the last element.
-        if end_node is not None and i_el == n_el - 1:
-            last_node = end_node
-        else:
-            last_node = None
-
-        element, created_nodes = beam_class.create_beam(
-            material,
-            function,
-            start_node=first_node,
-            end_node=last_node,
-            relative_twist=relative_twist,
-            set_nodal_arc_length=set_nodal_arc_length,
-            nodal_arc_length_offset=nodal_arc_length_offset,
-        )
-        elements.append(element)
-        nodes.extend(created_nodes)
+        beam = beam_class(material=material)
+        beam.nodes = nodes[
+            i_el * (nodes_per_element - 1) : (i_el + 1) * (nodes_per_element - 1) + 1
+        ]
+        elements.append(beam)
 
     # Set vtk cell data on created elements.
     if vtk_cell_data is not None:
@@ -391,24 +503,16 @@ def create_beam_mesh_generic(
 
     # Add items to the mesh
     mesh.elements.extend(elements)
-    if start_node is None:
-        mesh.nodes.extend(nodes)
-    else:
-        mesh.nodes.extend(nodes[1:])
-
-    # Set the last node of the beam.
-    if end_node is None:
-        end_node = nodes[-1]
 
     # Set the nodes that are at the beginning and end of line (for search
     # of overlapping points)
     nodes[0].is_end_node = True
-    end_node.is_end_node = True
+    nodes[-1].is_end_node = True
 
     # Create geometry sets that will be returned.
     return_set = _GeometryName()
     return_set["start"] = _GeometrySet(nodes[0])
-    return_set["end"] = _GeometrySet(end_node)
+    return_set["end"] = _GeometrySet(nodes[-1])
     return_set["line"] = _GeometrySet(elements)
 
     return return_set

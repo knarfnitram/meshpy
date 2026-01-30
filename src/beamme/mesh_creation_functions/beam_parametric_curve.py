@@ -27,7 +27,6 @@ import scipy.integrate as _integrate
 import scipy.optimize as _optimize
 from autograd import jacobian as _jacobian
 
-from beamme.core.conf import bme as _bme
 from beamme.core.rotation import Rotation as _Rotation
 from beamme.core.rotation import smallest_rotation as _smallest_rotation
 from beamme.mesh_creation_functions.beam_generic import (
@@ -198,65 +197,47 @@ def create_beam_mesh_parametric_curve(
             self.t_start_newton = interval[0]
             self.S_start_newton = 0.0
 
-        def __call__(self, length_a, length_b):
-            """This object is called with the interval limits.
+        def __call__(self, S):
+            """Evaluate the beam position and rotation at S.
 
-            This method returns a function that evaluates the position
-            and rotation within this interval.
+            S is the arc length along the curve.
             """
 
-            # In case the interval is not continuous with the last one, we reset the start
-            # values for the Newton iteration here
-            if length_a < self.S_start_newton - _bme.eps_pos:
-                self._reset_start_values()
+            # Parameter coordinate for S.
+            t = get_t_along_curve(
+                S,
+                self.t_start_newton,
+                start_t=self.t_start_newton,
+                start_S=self.S_start_newton,
+            )
 
-            # Length of the beam element in physical space.
-            L = length_b - length_a
+            # Position at S.
+            if is_3d_curve:
+                pos = function(t)
+            else:
+                pos = _np.zeros(3)
+                pos[:2] = function(t)
 
-            def get_beam_position_and_rotation_at_xi(xi):
-                """Evaluate the beam position and rotation at xi.
-
-                xi is the beam element parameter coordinate, i.e., xi =
-                [-1, 1].
-                """
-                # Parameter for xi.
-                S = length_a + 0.5 * (xi + 1) * L
-                t = get_t_along_curve(
-                    S,
-                    self.t_start_newton,
-                    start_t=self.t_start_newton,
-                    start_S=self.S_start_newton,
-                )
-
-                # Position at xi.
+            # Rotation at S.
+            if is_rot_funct:
+                rot = function_rotation(t)
+            else:
+                r_prime = rp(t)
                 if is_3d_curve:
-                    pos = function(t)
+                    # Create the next triad via the smallest rotation mapping based
+                    # on the last triad.
+                    rot = _smallest_rotation(self.last_triad, r_prime)
+                    self.last_triad = rot.copy()
                 else:
-                    pos = _np.zeros(3)
-                    pos[:2] = function(t)
+                    # The rotation simplifies in the 2d case.
+                    rot = _Rotation([0, 0, 1], _np.arctan2(r_prime[1], r_prime[0]))
 
-                # Rotation at xi.
-                if is_rot_funct:
-                    rot = function_rotation(t)
-                else:
-                    r_prime = rp(t)
-                    if is_3d_curve:
-                        # Create the next triad via the smallest rotation mapping based
-                        # on the last triad.
-                        rot = _smallest_rotation(self.last_triad, r_prime)
-                        self.last_triad = rot.copy()
-                    else:
-                        # The rotation simplifies in the 2d case.
-                        rot = _Rotation([0, 0, 1], _np.arctan2(r_prime[1], r_prime[0]))
+            # Set start values for the next iteration
+            self.t_start_newton = t
+            self.S_start_newton = S
 
-                # Set start values for the next iteration
-                self.t_start_newton = t
-                self.S_start_newton = S
-
-                # Return the needed values for beam creation.
-                return (pos, rot, S)
-
-            return get_beam_position_and_rotation_at_xi
+            # Return the needed values for beam creation.
+            return (pos, rot, S)
 
     # Now create the beam.
     # Get the length of the whole segment.
@@ -267,7 +248,7 @@ def create_beam_mesh_parametric_curve(
         mesh,
         beam_class=beam_class,
         material=material,
-        function_generator=BeamFunctions(),
+        beam_function=BeamFunctions(),
         interval=[0.0, length],
         interval_length=length,
         **kwargs,
