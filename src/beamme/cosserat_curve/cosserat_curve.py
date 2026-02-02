@@ -385,16 +385,17 @@ class CosseratCurve(object):
                     self.relative_rotations[i_segment],
                     factor,
                 )
+            arc_length_spline_interpolation = get_spline_interpolation(
+                coordinates, self.point_arc_length
+            )
         else:
             coordinates = self.coordinates
             quaternions = self.quaternions
+            arc_length_spline_interpolation = self.centerline_interpolation
 
         sol_r = _np.zeros([len(points_on_arc_length_in_bound), 3])
         sol_q = _np.zeros(
             len(points_on_arc_length_in_bound), dtype=_quaternion.quaternion
-        )
-        arc_length_spline_interpolation = get_spline_interpolation(
-            coordinates, self.point_arc_length
         )
         for i_point, centerline_arc_length in enumerate(points_on_arc_length_in_bound):
             if (
