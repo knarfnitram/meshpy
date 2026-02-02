@@ -59,7 +59,7 @@ def create_beam_solid_input_file(
 
     _, mesh = import_four_c_model(
         input_file_path=get_corresponding_reference_file_path(
-            reference_file_base_name="test_cosserat_curve_mesh"
+            reference_file_base_name="test_other_create_cubit_input_files_solid_brick"
         ),
         convert_input_to_mesh=True,
     )
