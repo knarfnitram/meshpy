@@ -19,7 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-"""Test the functionality of the Cosserat curve module."""
+"""Integration tests for the Cosserat curve module."""
 
 import numpy as np
 import pytest
@@ -29,7 +29,6 @@ import quaternion
 from beamme.core.element_beam import Beam3
 from beamme.core.material import MaterialBeamBase
 from beamme.core.rotation import Rotation
-from beamme.cosserat_curve.cosserat_curve import CosseratCurve
 from beamme.cosserat_curve.warping_along_cosserat_curve import (
     create_transform_boundary_conditions,
     get_mesh_transformation,
@@ -40,18 +39,6 @@ from beamme.four_c.model_importer import import_four_c_model
 from beamme.mesh_creation_functions.beam_helix import create_beam_mesh_helix
 
 
-def load_cosserat_curve_from_file(get_corresponding_reference_file_path, **kwargs):
-    """Load the centerline coordinates from the reference files and create the
-    Cosserat curve."""
-    point_coordinates_file = get_corresponding_reference_file_path(
-        reference_file_base_name="test_cosserat_curve_centerline", extension="txt"
-    )
-    coordinates = np.loadtxt(
-        point_coordinates_file, comments="#", delimiter=",", unpack=False
-    )
-    return CosseratCurve(coordinates, **kwargs)
-
-
 def create_beam_solid_input_file(
     beam_type, material, get_corresponding_reference_file_path
 ):
@@ -59,7 +46,7 @@ def create_beam_solid_input_file(
 
     _, mesh = import_four_c_model(
         input_file_path=get_corresponding_reference_file_path(
-            reference_file_base_name="test_cosserat_curve_mesh"
+            reference_file_base_name="test_other_create_cubit_input_files_solid_brick"
         ),
         convert_input_to_mesh=True,
     )
@@ -86,7 +73,8 @@ def create_beam_solid_input_file(
         ("starting_rotation", 0.3293917321011114, Rotation([-0.5, 3, -0.5], 2)),
     ],
 )
-def test_cosserat_curve_translate_and_rotate(
+def test_integration_cosserat_curve_translate_and_rotate(
+    get_cosserat_curve,
     twist_type,
     twist_angle,
     starting_triad_guess,
@@ -96,15 +84,12 @@ def test_cosserat_curve_translate_and_rotate(
     """Test that a curve can be loaded, rotated and transformed."""
 
     if twist_type is None:
-        curve = load_cosserat_curve_from_file(get_corresponding_reference_file_path)
+        curve = get_cosserat_curve()
     elif twist_type == "angle":
-        curve = load_cosserat_curve_from_file(get_corresponding_reference_file_path)
+        curve = get_cosserat_curve()
         curve.twist(twist_angle)
     elif starting_triad_guess is not None:
-        curve = load_cosserat_curve_from_file(
-            get_corresponding_reference_file_path,
-            starting_triad_guess=starting_triad_guess,
-        )
+        curve = get_cosserat_curve(starting_triad_guess=starting_triad_guess)
     relative_rotation = Rotation([1, 0, 0], twist_angle)
 
     # Translate the curve so that the start is at the origin
@@ -148,25 +133,18 @@ def test_cosserat_curve_translate_and_rotate(
     assert_results_close(sol_full_q, get_compare_rot_with_twist("q_full_ref"))
 
 
-def test_cosserat_curve_bad_guess_triad(get_corresponding_reference_file_path):
-    """Check that an error is thrown for a bad guess triad."""
-    with pytest.raises(ValueError):
-        load_cosserat_curve_from_file(
-            get_corresponding_reference_file_path,
-            starting_triad_guess=Rotation([-0.5, 3, -0.5], 2)
-            * Rotation([0, 0, 1], np.pi * 0.5),
-        )
-
-
-def test_cosserat_curve_vtk_representation(
-    tmp_path, get_corresponding_reference_file_path, assert_results_close
+def test_integration_cosserat_curve_vtk_representation(
+    tmp_path,
+    get_cosserat_curve,
+    get_corresponding_reference_file_path,
+    assert_results_close,
 ):
     """Test the vtk representation of the Cosserat curve."""
 
     reference_path = get_corresponding_reference_file_path(extension="vtu")
     result_path = tmp_path / reference_path.name
 
-    curve = load_cosserat_curve_from_file(get_corresponding_reference_file_path)
+    curve = get_cosserat_curve()
     pv.UnstructuredGrid(curve.get_pyvista_polyline()).save(result_path)
 
     assert_results_close(reference_path, result_path)
@@ -176,12 +154,13 @@ def test_cosserat_curve_vtk_representation(
     ("factors", "n_steps", "reference_name"),
     [([0.1, 0.7], None, "factors"), (None, 3, "steps")],
 )
-def test_cosserat_curve_pvd_series(
+def test_integration_cosserat_curve_pvd_series(
     factors,
     n_steps,
     reference_name,
     tmp_path,
     get_corresponding_reference_file_path,
+    get_cosserat_curve,
     assert_results_close,
 ):
     """Test the pvd series representation of the Cosserat curve."""
@@ -191,7 +170,7 @@ def test_cosserat_curve_pvd_series(
     )
     result_path = tmp_path / reference_path.name
 
-    curve = load_cosserat_curve_from_file(get_corresponding_reference_file_path)
+    curve = get_cosserat_curve()
     curve.write_pvd_series(result_path, factors=factors, n_steps=n_steps)
 
     assert_results_close(reference_path, result_path)
@@ -204,60 +183,14 @@ def test_cosserat_curve_pvd_series(
         assert_results_close(step_reference_path, step_result_path)
 
 
-def test_cosserat_curve_pvd_series_arguments(
-    get_corresponding_reference_file_path, assert_results_close
-):
-    """Test the that arguments are correctly processed in the pvd series
-    representation of the Cosserat curve."""
-
-    curve = load_cosserat_curve_from_file(get_corresponding_reference_file_path)
-
-    pvd_name = "temp.pvd"
-
-    # Check that errors are raised for invalid argument combinations
-    with pytest.raises(
-        ValueError, match="The output path must have a .pvd suffix, got .vtu"
-    ):
-        curve.write_pvd_series("temp.vtu")
-
-    with pytest.raises(
-        ValueError,
-        match="The keyword arguments 'factors' and 'n_steps' are mutually exclusive.",
-    ):
-        curve.write_pvd_series(pvd_name, factors=[0.0, 1.0], n_steps=2)
-
-    with pytest.raises(
-        ValueError,
-        match="One of the keyword arguments 'factors' or 'n_steps' must be provided.",
-    ):
-        curve.write_pvd_series(pvd_name)
-
-
-def test_cosserat_curve_project_point(
-    get_corresponding_reference_file_path, assert_results_close
-):
-    """Test that the project point function works as expected."""
-
-    # Load the curve
-    curve = load_cosserat_curve_from_file(get_corresponding_reference_file_path)
-
-    # Translate the curve so that the start is at the origin
-    curve.translate(-curve.centerline_interpolation(0.0))
-
-    # Check the projection results
-    t_ref = 4.264045157204052
-    assert_results_close(t_ref, curve.project_point([-5, 1, 1]))
-    assert_results_close(t_ref, curve.project_point([-5, 1, 1], t0=2.0))
-    assert_results_close(t_ref, curve.project_point([-5, 1, 1], t0=4.0))
-
-
-def test_cosserat_curve_mesh_transformation(
+def test_integration_cosserat_curve_mesh_transformation(
+    get_cosserat_curve,
     get_corresponding_reference_file_path,
     assert_results_close,
 ):
     """Test that the get_mesh_transformation function works as expected."""
 
-    curve = load_cosserat_curve_from_file(get_corresponding_reference_file_path)
+    curve = get_cosserat_curve()
     pos, rot = curve.get_centerline_position_and_rotation(0)
     rot = Rotation.from_quaternion(rot)
     curve.translate(-pos)
@@ -282,7 +215,8 @@ def test_cosserat_curve_mesh_transformation(
     )
 
 
-def test_cosserat_curve_mesh_warp(
+def test_integration_cosserat_curve_mesh_warp(
+    get_cosserat_curve,
     get_default_test_beam_material,
     get_corresponding_reference_file_path,
     assert_results_close,
@@ -290,7 +224,7 @@ def test_cosserat_curve_mesh_warp(
     """Warp a balloon along a centerline."""
 
     # Load the curve
-    curve = load_cosserat_curve_from_file(get_corresponding_reference_file_path)
+    curve = get_cosserat_curve()
     pos, rot = curve.get_centerline_position_and_rotation(0)
     rot = Rotation.from_quaternion(rot)
     curve.translate(-pos)
@@ -314,7 +248,8 @@ def test_cosserat_curve_mesh_warp(
     assert_results_close(get_corresponding_reference_file_path(), mesh)
 
 
-def test_cosserat_curve_mesh_warp_transform_boundary_conditions(
+def test_integration_cosserat_curve_mesh_warp_transform_boundary_conditions(
+    get_cosserat_curve,
     get_default_test_beam_material,
     get_corresponding_reference_file_path,
     assert_results_close,
@@ -322,7 +257,7 @@ def test_cosserat_curve_mesh_warp_transform_boundary_conditions(
     """Test the transform boundary creation function."""
 
     # Load the curve
-    curve = load_cosserat_curve_from_file(get_corresponding_reference_file_path)
+    curve = get_cosserat_curve()
     pos, rot = curve.get_centerline_position_and_rotation(0)
     rot = Rotation.from_quaternion(rot)
     curve.translate(-pos)

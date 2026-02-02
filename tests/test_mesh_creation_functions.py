@@ -549,7 +549,7 @@ def test_mesh_creation_functions_wire(
 def test_mesh_creation_functions_splinepy(
     splinepy_type,
     ref_length,
-    create_splinepy_object,
+    get_splinepy_object,
     get_default_test_beam_material,
     assert_results_close,
     get_corresponding_reference_file_path,
@@ -557,7 +557,7 @@ def test_mesh_creation_functions_splinepy(
     """Test the create_beam_mesh_from_splinepy function with different splinepy
     curves."""
 
-    curve = create_splinepy_object(splinepy_type)
+    curve = get_splinepy_object(splinepy_type)
     mat = get_default_test_beam_material(material_type="reissner")
     mesh = Mesh()
     _, length = create_beam_mesh_from_splinepy(
@@ -571,12 +571,12 @@ def test_mesh_creation_functions_splinepy(
 
 
 def test_mesh_creation_functions_splinepy_unit(
-    create_splinepy_object, assert_results_close
+    get_splinepy_object, assert_results_close
 ):
     """Unittest the function and jacobian creation in the
     create_beam_mesh_from_splinepy function."""
 
-    curve = create_splinepy_object("nurbs")
+    curve = get_splinepy_object("nurbs")
     r, dr, _, _ = get_curve_function_and_jacobian_for_integration(curve, tol=10)
 
     t_values = [5.0 / 7.0, -0.3, 1.2]

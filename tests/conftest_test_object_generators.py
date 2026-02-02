@@ -29,6 +29,7 @@ import pytest
 import splinepy
 
 from beamme.core.material import MaterialBeamBase
+from beamme.cosserat_curve.cosserat_curve import CosseratCurve
 from beamme.four_c.material import (
     MaterialReissner,
     MaterialSolid,
@@ -309,10 +310,10 @@ def get_parametric_function() -> Callable:
 
 
 @pytest.fixture(scope="function")
-def create_splinepy_object() -> Callable:
+def get_splinepy_object() -> Callable:
     """Fixture that creates splinepy objects for testing purposes."""
 
-    def _create_splinepy_object(splinepy_type: str) -> splinepy.Spline:
+    def _get_splinepy_object(splinepy_type: str) -> splinepy.Spline:
         """Create a splinepy object for testing purposes.
 
         Args:
@@ -343,4 +344,76 @@ def create_splinepy_object() -> Callable:
         else:
             raise ValueError(f"Unknown splinepy object type: {splinepy_type}")
 
-    return _create_splinepy_object
+    return _get_splinepy_object
+
+
+@pytest.fixture(scope="function")
+def get_cosserat_curve() -> Callable:
+    """Fixture that creates a Cosserat curve from a predefined set of point
+    coordinates."""
+
+    def _get_cosserat_curve(**kwargs) -> CosseratCurve:
+        """Create a Cosserat curve from a predefined set of point
+        coordinates."""
+        point_coordinates = np.array(
+            [
+                [
+                    -7.125056969077852465e00,
+                    -2.100498338589324305e02,
+                    -1.315032467171957364e02,
+                ],
+                [
+                    -8.578164819865914836e00,
+                    -2.103983440417262045e02,
+                    -1.318355861462153484e02,
+                ],
+                [
+                    -1.002660147770902199e01,
+                    -2.107622027327942078e02,
+                    -1.321036387467290467e02,
+                ],
+                [
+                    -1.420180257868918972e01,
+                    -2.113479519751842020e02,
+                    -1.338546926361781573e02,
+                ],
+                [
+                    -1.548947274987304468e01,
+                    -2.116635004519980043e02,
+                    -1.345820241652732534e02,
+                ],
+                [
+                    -1.669974530466243579e01,
+                    -2.123023513258445121e02,
+                    -1.352675684905443063e02,
+                ],
+                [
+                    -1.780121899999767265e01,
+                    -2.129407667828043600e02,
+                    -1.359887265187280150e02,
+                ],
+                [
+                    -1.875413870553265383e01,
+                    -2.134432395695041862e02,
+                    -1.368500440588985612e02,
+                ],
+                [
+                    -1.951866843854408629e01,
+                    -2.140215405181983783e02,
+                    -1.379530359796511050e02,
+                ],
+                [
+                    -2.005497221630869475e01,
+                    -2.147109481986180981e02,
+                    -1.392914797992089859e02,
+                ],
+                [
+                    -2.032321405610320397e01,
+                    -2.152536910592761785e02,
+                    -1.407299275809807853e02,
+                ],
+            ]
+        )
+        return CosseratCurve(point_coordinates, **kwargs)
+
+    return _get_cosserat_curve

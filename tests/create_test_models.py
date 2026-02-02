@@ -358,3 +358,24 @@ def create_single_solid_element_brick(input_file_path, get_default_test_solid_ma
     material.i_global = 0
     cubit.fourc_input["MATERIALS"] = [material.dump_to_list()]
     cubit.dump(input_file_path)
+
+
+def create_solid_brick(input_file_path, get_default_test_solid_material):
+    """Create an a brick with the dimensions 1x3x15."""
+
+    cubit = CubitPy()
+    brick = create_brick(
+        cubit,
+        1,
+        3,
+        15,
+        element_type=cupy.element_type.hex8,
+        mesh_interval=[2, 1, 10],
+        mesh=False,
+    )
+    cubit.cmd(f"move volume {brick.id()} x 0 y 0 z 7.5 include_merged")
+    brick.mesh()
+    material = get_default_test_solid_material(material_type="st_venant_kirchhoff")
+    material.i_global = 0
+    cubit.fourc_input["MATERIALS"] = [material.dump_to_list()]
+    cubit.dump(input_file_path)
