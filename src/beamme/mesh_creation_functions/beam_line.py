@@ -83,28 +83,18 @@ def create_beam_mesh_line(mesh, beam_class, material, start_point, end_point, **
         t2 = [0, 1, 0]
     rotation = _Rotation.from_basis(t1, t2)
 
-    def get_beam_geometry(parameter_a, parameter_b):
-        """Return a function for the position along the beams axis."""
-
-        def beam_function(xi):
-            """Return a point on the beams axis for a given parameter
-            coordinate xi."""
-            point_a = start_point + parameter_a * direction
-            point_b = start_point + parameter_b * direction
-            pos = 0.5 * (1 - xi) * point_a + 0.5 * (1 + xi) * point_b
-            arc_length = (
-                0.5 * (1 - xi) * parameter_a + 0.5 * (1 + xi) * parameter_b
-            ) * line_length
-            return (pos, rotation, arc_length)
-
-        return beam_function
+    def beam_function(s: float) -> tuple[_np.ndarray, _Rotation, float | None]:
+        """Return a point on the beams axis for a given interval coordinate."""
+        pos = start_point + s * direction
+        arc_length = s * line_length
+        return (pos, rotation, arc_length)
 
     # Create the beam in the mesh
     return _create_beam_mesh_generic(
         mesh,
         beam_class=beam_class,
         material=material,
-        function_generator=get_beam_geometry,
+        beam_function=beam_function,
         interval=[0.0, 1.0],
         interval_length=line_length,
         **kwargs,

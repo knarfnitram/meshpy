@@ -129,7 +129,7 @@ def test_mesh_creation_functions_arc_segment_start_end_node(
     # Create with start node where the position does not match.
     with pytest.raises(
         ValueError,
-        match="start_node position does not match with function!",
+        match="The position of the given start node does not match with the position from the function!",
     ):
         start_node = NodeCosserat([0, 1, 0], start_node_rot)
         create_beam(start_node=start_node)
@@ -145,7 +145,7 @@ def test_mesh_creation_functions_arc_segment_start_end_node(
     # Create with end node where the position does not match.
     with pytest.raises(
         ValueError,
-        match="end_node position does not match with function!",
+        match="The position of the given end node does not match with the position from the function!",
     ):
         end_node = NodeCosserat([0, 0, 0], end_node_rot)
         create_beam(end_node=end_node)

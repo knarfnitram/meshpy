@@ -266,7 +266,7 @@ def test_performance_beamme_create_beams(evaluate_execution_time, cache_data):
             "n_z": 10,
             "n_el": 2,
         },
-        expected_time=5.2,
+        expected_time=2.5,
     )
 
 

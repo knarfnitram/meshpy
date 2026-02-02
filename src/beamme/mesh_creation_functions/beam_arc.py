@@ -162,27 +162,19 @@ def create_beam_mesh_arc_segment_via_axis(
         _np.transpose(_np.array([tangent, -distance / radius, axis]))
     )
 
-    def get_beam_geometry(alpha, beta):
-        """Return a function for the position and rotation along the beam
-        axis."""
-
-        def beam_function(xi):
-            """Return a point and the triad on the beams axis for a given
-            parameter coordinate xi."""
-            phi = 0.5 * (xi + 1) * (beta - alpha) + alpha
-            arc_rotation = _Rotation(axis, phi)
-            rot = arc_rotation * start_rotation
-            pos = center + arc_rotation * distance
-            return (pos, rot, phi * radius)
-
-        return beam_function
+    def beam_function(phi: float) -> tuple[_np.ndarray, _Rotation, float | None]:
+        """Return a point on the beams axis for a given interval coordinate."""
+        arc_rotation = _Rotation(axis, phi)
+        rot = arc_rotation * start_rotation
+        pos = center + arc_rotation * distance
+        return (pos, rot, phi * radius)
 
     # Create the beam in the mesh
     return _create_beam_mesh_generic(
         mesh,
         beam_class=beam_class,
         material=material,
-        function_generator=get_beam_geometry,
+        beam_function=beam_function,
         interval=[0.0, angle],
         interval_length=angle * radius,
         **kwargs,

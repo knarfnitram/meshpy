@@ -111,8 +111,9 @@ class BeamMe(object):
 
         # Set the epsilons for comparison of different types of values.
         self.eps_quaternion = 1e-10
-        self.eps_pos = 1e-10
         self.eps_knot_vector = 1e-10
+        self.eps_parameter_space = 1e-10
+        self.eps_pos = 1e-10
 
         # Allow the rotation of beams when connected and the triads do not
         # match.
