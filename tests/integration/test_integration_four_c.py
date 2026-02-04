@@ -123,6 +123,7 @@ def test_integration_four_c_point_coupling_indirect(
                 "POSITIONAL_PENALTY_PARAMETER": 1.1,
                 "ROTATIONAL_PENALTY_PARAMETER": 1.2,
                 "PROJECTION_VALID_FACTOR": 1.3,
+                "CONSTRAINT_ENFORCEMENT": "lagrange_multiplier",
             }
         mesh.add(
             BoundaryCondition(
