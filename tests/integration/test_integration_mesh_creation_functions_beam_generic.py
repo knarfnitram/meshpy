@@ -31,8 +31,11 @@ from beamme.core.node import NodeCosserat
 from beamme.core.rotation import Rotation
 from beamme.four_c.element_beam import Beam3rHerm2Line3
 from beamme.mesh_creation_functions.beam_arc import (
+    create_beam_mesh_arc_segment_2d,
     create_beam_mesh_arc_segment_via_rotation,
 )
+from beamme.mesh_creation_functions.beam_helix import create_beam_mesh_helix
+from beamme.mesh_creation_functions.beam_line import create_beam_mesh_line
 from beamme.mesh_creation_functions.beam_parametric_curve import (
     create_beam_mesh_parametric_curve,
 )
@@ -265,3 +268,139 @@ def test_integration_mesh_creation_functions_beam_generic_close_beam_two_circles
         ),
         mesh,
     )
+
+
+def test_integration_mesh_creation_functions_beam_generic_node_positions_of_elements_option(
+    get_default_test_beam_material,
+    assert_results_close,
+    get_corresponding_reference_file_path,
+):
+    """Creates a line, a circular segments in 2D and a helix by setting the
+    node_positions_of_elements."""
+
+    # Create a mesh
+    mesh = Mesh()
+
+    # Create and add material to mesh.
+    material = get_default_test_beam_material(material_type="reissner")
+    mesh.add(material)
+
+    # Create a beam line with specified node_positions_of_elements.
+    create_beam_mesh_line(
+        mesh,
+        Beam3rHerm2Line3,
+        material,
+        [-1, -1, 0],
+        [-1, -1, 3],
+        node_positions_of_elements=[0, 0.1, 0.5, 0.9, 1.0],
+    )
+
+    # Create an arc segment similar to the equally spaced one,
+    # but based on the provided node_positions_of_elements.
+    create_beam_mesh_arc_segment_2d(
+        mesh,
+        Beam3rHerm2Line3,
+        material,
+        [1.0, 2.0, 0.0],
+        1.5,
+        np.pi * 0.25,
+        np.pi * (1.0 + 1.0 / 3.0),
+        node_positions_of_elements=[0.0, 0.2, 0.4, 0.6, 0.8, 1.0],
+    )
+
+    # Create a 2d segments with different element sizes.
+    create_beam_mesh_arc_segment_2d(
+        mesh,
+        Beam3rHerm2Line3,
+        material,
+        [1.0, 2.0, 0.0],
+        2.0,
+        np.pi * 0.25,
+        np.pi * (1.0 + 1.0 / 3.0),
+        node_positions_of_elements=[0, 1.0 / 3.0, 1.0],
+    )
+
+    # Create a helix with different node positions.
+    create_beam_mesh_helix(
+        mesh,
+        Beam3rHerm2Line3,
+        material,
+        [0.0, 0.0, 1.0],
+        [4.0, 4.0, 0.0],
+        [5.0, 5.0, 0.0],
+        height_helix=10.0,
+        turns=2.5 / np.pi,
+        node_positions_of_elements=[0, 1.0 / 3.0, 1],
+    )
+
+    # Check the output.
+    assert_results_close(get_corresponding_reference_file_path(), mesh)
+
+
+def test_integration_mesh_creation_functions_beam_generic_element_length_option(
+    get_default_test_beam_material,
+    get_parametric_function,
+    assert_results_close,
+    get_corresponding_reference_file_path,
+):
+    """Test that the element length can be specified in the beam creation
+    functions."""
+
+    mesh = Mesh()
+    mat = get_default_test_beam_material(material_type="reissner")
+
+    l_el = 1.5
+
+    mesh_line = Mesh()
+    create_beam_mesh_line(
+        mesh_line,
+        Beam3rHerm2Line3,
+        mat,
+        [1.0, 2.0, 0.0],
+        [3.0, 4.0, 6.0],
+        l_el=l_el,
+    )
+
+    mesh_line_long = Mesh()
+    create_beam_mesh_line(
+        mesh_line_long,
+        Beam3rHerm2Line3,
+        mat,
+        [1.0, 2.0, 2.0],
+        [3.0, 4.0, 8.0],
+        l_el=100,
+    )
+
+    mesh_arc = Mesh()
+    create_beam_mesh_arc_segment_via_rotation(
+        mesh_arc,
+        Beam3rHerm2Line3,
+        mat,
+        [1.0, 2.0, 3.0],
+        Rotation([1, 3, 4], np.pi / 3.0),
+        2.0,
+        np.pi * 2.0 / 3.0,
+        l_el=l_el,
+    )
+
+    # Get the helix curve function
+    R = 2.0
+    tz = 4.0  # incline
+    n = 0.5  # number of turns
+    helix = get_parametric_function(
+        "helix", R, tz, transformation_factor=2.0, number_of_turns=n
+    )
+
+    mesh_curve = Mesh()
+    create_beam_mesh_parametric_curve(
+        mesh_curve,
+        Beam3rHerm2Line3,
+        mat,
+        helix,
+        [0.0, 2.0 * np.pi * n],
+        l_el=l_el,
+    )
+
+    # Check the output
+    mesh.add(mesh_line, mesh_line_long, mesh_arc, mesh_curve)
+    assert_results_close(get_corresponding_reference_file_path(), mesh)
