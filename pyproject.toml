@@ -11,7 +11,8 @@ maintainers = [
   {name = "David Rudlstorfer", email = "david.rudlstorfer@tum.de"},
 ]
 readme = "README.md"
-license = {file = "LICENSE"}
+license = "MIT"
+license-files = ["LICENSE"]
 dependencies = [
   "autograd",
   "geomdl",
