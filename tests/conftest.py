@@ -30,6 +30,10 @@ from _pytest.config import Config
 from _pytest.config.argparsing import Parser
 
 from beamme.core.conf import bme
+from tests.conftest_performance_tests import (
+    sessionfinish_performance_tests,
+    terminal_summary_performance_tests,
+)
 
 # Import additional confest files (split for better overview)
 pytest_plugins = [
@@ -37,6 +41,10 @@ pytest_plugins = [
     "tests.conftest_result_comparison",
     "tests.conftest_test_object_generators",
 ]
+
+# Track used and unused reference files during testing if corresponding flag is enabled
+USED_REFERENCE_FILES = set()
+UNUSED_REFERENCE_FILES = set()
 
 
 def pytest_addoption(parser: Parser) -> None:
@@ -81,6 +89,13 @@ def pytest_addoption(parser: Parser) -> None:
         help="Exclude standard tests.",
     )
 
+    parser.addoption(
+        "--check-for-unused-reference-files",
+        action="store_true",
+        default=False,
+        help="Check for unused reference files in the reference file directory.",
+    )
+
 
 def pytest_collection_modifyitems(config: Config, items: list) -> None:
     """Filter tests based on their markers and provided command line options.
@@ -92,6 +107,7 @@ def pytest_collection_modifyitems(config: Config, items: list) -> None:
         `pytest --CubitPy`: Execute standard tests and tests with the `cubitpy` marker
         `pytest --performance-tests`: Execute standard tests and tests with the `performance` marker
         `pytest --exclude-standard-tests`: Execute tests with any other marker and exclude the standard unmarked tests
+        `pytest --check-for-unused-reference-files`: Check for unused reference files in the reference file directory
 
     Args:
         config: Pytest config
@@ -160,7 +176,7 @@ def current_test_name(request: pytest.FixtureRequest) -> str:
 
 @pytest.fixture(scope="function")
 def get_corresponding_reference_file_path(
-    reference_file_directory, current_test_name
+    reference_file_directory, current_test_name, request: pytest.FixtureRequest
 ) -> Callable:
     """Return function to get path to corresponding reference file for each
     test.
@@ -229,6 +245,65 @@ def get_corresponding_reference_file_path(
                 f"File path: {corresponding_reference_file_path} does not exist"
             )
 
+        # Track usage if flag is enabled
+        if request.config.getoption("--check-for-unused-reference-files"):
+            USED_REFERENCE_FILES.add(corresponding_reference_file_path.resolve())
+
         return corresponding_reference_file_path
 
     return _get_corresponding_reference_file_path
+
+
+def sessionfinish_unused_reference_files(session):
+    """Exit with exit code 1 if any unused reference files are detected.
+
+    This is utilized to ensure that the Github Actions workflow fails if
+    unused reference files are detected when the corresponding flag is
+    enabled.
+    """
+
+    if session.config.getoption("--check-for-unused-reference-files"):
+        # reference_file_directory fixture is not able to be used here (fixtures cannot be called directly)
+        reference_file_directory = Path(__file__).resolve().parent / "reference-files"
+
+        all_reference_files = {
+            p.resolve() for p in reference_file_directory.rglob("*") if p.is_file()
+        }
+
+        UNUSED_REFERENCE_FILES.update(all_reference_files - USED_REFERENCE_FILES)
+
+        if UNUSED_REFERENCE_FILES:
+            session.exitstatus = 1
+
+
+def terminal_summary_unused_reference_files(terminalreporter):
+    """Print a summary of unused reference files at the end of the pytest
+    run."""
+
+    if UNUSED_REFERENCE_FILES:
+        terminalreporter.write_sep(
+            "=", "Unused Reference Files Found", red=True, bold=True
+        )
+        for file in sorted(UNUSED_REFERENCE_FILES):
+            terminalreporter.write_line(str(file), bold=True, red=True)
+
+
+def pytest_sessionfinish(session):
+    """Exit with exit code 1 if any performance test failed or unused reference
+    files are detected.
+
+    This is utilized to ensure that the Github Actions workflow fails if
+    performance tests exceed their expected execution time or if unused
+    reference files are detected when the corresponding flag is enabled.
+    """
+
+    sessionfinish_performance_tests(session)
+    sessionfinish_unused_reference_files(session)
+
+
+def pytest_terminal_summary(terminalreporter):
+    """Print a summary of performance tests or unused reference files at the
+    end of the pytest run."""
+
+    terminal_summary_performance_tests(terminalreporter)
+    terminal_summary_unused_reference_files(terminalreporter)

@@ -57,7 +57,7 @@ jobs:
       - name: Run the test suite and upload results on failure
         uses: ./.github/actions/run_tests
         with:
-          additional-pytest-flags: "--4C --ArborX --CubitPy --cov-fail-under=93"
+          additional-pytest-flags: "--4C --ArborX --CubitPy --check-for-unused-reference-files --cov-fail-under=93"
           cubit-root: ${{ steps.cubit.outputs.cubit_root }}
       - name: Free cubit license
         if: ${{ always() }}
