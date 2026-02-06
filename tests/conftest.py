@@ -30,10 +30,6 @@ from _pytest.config import Config
 from _pytest.config.argparsing import Parser
 
 from beamme.core.conf import bme
-from tests.conftest_performance_tests import (
-    sessionfinish_performance_tests,
-    terminal_summary_performance_tests,
-)
 
 # Import additional confest files (split for better overview)
 pytest_plugins = [
@@ -297,6 +293,9 @@ def pytest_sessionfinish(session):
     reference files are detected when the corresponding flag is enabled.
     """
 
+    # import here instead of at the top, otherwise pytest warns due to double import via pytest_plugins
+    from tests.conftest_performance_tests import sessionfinish_performance_tests
+
     sessionfinish_performance_tests(session)
     sessionfinish_unused_reference_files(session)
 
@@ -304,6 +303,9 @@ def pytest_sessionfinish(session):
 def pytest_terminal_summary(terminalreporter):
     """Print a summary of performance tests or unused reference files at the
     end of the pytest run."""
+
+    # import here instead of at the top, otherwise pytest warns due to double import via pytest_plugins
+    from tests.conftest_performance_tests import terminal_summary_performance_tests
 
     terminal_summary_performance_tests(terminalreporter)
     terminal_summary_unused_reference_files(terminalreporter)
