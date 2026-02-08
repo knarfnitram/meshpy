@@ -309,6 +309,112 @@ def create_transform_boundary_conditions(
             )
         )
 
+def get_point_path_along_curve(
+    curve: _CosseratCurve,
+    *,
+    origin=[0.0, 0.0, 0.0],
+    reference_rotation=_Rotation(),
+    s_start: float = 0.0,
+    s_end: float | None = None,
+    n_steps: int = 50,
+    include_initial: bool = True,
+    factor: float = 1.0,
+    cross_section_offset: _np.ndarray | list[float] = (0.0, 0.0, 0.0),
+    offset_frame: str = "local",  # "local" (follows the cross-section) or "reference" (fixed in ref frame)
+    **kwargs,
+) -> _Tuple[_np.ndarray, _NDArray[_quaternion.quaternion]]:
+    """
+    Slide a point along the curve centerline while keeping a constant offset
+    within a chosen frame.
+
+    - offset_frame="local": offset is in the curve's local cross-section at s.
+      (Same convention as in your mesh warp: rotate by centerline rotation, then by rigid body.)
+    - offset_frame="reference": offset is given in the reference/global frame (after `reference_rotation`);
+      it does not spin with the cross-section.
+
+    Returns
+    -------
+    positions: (n_out x 3) ndarray
+    relative_rotations: (n_out,) quaternion ndarray  (world orientation relative to `reference_rotation`)
+    """
+    # --- resolve s_end if missing
+    if s_end is None:
+        s_end = (
+            getattr(curve, "length", None)
+            or getattr(curve, "L", None)
+            or getattr(curve, "total_length", None)
+            or getattr(curve, "arc_length", None)
+        )
+        if callable(s_end):
+            s_end = s_end()
+        if s_end is None:
+            raise ValueError(
+                "s_end not provided and total curve length could not be inferred."
+            )
+
+    s_samples = _np.linspace(s_start, s_end, n_steps + 1)
+    if not include_initial:
+        s_samples = s_samples[1:]
+    n_out = len(s_samples)
+
+    cross_section_offset = _np.asarray(cross_section_offset, dtype=float).reshape(3)
+
+    positions = _np.zeros((n_out, 3))
+    relative_rotations = _np.zeros((n_out,), dtype=_quaternion.quaternion)
+
+    # --- rigid body reference (match your mesh-transform conventions)
+    curve_start_pos, curve_start_rot = curve.get_centerline_position_and_rotation(0.0)
+    rigid_body_translation = curve_start_pos - origin
+    rigid_body_rotation = curve_start_rot
+
+    ref_q = reference_rotation.get_numpy_quaternion()
+    # factor is constant across samples, so this slerp is constant
+    rigid_body_rotation_for_factor = _quaternion.slerp_evaluate(
+        ref_q, rigid_body_rotation, factor
+    )
+
+    # --- sample centerline at requested s-values
+    sol_r, sol_q = curve.get_centerline_positions_and_rotations(
+        s_samples, factor=factor, **kwargs
+    )
+
+    for i in range(n_out):
+        centerline_pos = sol_r[i]
+        centerline_rot = sol_q[i]
+
+        # express centerline position relative to start, in start frame
+        centerline_relative_pos = _quaternion.rotate_vectors(
+            curve_start_rot.conjugate(), centerline_pos - curve_start_pos
+        )
+        centerline_relative_rot = curve_start_rot.conjugate() * centerline_rot
+
+        # compute the offset in the same frame as centerline_relative_pos
+        if offset_frame.lower() == "local":
+            # offset lives in the cross-section at s → rotate by centerline, then rigid body
+            offset_rel = _quaternion.rotate_vectors(
+                centerline_relative_rot, cross_section_offset
+            )
+        elif offset_frame.lower() in ("reference", "global"):
+            # offset is fixed in the reference/global frame → apply only the rigid-body rotation later
+            offset_rel = cross_section_offset
+        else:
+            raise ValueError("offset_frame must be 'local' or 'reference'")
+
+        current_pos = (
+            _quaternion.rotate_vectors(
+                rigid_body_rotation_for_factor,
+                centerline_relative_pos + offset_rel,
+            )
+            + origin
+            + factor * rigid_body_translation
+        )
+
+        positions[i] = current_pos
+        relative_rotations[i] = (
+            rigid_body_rotation_for_factor * centerline_relative_rot * ref_q.conjugate()
+        )
+
+    return positions, relative_rotations
 
 def warp_mesh_along_curve(
     mesh: _Mesh,
