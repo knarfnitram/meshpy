@@ -601,8 +601,6 @@ def set_beam_contact_section(
         raise ValueError("Please provide lower and upper value of BEAMS_PARSHIFTANGLE.")
 
     beam_contact ={
-    "MODELEVALUATOR": "standard",
-    "BEAMS_STRATEGY": "penalty",
     "BEAMS_BTBPENALTYPARAM": btb_penalty,
     "BEAMS_BTBLINEPENALTYPARAM": btb_line_penalty,
     "BEAMS_SEGCON": True,
@@ -616,7 +614,6 @@ def set_beam_contact_section(
     "BEAMS_PENREGPARAM_G0": penalty_regularization_g0,
     "BEAMS_PENREGPARAM_F0": penalty_regularization_f0,
     "BEAMS_PENREGPARAM_C0": penalty_regularization_c0,
-    "BEAMS_MAXDELTADISSCALEFAC": -1.0,
     "BEAMS_NEWGAP": new_gap
     }
 
