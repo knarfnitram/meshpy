@@ -28,7 +28,7 @@ from typing import Union as _Union
 
 from beamme.core.conf import bme as _bme
 from beamme.four_c.input_file import InputFile as _InputFile
-
+from beamme.core.function import Function as _Function
 
 def _get_segmentation_strategy(segmentation):
     """Get the 4C string for a geometry pair strategy."""
@@ -541,6 +541,8 @@ def set_beam_contact_section(
     interaction_strategy: str = "penalty",
     btb_penalty: float = 0,
     btb_line_penalty: float = 0,
+    btb_penalty_function: _Function=0,
+    btb_line_penalty_function :_Function=0,
     per_shift_angle: list[float] = [70, 80],
     par_shift_angle: list[float] = [70, 80],
     b_seg_angle: float = 12,
@@ -551,6 +553,7 @@ def set_beam_contact_section(
     penalty_regularization_c0: float = 0,
     binning_parameters: dict = {},
     beam_interaction_parameters: dict = {},
+    new_gap: bool = True,
 ):
     """Set default beam contact section, for more and updated details see
     respective input file within 4C. Parameters for set_binning_strategy and
@@ -597,25 +600,40 @@ def set_beam_contact_section(
     if len(par_shift_angle) != 2:
         raise ValueError("Please provide lower and upper value of BEAMS_PARSHIFTANGLE.")
 
-    input_file.add(
-        {
-            "BEAM INTERACTION/BEAM TO BEAM CONTACT": {
-                "BEAMS_BTBPENALTYPARAM": btb_penalty,
-                "BEAMS_BTBLINEPENALTYPARAM": btb_line_penalty,
-                "BEAMS_SEGCON": True,
-                "BEAMS_PERPSHIFTANGLE1": per_shift_angle[0],
-                "BEAMS_PERPSHIFTANGLE2": per_shift_angle[1],
-                "BEAMS_PARSHIFTANGLE1": par_shift_angle[0],
-                "BEAMS_PARSHIFTANGLE2": par_shift_angle[1],
-                "BEAMS_SEGANGLE": b_seg_angle,
-                "BEAMS_NUMINTEGRATIONINTERVAL": num_integration,
-                "BEAMS_PENALTYLAW": penalty_law,
-                "BEAMS_PENREGPARAM_G0": penalty_regularization_g0,
-                "BEAMS_PENREGPARAM_F0": penalty_regularization_f0,
-                "BEAMS_PENREGPARAM_C0": penalty_regularization_c0,
-            }
-        }
-    )
+    beam_contact ={
+    "MODELEVALUATOR": "standard",
+    "BEAMS_STRATEGY": "penalty",
+    "BEAMS_BTBPENALTYPARAM": btb_penalty,
+    "BEAMS_BTBLINEPENALTYPARAM": btb_line_penalty,
+    "BEAMS_SEGCON": True,
+    "BEAMS_PERPSHIFTANGLE1": per_shift_angle[0],
+    "BEAMS_PERPSHIFTANGLE2": per_shift_angle[1],
+    "BEAMS_PARSHIFTANGLE1": par_shift_angle[0],
+    "BEAMS_PARSHIFTANGLE2": par_shift_angle[1],
+    "BEAMS_SEGANGLE": b_seg_angle,
+    "BEAMS_NUMINTEGRATIONINTERVAL": num_integration,
+    "BEAMS_PENALTYLAW": penalty_law,
+    "BEAMS_PENREGPARAM_G0": penalty_regularization_g0,
+    "BEAMS_PENREGPARAM_F0": penalty_regularization_f0,
+    "BEAMS_PENREGPARAM_C0": penalty_regularization_c0,
+    "BEAMS_MAXDELTADISSCALEFAC": -1.0,
+    "BEAMS_NEWGAP": new_gap
+    }
+
+
+    # add only the chosen penalty parameter
+    if btb_penalty > 0:
+        beam_contact["BEAMS_BTBPENALTYPARAM"] = float(btb_penalty)
+    else:
+        beam_contact["BEAMS_BTBPENALTYPARAM_BY_FUNCT"] = btb_penalty_function
+
+
+    if btb_line_penalty > 0:
+        beam_contact["BEAMS_BTBLINEPENALTYPARAM"] = float(btb_line_penalty)
+    else:
+        beam_contact["BEAMS_BTBLINEPENALTYPARAM_BY_FUNCT"] = btb_line_penalty_function
+
+    input_file.add({"BEAM INTERACTION/BEAM TO BEAM CONTACT": beam_contact})
 
     # beam contact needs a binning strategy
     set_binning_strategy_section(input_file, **binning_parameters)
