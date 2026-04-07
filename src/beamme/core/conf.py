@@ -54,6 +54,7 @@ class BoundaryCondition(_Enum):
     beam_to_solid_volume_meshtying = _auto()
     beam_to_solid_surface_meshtying = _auto()
     beam_to_solid_surface_contact = _auto()
+    beam_to_solid_edge_contact = _auto()
     point_coupling = _auto()
     point_coupling_penalty = _auto()
     point_coupling_indirect = _auto()

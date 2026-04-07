@@ -112,6 +112,11 @@ INPUT_FILE_MAPPINGS["boundary_conditions"] = {
         "DESIGN SURF MORTAR CONTACT CONDITIONS 3D",
         _bme.geo.surface,
     ): "DESIGN SURF MORTAR CONTACT CONDITIONS 3D",
+    (
+        _bme.bc.beam_to_solid_edge_contact,
+        _bme.geo.line,
+    ): "BEAM INTERACTION/BEAM TO SOLID EDGE CONTACT BEAM",
+    
 }
 INPUT_FILE_MAPPINGS["element_type_to_four_c_string"] = {
     _VolumeHEX8: "HEX8",
