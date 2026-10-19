@@ -20,13 +20,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.24)
 
 # Project name
 project(arborxpy LANGUAGES CXX)
 
 # Compiler options
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -40,8 +40,8 @@ add_subdirectory(../../../pybind11 pybind11-build)
 include(FetchContent)
 FetchContent_Declare(
   arborx
-  GIT_REPOSITORY https://github.com/arborx/ArborX.git
-  GIT_TAG 4c015c70f3927b55e730515ce8db235e68c13480
+  GIT_REPOSITORY https://github.com/kokkos/ArborX.git
+  GIT_TAG v2.1
 )
 FetchContent_MakeAvailable(arborx)
 

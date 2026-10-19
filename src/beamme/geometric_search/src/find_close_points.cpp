@@ -20,24 +20,28 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include <ArborX_LinearBVH.hpp>
-#include <ArborX_HyperPoint.hpp>
-#include <ArborX_HyperSphere.hpp>
+#include <ArborX.hpp>
+#include <Kokkos_Core.hpp>
 
 #include "find_close_points.h"
 
 namespace GeometricSearch
 {
     /*
-     * Define the types used for the data in this file.
-     * The second entry in the closest_point_type pair is the radius for the cluster search.
+     * Define wrappers for the search data.
      * TODO: Template this also on the scalar type of the numpy array.
      */
     template <int n_dim>
-    struct CoordinatesClosestPoints
+    struct PointsPrimitives
     {
         const pybind11::detail::unchecked_reference<double, 2>* coordinates_;
-        const double tol_;
+    };
+
+    template <int n_dim>
+    struct PointsPredicates
+    {
+        const pybind11::detail::unchecked_reference<double, 2>* coordinates_;
+        double tol_;
     };
 }  // namespace GeometricSearch
 
@@ -47,88 +51,85 @@ namespace GeometricSearch
 namespace ArborX
 {
     template <int n_dim>
-    struct AccessTraits<GeometricSearch::CoordinatesClosestPoints<n_dim>, PrimitivesTag>
+    struct AccessTraits<GeometricSearch::PointsPrimitives<n_dim>>
     {
-        using memory_space = Kokkos::HostSpace;
-
-        static std::size_t size(const GeometricSearch::CoordinatesClosestPoints<n_dim>& coordinates)
+        static KOKKOS_FUNCTION std::size_t size(
+            const GeometricSearch::PointsPrimitives<n_dim>& points)
         {
-            return coordinates.coordinates_->shape(0);
+            return points.coordinates_->shape(0);
         }
-
-        static auto get(
-            const GeometricSearch::CoordinatesClosestPoints<n_dim>& coordinates, std::size_t i)
+        static KOKKOS_FUNCTION auto get(
+            const GeometricSearch::PointsPrimitives<n_dim>& points, std::size_t i)
         {
-            // Return an ArborX point representing the point from the numpy array.
-            ArborX::ExperimentalHyperGeometry::Point<n_dim, double> point;
-            for (int d = 0; d < n_dim; ++d) point[d] = coordinates.coordinates_->operator()(i, d);
+            Point<n_dim, double> point;
+            for (int d = 0; d < n_dim; ++d)
+            {
+                point[d] = points.coordinates_->operator()(i, d);
+            }
             return point;
         }
+        using memory_space = Kokkos::HostSpace;
     };
 
     template <int n_dim>
-    struct AccessTraits<GeometricSearch::CoordinatesClosestPoints<n_dim>, PredicatesTag>
+    struct AccessTraits<GeometricSearch::PointsPredicates<n_dim>>
     {
-        using memory_space = Kokkos::HostSpace;
-
-        static std::size_t size(const GeometricSearch::CoordinatesClosestPoints<n_dim>& coordinates)
+        static KOKKOS_FUNCTION std::size_t size(
+            const GeometricSearch::PointsPredicates<n_dim>& points)
         {
-            return coordinates.coordinates_->shape(0);
+            return points.coordinates_->shape(0);
         }
-
-        static auto get(
-            const GeometricSearch::CoordinatesClosestPoints<n_dim>& coordinates, std::size_t i)
+        static KOKKOS_FUNCTION auto get(
+            const GeometricSearch::PointsPredicates<n_dim>& points, std::size_t i)
         {
             // Create an ArborX sphere at the coordinates of the point here. The radius is the
             // tolerance for the closes point search.
-            ArborX::ExperimentalHyperGeometry::Point<n_dim, double> point;
-            for (int d = 0; d < n_dim; ++d) point[d] = coordinates.coordinates_->operator()(i, d);
-            return attach(intersects(ArborX::ExperimentalHyperGeometry::Sphere<n_dim, double>{
-                              point, coordinates.tol_}),
-                (int)i);
+            Point<n_dim, double> point;
+            for (int d = 0; d < n_dim; ++d)
+            {
+                point[d] = points.coordinates_->operator()(i, d);
+            }
+            return attach(intersects(ArborX::Sphere<n_dim, double>{point, points.tol_}), (int)i);
         }
+        using memory_space = Kokkos::HostSpace;
     };
 }  // namespace ArborX
 
 
 namespace GeometricSearch
 {
-    struct EnsureUniquePairs
-    {
-        template <class Predicate, class OutputFunctor>
-        KOKKOS_FUNCTION void operator()(
-            Predicate const& predicate, int i, OutputFunctor const& out) const
-        {
-            int const j = getData(predicate);
-            if (i > j)
-            {
-                out(i);
-            }
-        }
-    };
-
     template <int n_dim>
     std::tuple<pybind11::array_t<int>, pybind11::array_t<int>> find_close_points_template(
         const pybind11::array_t<double>& coordinates, double tol)
     {
         using memory_space = Kokkos::HostSpace;
 
-        // Get the data from the numpy array and pack the raw point data and the search tolerance
-        // into a pair for the ArborX access traits.
+        // Get the data from the numpy array and create the primitives and predicates.
         const auto& coordinates_unchecked = coordinates.unchecked<2>();
-        const CoordinatesClosestPoints<n_dim> coordinates_with_tol{&coordinates_unchecked, tol};
+        const PointsPrimitives<n_dim> points_primitives{.coordinates_ = &coordinates_unchecked};
+        const PointsPredicates<n_dim> points_predicates{
+            .coordinates_ = &coordinates_unchecked, .tol_ = tol};
 
         // Build tree structure containing all points
-        using hyper_box = ArborX::ExperimentalHyperGeometry::Box<n_dim, double>;
-        ArborX::BasicBoundingVolumeHierarchy<memory_space,
-            ArborX::Details::PairIndexVolume<hyper_box>>
-            bounding_volume_hierarchy(Kokkos::DefaultExecutionSpace{}, coordinates_with_tol);
+        ArborX::BoundingVolumeHierarchy bounding_volume_hierarchy{
+            Kokkos::DefaultHostExecutionSpace{},
+            ArborX::Experimental::attach_indices(points_primitives)};
 
         // Perform the collision check
+        auto ensure_unique_pairs =
+            KOKKOS_LAMBDA(const auto predicate, const auto& value, const auto& out)->void
+        {
+            int const i = value.index;
+            int const j = getData(predicate);
+            if (i > j)
+            {
+                out(i);
+            }
+        };
         Kokkos::View<int*, Kokkos::HostSpace> indices_arborx("indices_arborx", 0);
         Kokkos::View<int*, Kokkos::HostSpace> offset_arborx("offset_arborx", 0);
-        bounding_volume_hierarchy.query(Kokkos::DefaultExecutionSpace{}, coordinates_with_tol,
-            EnsureUniquePairs{}, indices_arborx, offset_arborx);
+        bounding_volume_hierarchy.query(Kokkos::DefaultExecutionSpace{}, points_predicates,
+            ensure_unique_pairs, indices_arborx, offset_arborx);
 
         // Copy everything into numpy arrays
         auto copy_kokkos_array = [&](const Kokkos::View<int*, Kokkos::HostSpace>& vec)
