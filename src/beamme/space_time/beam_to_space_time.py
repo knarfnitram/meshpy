@@ -306,6 +306,12 @@ def beam_to_space_time(
                     )
                 )
 
+    # Reset the previously set indices.
+    for node in mesh_space_reference.nodes:
+        node.i_global = None
+    for element in mesh_space_reference.elements:
+        element.i_global = None
+
     # Create the new mesh and add all the mesh items
     space_time_mesh = _Mesh()
     space_time_mesh.add(space_time_nodes)
