@@ -26,7 +26,7 @@ import warnings as _warnings
 from beamme.geometric_search.utils import cython_is_available as _cython_is_available
 
 if _cython_is_available():
-    from beamme.geometric_search.cython_lib import (
+    from beamme.geometric_search.find_close_points_cython import (
         find_close_points as _find_close_points,
     )
 

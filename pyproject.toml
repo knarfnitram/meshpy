@@ -1,6 +1,13 @@
 [build-system]
-requires = ["setuptools", "setuptools_scm[toml]", "wheel", "cython", "numpy"]
-build-backend = "setuptools.build_meta"
+requires = [
+  "scikit-build-core>=1.1",
+  "setuptools-scm",
+  "cython",
+  "cython-cmake",
+  "numpy",
+  "pybind11",
+]
+build-backend = "scikit_build_core.build"
 
 [project]
 name = "BeamMe"
@@ -26,15 +33,25 @@ dependencies = [
   "scipy",
   "splinepy",
   "vedo==2024.5.2", # Needed as a fix for the splinepy visualization tool gustaf
-  "vtk"
+  "vtk",
 ]
 
 dynamic = ["version"]
 
 [tool.setuptools_scm]
-version_file = "src/beamme/version.py"
+write_to = "src/beamme/version.py"
 version_scheme = "post-release"
 local_scheme = "no-local-version"
+
+[[tool.dynamic-metadata]]
+provider = "scikit_build_core.metadata.setuptools_scm"
+
+[tool.scikit-build]
+minimum-version = "build-system.requires"
+wheel.packages = ["src/beamme"]
+sdist.include = ["src/beamme/version.py"]
+sdist.exclude = ["src/pybind11"]
+wheel.exclude = ["**/cython/**"]
 
 [project.optional-dependencies]
 cubitpy = [
@@ -53,7 +70,7 @@ dev = [
   "pytest-cov",
   "testbook",
   "vistools>=0.7.1",
-  "xmltodict"
+  "xmltodict",
 ]
 
 [project.urls]
@@ -76,7 +93,7 @@ markers = [
   "fourc: tests in combination with 4C",
   "arborx: tests in combination with ArborX",
   "coreform: tests in combination with Coreform Cubit",
-  "performance: performance tests"
+  "performance: performance tests",
 ]
 filterwarnings = [
   # Ignore warnings coming from CubitPy, as they are only related to testing scripts

@@ -21,7 +21,7 @@
 # THE SOFTWARE.
 # cython: language_level=3
 """
-This script contains functions that calculate points that are close together.
+This module contains functions that calculate points that are close together.
 It uses cython to gain performance.
 """
 

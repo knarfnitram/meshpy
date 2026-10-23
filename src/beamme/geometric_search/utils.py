@@ -41,6 +41,6 @@ def cython_is_available() -> bool:
     Returns:
         True if Cython is installed, False otherwise
     """
-    if _find_spec("beamme.geometric_search.cython_lib") is None:
+    if _find_spec("beamme.geometric_search.find_close_points_cython") is None:
         return False
     return True
