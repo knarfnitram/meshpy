@@ -70,7 +70,7 @@ the [Institute for Computational Mechanics (LNM)](https://www.epc.ed.tum.de/lnm/
 - [Developing BeamMe](#developing-beamme)
   - [Coding guidelines](#coding-guidelines)
   - [Testing](#testing)
-  - [Cython geometric search](#cython-geometric-search)
+  - [C and C++ extensions](#c-and-c-extensions)
 - [Contributing](#contributing)
 - [Authors](#authors)
 
@@ -378,11 +378,12 @@ export CUBITPY_CONFIG_PATH=<path_to_CubitPy_config_file>
 pytest --4C --ArborX --Coreform --exclude-standard-tests
 ```
 
-### Cython geometric search
+### C and C++ extensions
 
-Some performance critical geometric search algorithms in BeamMe are written in [Cython](https://cython.readthedocs.io/en/stable/index.html). If Cython code is changed, it has to be recompiled. This can be done by running
+Some performance-critical geometric search algorithms in BeamMe are implemented in Cython and C++.
+To rebuild the extensions after changing Cython or C++ code, run:
 ```bash
-python setup.py build_ext --inplace
+pip install --no-deps --no-cache-dir --force-reinstall -e .
 ```
 
 ## Contributing

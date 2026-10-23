@@ -19,27 +19,10 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-"""
-This script can be used to compile the cython code:
-> python setup.py build_ext --inplace
-"""
 
-import numpy as np
-from Cython.Build import cythonize
-from setuptools import Extension, setup
+cmake_minimum_required(VERSION 3.24)
 
-extensions = [
-    Extension(
-        "beamme.geometric_search.cython_lib",
-        ["src/beamme/geometric_search/cython_lib.pyx"],
-        include_dirs=[np.get_include()],
-    )
-]
+project(beamme LANGUAGES C)
 
-setup(
-    ext_modules=cythonize(
-        extensions,
-        build_dir="src/build/cython_generated_code",
-        annotate=True,
-    ),
-)
+# Include CMake configuration for Cython code
+add_subdirectory(src/cython)
